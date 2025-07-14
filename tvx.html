@@ -1,115 +1,117 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>TVX</title>
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-    <style>
-        * {
-          box-sizing: border-box;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TVX</title>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
 
-        html, body {
-          margin: 0;
-          padding: 0;
-          background: black;
-          font-family: sans-serif;
-          overflow: hidden;
-        }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: black;
+      font-family: sans-serif;
+      overflow: hidden;
+    }
 
-        video {
-          width: 100%;
-          height: auto;
-          object-fit: cover;
-          position: absolute;
-          top: 20px;
-          left: 0;
-          z-index: 0;
-        }
+    video {
+      width: 100%;
+      height: auto;
+      object-fit: cover;
+      position: absolute;
+      top: 20px;
+      left: 0;
+      z-index: 0;
+    }
 
-        #channelBar {
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          padding: 0px;
-          display: flex;
-          overflow-x: auto;
-          gap: 6px;
-          background: rgba(0, 0, 0, 0.7);
-          z-index: 998;
-          scrollbar-width: none;
-        }
+    #channelBar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      padding: 0px;
+      display: flex;
+      overflow-x: auto;
+      gap: 6px;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 998;
+      scrollbar-width: none;
+      transition: opacity 0.4s ease;
+      opacity: 1;
+    }
 
-        #channelBar::-webkit-scrollbar {
-          display: none;
-        }
+    #channelBar.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
 
-        .channel {
-          min-width: 160px;
-          background: #333;
-          color: #fff;
-          padding: 3px;
-          border-radius: 2px;
-          text-align: center;
-          flex-shrink: 0;
-          font-size: 14px;
-          transition: all 0.2s ease;
-          opacity: 35%;
-        }
+    #channelBar::-webkit-scrollbar {
+      display: none;
+    }
 
-        .channel:focus,
-        .channel.focused {
-          background: #59B200;
-          outline: none;
-          color: #fff;
-          opacity: 100%;
-        }
+    .channel {
+      min-width: 160px;
+      background: #333;
+      color: #fff;
+      padding: 3px;
+      border-radius: 2px;
+      text-align: center;
+      flex-shrink: 0;
+      font-size: 14px;
+      transition: all 0.2s ease;
+      opacity: 35%;
+    }
 
-        .channel.active {
-          border: 0px solid white;
-        }
+    .channel:focus,
+    .channel.focused {
+      background: #59B200;
+      outline: none;
+      color: #fff;
+      opacity: 100%;
+    }
 
-        @media (max-width: 768px) {
-          .channel {
-            min-width: 120px;
-            font-size: 14px;
-          }
-        }
+    .channel.active {
+      border: 0px solid white;
+    }
 
-        #channelNameOverlay {
-          position: fixed;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          color: white;
-          background: rgba(0, 0, 0, 0.7);
-          padding: 12px 24px;
-          border-radius: 8px;
-          font-size: 50px;
-          z-index: 999;
-          opacity: 0;
-          transition: opacity 0.5s ease;
-          pointer-events: none;
-        }
+    @media (max-width: 768px) {
+      .channel {
+        min-width: 120px;
+        font-size: 14px;
+      }
+    }
 
-        .opaq{opacity:40% }
+    #channelNameOverlay {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 50px;
+      z-index: 999;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      pointer-events: none;
+    }
 
-
-
-
-    </style>
+    .opaq {
+      opacity: 40%;
+    }
+  </style>
 </head>
 <body>
 
-<video id="video" autoplay playsinline ></video>
+<video id="video" autoplay playsinline></video>
+<div class="opaq"><div id="channelNameOverlay"></div></div>
 
-<div class="opaq"> <div id="channelNameOverlay"></div> </div>
-
-
-
-    <div id="channelBar">
+<div id="channelBar">
     <div class="channel"  data-id="x" data-src="https://fl3.moveonjoy.com/MTV_CLASSIC/index.m3u8">MTV CLASSIC</div>
     <div class="channel"  data-id="x" data-src="https://fl5.moveonjoy.com/MTV_LIVE/index.m3u8">MTV LIVE</div>
     <div class="channel"  data-id="x" data-src="https://fl5.moveonjoy.com/MTV_2/index.m3u8">MTV 2</div>
@@ -189,76 +191,90 @@
 
     </div>
 
-
 <script>
-    const video = document.getElementById('video');
-    const channels = document.querySelectorAll('.channel');
-    const channelBar = document.getElementById('channelBar');
-    let focusedIndex = 0;
-    let hls;
+  const video = document.getElementById('video');
+  const channels = document.querySelectorAll('.channel');
+  const channelBar = document.getElementById('channelBar');
+  const overlay = document.getElementById('channelNameOverlay');
+  let focusedIndex = 0;
+  let hls;
+  let hideTimeout;
 
-    function playStream(url) {
-      if (hls) {
-        hls.destroy();
-      }
-      if (Hls.isSupported()) {
-        hls = new Hls();
-        hls.loadSource(url);
-        hls.attachMedia(video);
-      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-        video.src = url;
-      }
-      video.play().catch(err => console.error('Oynatma hatası:', err));
+  function playStream(url) {
+    if (hls) hls.destroy();
+    if (Hls.isSupported()) {
+      hls = new Hls();
+      hls.loadSource(url);
+      hls.attachMedia(video);
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      video.src = url;
     }
+    video.play().catch(err => console.error('Oynatma hatası:', err));
+  }
 
-    function showChannelName(name) {
-      const overlay = document.getElementById('channelNameOverlay');
-      overlay.textContent = name;
-      overlay.style.opacity = 1;
+  function showChannelName(name) {
+    overlay.textContent = name;
+    overlay.style.opacity = 1;
+    clearTimeout(overlay._timeout);
+    overlay._timeout = setTimeout(() => {
+      overlay.style.opacity = 0;
+    }, 3000);
+  }
 
-      clearTimeout(overlay._timeout);
-      overlay._timeout = setTimeout(() => {
-        overlay.style.opacity = 0;
-      }, 3000); // 3 saniye göster
-    }
+  function updateFocus(index) {
+    channels.forEach(c => c.classList.remove('focused'));
+    channels[index].classList.add('focused');
+    channels[index].scrollIntoView({behavior: "smooth", inline: "center"});
+  }
 
-    function updateFocus(index) {
-      channels.forEach(c => c.classList.remove('focused'));
-      channels[index].classList.add('focused');
-      channels[index].scrollIntoView({behavior: "smooth", inline: "center"});
-    }
-
-    function activateChannel(index) {
-      channels.forEach(c => c.classList.remove('active'));
-      channels[index].classList.add('active');
-      playStream(channels[index].dataset.src);
-      showChannelName(channels[index].innerText)
-    }
-
-    document.addEventListener('keydown', e => {
-      if (e.key === 'ArrowRight') {
-        focusedIndex = (focusedIndex + 1) % channels.length;
-        updateFocus(focusedIndex);
-      } else if (e.key === 'ArrowLeft') {
-        focusedIndex = (focusedIndex - 1 + channels.length) % channels.length;
-        updateFocus(focusedIndex);
-      } else if (e.key === 'Enter') {
-        activateChannel(focusedIndex);
-      }
-    });
-
-    // Mobil tıklama desteği
-    channels.forEach((channel, index) => {
-      channel.addEventListener('click', () => {
-        focusedIndex = index;
-        updateFocus(index);
-        activateChannel(index);
-      });
-    });
-
-    // İlk kanalı otomatik başlat
-    playStream(channels[0].dataset.src);
+  function activateChannel(index) {
+    channels.forEach(c => c.classList.remove('active'));
+    channels[index].classList.add('active');
+    playStream(channels[index].dataset.src);
     showChannelName(channels[index].innerText);
+    resetHideTimer();
+  }
+
+  // Kanal değişimi ve yön tuşları
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight') {
+      focusedIndex = (focusedIndex + 1) % channels.length;
+      updateFocus(focusedIndex);
+      resetHideTimer();
+    } else if (e.key === 'ArrowLeft') {
+      focusedIndex = (focusedIndex - 1 + channels.length) % channels.length;
+      updateFocus(focusedIndex);
+      resetHideTimer();
+    } else if (e.key === 'Enter') {
+      activateChannel(focusedIndex);
+    }
+  });
+
+  // Mobil tıklama desteği
+  channels.forEach((channel, index) => {
+    channel.addEventListener('click', () => {
+      focusedIndex = index;
+      updateFocus(index);
+      activateChannel(index);
+    });
+  });
+
+  // === BAR GİZLEME GÖSTERME ===
+  function resetHideTimer() {
+    channelBar.classList.remove('hidden');
+    clearTimeout(hideTimeout);
+    hideTimeout = setTimeout(() => {
+      channelBar.classList.add('hidden');
+    }, 3000);
+  }
+
+  ['mousemove', 'keydown', 'touchstart'].forEach(event => {
+    document.addEventListener(event, resetHideTimer);
+  });
+
+  // Sayfa açıldığında ilk kanal
+  updateFocus(focusedIndex);
+  activateChannel(focusedIndex);
 </script>
 
 </body>
