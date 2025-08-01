@@ -1,4 +1,11 @@
 [
+
+   {
+    "name": "...",
+    "id": "xxx",
+    "type": "hls",
+    "src": "#"
+  },
   {
     "name": "HALK TV",
     "id": "xxx",
