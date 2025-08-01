@@ -270,15 +270,10 @@
       }
     }
 
-    function playYouTube(videoId) {
-      playerDiv.innerHTML = `
-        <iframe 
-          src="https://www.youtube.com/embed/${videoId}?autoplay=1" 
-          frameborder="0" 
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-          allowfullscreen>
-        </iframe>`;
-    }
+   function playYouTube(videoId) {
+  window.open(`https://www.youtube.com/watch?v=${videoId}`, '_blank');
+}
+
 
     channels.forEach(channel => {
       channel.addEventListener('click', () => {
