@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TV</title>
+  <title>TVmob</title>
   <meta name="theme-color" content="#111111">
   <link rel="manifest" href="manifest.json">
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
@@ -27,20 +27,15 @@
     }
 
     #video-container {
-      width: 100vw;
-      height: 100vh;
+      width: 100%;
+      height: 95vh;
       position: absolute;
       background-color: black;
-      top: 0;
-      left: 0;
     }
 
     video {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
+      width: 100%;
+      height: 100%;
       object-fit: contain;
       background-color: black;
     }
@@ -287,32 +282,7 @@
     playStream(selected.getAttribute('data-src'), selected);
   }
 
-  // 🧠 Çift tıklamayı iptal et
-  video.addEventListener('dblclick', e => e.preventDefault());
-
-  // 📱 Yatay moda geçince otomatik fullscreen
-  function checkOrientationAndFullscreen() {
-    const isLandscape = window.innerWidth > window.innerHeight;
-
-    if (isLandscape && !document.fullscreenElement) {
-      video.requestFullscreen().catch(err => {
-        console.warn("Fullscreen isteği başarısız:", err);
-      });
-    }
-
-    if (!isLandscape && document.fullscreenElement) {
-      document.exitFullscreen();
-    }
-  }
-
-  window.addEventListener('orientationchange', () => {
-    setTimeout(checkOrientationAndFullscreen, 500);
-  });
-
-  window.addEventListener('DOMContentLoaded', () => {
-    loadChannels();
-    checkOrientationAndFullscreen(); // ilk yüklemede de kontrol et
-  });
+  window.addEventListener('DOMContentLoaded', loadChannels);
 </script>
 </body>
 </html>
