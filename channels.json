@@ -19,12 +19,6 @@
     "src": "https://tele1-live.ercdn.net/tele1/tele1.m3u8"
   },
   {
-    "name": "SÖZCÜ TV",
-    "id": "xxx",
-    "type": "youtube",
-    "src": "ztmY_cCtUl0"
-  },
-  {
     "name": "EPIX",
     "id": "xxx",
     "type": "hls",
