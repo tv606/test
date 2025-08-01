@@ -3,15 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TV</title>
+  <title>TVmob</title>
   <meta name="theme-color" content="#111111">
   <link rel="manifest" href="manifest.json">
-  <link rel="icon" type="image/svg+xml"
-    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%93%BA%3C/text%3E%3C/svg%3E" />
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <style>
     :root {
-      --bg-color: #0f0f0f;
+      --bg-color: #000000;
       --accent-color: #1f1f1f;
       --text-color: #fff;
       --hover-color: #333;
@@ -25,31 +23,21 @@
       color: var(--text-color);
       height: 100vh;
       overflow: hidden;
+      touch-action: manipulation;
     }
 
     #video-container {
       width: 100%;
-      height: 100vh;
-      position: relative;
+      height: 95vh;
+      position: absolute;
       background-color: black;
     }
 
     video {
       width: 100%;
       height: 100%;
-      border: none;
       object-fit: contain;
       background-color: black;
-    }
-
-    #swipe-overlay {
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 9;
-      background: transparent;
-      touch-action: pan-y;
     }
 
     #toggle-menu {
@@ -66,7 +54,8 @@
       cursor: pointer;
       font-size: 1rem;
       box-shadow: 0 2px 6px rgba(0,0,0,0.6);
-      opacity: 0.65;
+      opacity: 0.7;
+      display: none;
     }
 
     #channel-bar {
@@ -115,9 +104,18 @@
       font-weight: 600;
     }
 
+    #swipe-overlay {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 10;
+      background: transparent;
+    }
+
     #channel-name-popup {
       position: fixed;
-      top: 15%;
+      top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
       background: rgba(0, 0, 0, 0.75);
@@ -130,7 +128,6 @@
       pointer-events: none;
       opacity: 0.5;
       animation: fadeInOut 2s ease;
-      text-align: center;
       font-weight: bold;
     }
 
@@ -148,10 +145,11 @@
 
 <div id="video-container">
   <div id="swipe-overlay"></div>
-  <video id="video" autoplay playsinline></video>
+  <video id="video" autoplay muted playsinline></video>
 </div>
 
 <button id="toggle-menu">KANALLAR</button>
+
 <div id="channel-bar">
   <ul id="channel-list"></ul>
 </div>
@@ -161,21 +159,10 @@
   const toggleMenu = document.getElementById('toggle-menu');
   const channelBar = document.getElementById('channel-bar');
   const channelList = document.getElementById('channel-list');
-  const overlay = document.getElementById('swipe-overlay');
-  const popup = document.getElementById('channel-name-popup');
-
+  const swipeOverlay = document.getElementById('swipe-overlay');
   let listItems = [];
   let currentIndex = 0;
-  let hls = null;
-
-  function showChannelName(name) {
-    popup.textContent = name;
-    popup.style.display = 'block';
-    popup.classList.remove('fade');
-    void popup.offsetWidth;
-    popup.classList.add('fade');
-    setTimeout(() => popup.style.display = 'none', 2000);
-  }
+  let hideMenuTimeout;
 
   function playStream(url, element) {
     listItems.forEach(li => li.classList.remove('active'));
@@ -183,14 +170,15 @@
     currentIndex = listItems.indexOf(element);
     showChannelName(element.textContent);
 
-    if (hls) hls.destroy();
-    hls = new Hls();
-    hls.loadSource(url);
-    hls.attachMedia(video);
-    hls.on(Hls.Events.MANIFEST_PARSED, function () {
-      video.muted = false;
-      video.play().catch(err => console.warn("Autoplay engellendi:", err));
-    });
+    if (Hls.isSupported()) {
+      const hls = new Hls();
+      hls.loadSource(url);
+      hls.attachMedia(video);
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      video.src = url;
+    } else {
+      alert("Tarayıcınız HLS desteklemiyor.");
+    }
 
     channelBar.style.display = 'none';
   }
@@ -238,41 +226,61 @@
       .catch(err => console.error("Kanal listesi yüklenemedi:", err));
   }
 
+  function showChannelName(name) {
+    const popup = document.getElementById('channel-name-popup');
+    popup.textContent = name;
+    popup.style.display = 'block';
+    popup.classList.remove('fade');
+    void popup.offsetWidth;
+    popup.classList.add('fade');
+    setTimeout(() => {
+      popup.style.display = 'none';
+    }, 3000);
+  }
+
+  function showMenuTemporarily() {
+    toggleMenu.style.display = 'block';
+    clearTimeout(hideMenuTimeout);
+    hideMenuTimeout = setTimeout(() => {
+      toggleMenu.style.display = 'none';
+    }, 3000);
+  }
+
+  swipeOverlay.addEventListener('touchstart', e => {
+    touchStartX = e.changedTouches[0].screenX;
+  });
+
+  swipeOverlay.addEventListener('touchend', e => {
+    touchEndX = e.changedTouches[0].screenX;
+    handleGesture();
+  });
+
+  swipeOverlay.addEventListener('touchstart', showMenuTemporarily);
+  swipeOverlay.addEventListener('touchend', showMenuTemporarily);
+  document.addEventListener('click', showMenuTemporarily);
+
   toggleMenu.addEventListener('click', () => {
     channelBar.style.display = channelBar.style.display === 'block' ? 'none' : 'block';
   });
 
-  document.addEventListener('click', e => {
-    if (!channelBar.contains(e.target) && e.target !== toggleMenu) {
-      channelBar.style.display = 'none';
-    }
-  });
-
-  // Swipe kontrol
   let touchStartX = 0;
   let touchEndX = 0;
 
-  overlay.addEventListener('touchstart', e => {
-    touchStartX = e.changedTouches[0].screenX;
-  }, false);
-
-  overlay.addEventListener('touchend', e => {
-    touchEndX = e.changedTouches[0].screenX;
+  function handleGesture() {
     const delta = touchEndX - touchStartX;
     if (Math.abs(delta) < 50) return;
 
     if (delta > 50) {
       currentIndex = (currentIndex - 1 + listItems.length) % listItems.length;
-    } else {
+    } else if (delta < -50) {
       currentIndex = (currentIndex + 1) % listItems.length;
     }
 
     const selected = listItems[currentIndex];
     playStream(selected.getAttribute('data-src'), selected);
-  }, false);
+  }
 
   window.addEventListener('DOMContentLoaded', loadChannels);
 </script>
-
 </body>
 </html>
