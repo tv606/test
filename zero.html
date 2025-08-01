@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TVmob</title>
+  <title>TV</title>
   <meta name="theme-color" content="#111111">
   <link rel="manifest" href="manifest.json">
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
@@ -73,7 +73,21 @@
       z-index: 999;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
       opacity: 0.8;
-      text-align:center;
+      text-align: center;
+    }
+
+    #fullscreen-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: var(--hover-color);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 10px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      z-index: 10000;
     }
 
     #channel-bar ul {
@@ -153,6 +167,7 @@
 <button id="toggle-menu">KANALLAR</button>
 
 <div id="channel-bar">
+  <button id="fullscreen-btn">⛶</button>
   <ul id="channel-list"></ul>
 </div>
 
@@ -263,6 +278,17 @@
 
   toggleMenu.addEventListener('click', () => {
     channelBar.style.display = channelBar.style.display === 'block' ? 'none' : 'block';
+  });
+
+  document.getElementById('fullscreen-btn').addEventListener('click', () => {
+    const elem = document.documentElement;
+    if (!document.fullscreenElement) {
+      elem.requestFullscreen().catch(err => {
+        console.warn(`Tam ekran hatası: ${err.message}`);
+      });
+    } else {
+      document.exitFullscreen();
+    }
   });
 
   let touchStartX = 0;
