@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TV</title>
+  <title>TVmob</title>
   <meta name="theme-color" content="#111111">
   <link rel="manifest" href="manifest.json">
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
@@ -44,6 +44,7 @@
       position: fixed;
       bottom: 12px;
       left: 12px;
+      right: 12px;
       z-index: 9999;
       padding: 10px 16px;
       background: var(--accent-color);
@@ -53,24 +54,6 @@
       cursor: pointer;
       font-size: 1rem;
       box-shadow: 0 2px 6px rgba(0,0,0,0.6);
-      opacity: 0.7;
-      display: none;
-    }
-
-    #fullscreen-btn {
-      position: fixed;
-      bottom: 12px;
-      right: 12px;
-      z-index: 9999;
-      background: #000000;
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 36px;
-      height: 36px;
-      font-size: 20px;
-      cursor: pointer;
-      box-shadow: 0 0 6px rgba(0,0,0,0.7);
       opacity: 0.7;
       display: none;
     }
@@ -93,10 +76,10 @@
       text-align: center;
     }
 
-    #channel-bar ul {
+    #channel-list {
       list-style: none;
       padding: 0;
-      margin: 0;
+      margin: 0 0 50px 0; /* altta fullscreen buton için boşluk */
     }
 
     #channel-bar li {
@@ -116,6 +99,22 @@
     #channel-bar li.active {
       background-color: var(--active-color);
       font-weight: 600;
+    }
+
+    #fullscreen-btn {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      background: black;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      font-size: 20px;
+      cursor: pointer;
+      box-shadow: 0 0 6px rgba(0,0,0,0.7);
+      z-index: 1000;
     }
 
     #swipe-overlay {
@@ -165,16 +164,15 @@
 </div>
 
 <button id="toggle-menu">KANALLAR</button>
-<button id="fullscreen-btn">⛶</button>
 
 <div id="channel-bar">
   <ul id="channel-list"></ul>
+  <button id="fullscreen-btn">⛶</button>
 </div>
 
 <script>
   const video = document.getElementById('video');
   const toggleMenu = document.getElementById('toggle-menu');
-  const fullscreenBtn = document.getElementById('fullscreen-btn');
   const channelBar = document.getElementById('channel-bar');
   const channelList = document.getElementById('channel-list');
   const swipeOverlay = document.getElementById('swipe-overlay');
@@ -256,13 +254,11 @@
     }, 3000);
   }
 
-  function showFloatingButtonsTemporarily() {
+  function showMenuTemporarily() {
     toggleMenu.style.display = 'block';
-    fullscreenBtn.style.display = 'block';
     clearTimeout(hideMenuTimeout);
     hideMenuTimeout = setTimeout(() => {
       toggleMenu.style.display = 'none';
-      fullscreenBtn.style.display = 'none';
     }, 3000);
   }
 
@@ -275,15 +271,15 @@
     handleGesture();
   });
 
-  swipeOverlay.addEventListener('touchstart', showFloatingButtonsTemporarily);
-  swipeOverlay.addEventListener('touchend', showFloatingButtonsTemporarily);
-  document.addEventListener('click', showFloatingButtonsTemporarily);
+  swipeOverlay.addEventListener('touchstart', showMenuTemporarily);
+  swipeOverlay.addEventListener('touchend', showMenuTemporarily);
+  document.addEventListener('click', showMenuTemporarily);
 
   toggleMenu.addEventListener('click', () => {
     channelBar.style.display = channelBar.style.display === 'block' ? 'none' : 'block';
   });
 
-  fullscreenBtn.addEventListener('click', () => {
+  document.getElementById('fullscreen-btn').addEventListener('click', () => {
     const elem = document.documentElement;
     if (!document.fullscreenElement) {
       elem.requestFullscreen().catch(err => {
