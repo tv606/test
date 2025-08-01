@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TVmob</title>
+  <title>TV</title>
   <meta name="theme-color" content="#111111">
   <link rel="manifest" href="manifest.json">
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
@@ -129,6 +129,7 @@
       opacity: 0.5;
       animation: fadeInOut 2s ease;
       font-weight: bold;
+      text-align: center;
     }
 
     @keyframes fadeInOut {
@@ -281,6 +282,22 @@
   }
 
   window.addEventListener('DOMContentLoaded', loadChannels);
+
+
+
+
+  let soundEnabled = false;
+
+function enableSoundOnce() {
+  if (!soundEnabled) {
+    video.muted = false;
+    video.volume = 1.0;
+    soundEnabled = true;
+  }
+}
+document.addEventListener('touchstart', enableSoundOnce, { once: true });
+document.addEventListener('click', enableSoundOnce, { once: true });
+
 </script>
 </body>
 </html>
