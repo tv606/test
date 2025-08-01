@@ -183,7 +183,7 @@
   }
 
   function loadChannels() {
-    fetch('channels.json')
+    fetch('https://tv606.github.io/test/channels.json')
       .then(response => response.json())
       .then(data => {
         data.forEach(channel => {
