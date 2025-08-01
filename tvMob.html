@@ -125,6 +125,29 @@
      background: transparent;
     }
 
+#channel-name-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.75);
+  color: white;
+  padding: 14px 24px;
+  border-radius: 16px;
+  font-size: 1.2rem;
+  z-index: 99999;
+  display: none;
+  pointer-events: none;
+  opacity: 0.5;
+  animation: fadeInOut 2s ease;
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translate(-50%, -55%); }
+  10% { opacity: 0.5; transform: translate(-50%, -50%); }
+  90% { opacity: 0.5; transform: translate(-50%, -50%); }
+  100% { opacity: 0; transform: translate(-50%, -45%); }
+}
 
 
   </style>
@@ -134,11 +157,16 @@
 
 
 
-<div id="video-container">
-  <div id="swipe-overlay"></div>
-  <video id="video" controls autoplay style="display: none;"></video>
-  <iframe id="youtube-frame" allow="autoplay; encrypted-media" allowfullscreen style="display: none;"></iframe>
-</div>
+<body>
+  <div id="channel-name-popup"></div>
+  <div id="video-container">
+    <div id="swipe-overlay"></div>
+    <video id="video" controls autoplay style="display: none;"></video>
+    <iframe id="youtube-frame" allow="autoplay; encrypted-media" allowfullscreen style="display: none;"></iframe>
+  </div>
+
+  
+
 
 <button id="toggle-menu">KANALLAR</button>
 
@@ -161,6 +189,9 @@
     listItems.forEach(li => li.classList.remove('active'));
     element.classList.add('active');
     currentIndex = listItems.indexOf(element);
+
+    showChannelName(element.textContent);
+
 
     if (type === 'youtube') {
       video.style.display = 'none';
@@ -280,6 +311,20 @@ container.addEventListener('touchend', e => {
   handleGesture();
 }, false);
 
+function showChannelName(name) {
+  const popup = document.getElementById('channel-name-popup');
+  popup.textContent = name;
+  popup.style.display = 'block';
+
+  // animasyonu tetiklemek için önce class'ı silip yeniden ekle
+  popup.classList.remove('fade');
+  void popup.offsetWidth; // reflow
+  popup.classList.add('fade');
+
+  setTimeout(() => {
+    popup.style.display = 'none';
+  }, 2000); // 2 saniye sonra kaybolur
+}
 
 
 
