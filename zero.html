@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>📺</title>
+  <title>TV</title>
   <meta name="theme-color" content="#111111">
   <link rel="manifest" href="manifest.json">
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
@@ -281,6 +281,24 @@
     const selected = listItems[currentIndex];
     playStream(selected.getAttribute('data-src'), selected);
   }
+
+
+// Fullscreen toggle on double tap in landscape mode
+video.addEventListener('dblclick', () => {
+  const isLandscape = window.innerWidth > window.innerHeight;
+
+  if (isLandscape) {
+    if (!document.fullscreenElement) {
+      video.requestFullscreen().catch(err => {
+        console.error("Fullscreen hatası:", err);
+      });
+    } else {
+      document.exitFullscreen();
+    }
+  }
+});
+
+
 
   window.addEventListener('DOMContentLoaded', loadChannels);
 </script>
