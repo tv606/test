@@ -231,6 +231,39 @@
   });
 
   window.addEventListener('DOMContentLoaded', loadChannels);
+
+let touchStartX = 0;
+let touchEndX = 0;
+
+function handleGesture() {
+  const delta = touchEndX - touchStartX;
+  if (Math.abs(delta) < 50) return; // küçük kaymalar sayılmaz
+
+  if (delta > 50) {
+    // sağa kaydırma → önceki kanal
+    currentIndex = (currentIndex - 1 + listItems.length) % listItems.length;
+  } else if (delta < -50) {
+    // sola kaydırma → sonraki kanal
+    currentIndex = (currentIndex + 1) % listItems.length;
+  }
+
+  const selected = listItems[currentIndex];
+  const url = selected.getAttribute('data-src');
+  const type = selected.getAttribute('data-type') || 'hls';
+  playStream(url, selected, type);
+}
+
+const container = document.getElementById('video-container');
+container.addEventListener('touchstart', e => {
+  touchStartX = e.changedTouches[0].screenX;
+}, false);
+
+container.addEventListener('touchend', e => {
+  touchEndX = e.changedTouches[0].screenX;
+  handleGesture();
+}, false);
+
+  
 </script>
 
 
