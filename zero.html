@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TV</title>
+  <title>📺</title>
   <meta name="theme-color" content="#111111">
   <link rel="manifest" href="manifest.json">
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
@@ -115,7 +115,7 @@
 
     #channel-name-popup {
       position: fixed;
-      top: 50%;
+      top: 20%;
       left: 50%;
       transform: translate(-50%, -50%);
       background: rgba(0, 0, 0, 0.75);
@@ -128,8 +128,9 @@
       pointer-events: none;
       opacity: 0.5;
       animation: fadeInOut 2s ease;
-      font-weight: bold;
       text-align: center;
+      font-weight: bold;
+      font-size: 26px;
     }
 
     @keyframes fadeInOut {
@@ -146,7 +147,7 @@
 
 <div id="video-container">
   <div id="swipe-overlay"></div>
-  <video id="video" autoplay muted playsinline></video>
+  <video id="video" autoplay playsinline></video>
 </div>
 
 <button id="toggle-menu">KANALLAR</button>
@@ -282,22 +283,6 @@
   }
 
   window.addEventListener('DOMContentLoaded', loadChannels);
-
-
-
-
-  let soundEnabled = false;
-
-function enableSoundOnce() {
-  if (!soundEnabled) {
-    video.muted = false;
-    video.volume = 1.0;
-    soundEnabled = true;
-  }
-}
-document.addEventListener('touchstart', enableSoundOnce, { once: true });
-document.addEventListener('click', enableSoundOnce, { once: true });
-
 </script>
 </body>
 </html>
