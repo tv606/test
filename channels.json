@@ -73,79 +73,79 @@
     "src": "https://fl3.moveonjoy.com/STARZ/index.m3u8"
   },
   {
-    "name": "STARZ_ENCORE",
+    "name": "STARZ ENCORE",
     "id": "xxx",
     "type": "hls",
     "src": "https://fl3.moveonjoy.com/STARZ_ENCORE/index.m3u8 "
   },
   {
-    "name": "STARZ_ENCORE_WESTERNS",
+    "name": "ENCORE WESTERNS",
     "id": "xxx",
     "type": "hls",
     "src": "https://fl3.moveonjoy.com/STARZ_ENCORE_WESTERNS/index.m3u8"
   },
   {
-    "name": "STARZ_ENCORE_ACTION",
+    "name": "ENCORE ACTION",
     "id": "xxx",
     "type": "hls",
     "src": "https://fl3.moveonjoy.com/STARZ_ENCORE_ACTION/index.m3u8"
   },
   {
-    "name": "BEIN BOX 1",
+    "name": "BEIN BOX 1 TR",
     "id": "xxx",
     "type": "hls",
     "src": "https://tv.arectv34.sbs/live/box1.m3u8"
   },
   {
-    "name": "BEIN BOX 2",
+    "name": "BEIN BOX 2 TR",
     "id": "xxx",
     "type": "hls",
     "src": "https://tv.arectv34.sbs/live/box2.m3u8"
   },
   {
-    "name": "BEIN BOX 3",
+    "name": "BEIN BOX 3 TR",
     "id": "xxx",
     "type": "hls",
     "src": "https://tv.arectv34.sbs/live/box3.m3u8"
   },
     {
-    "name": "BEIN ACTION",
+    "name": "BEIN ACTION TR",
     "id": "xxx",
     "type": "hls",
     "src": "https://tv.arectv34.sbs/live/bsaction1.m3u8"
   },
   {
-    "name": "BEIN FAMILY",
+    "name": "BEIN FAMILY TR",
     "id": "xxx",
     "type": "hls",
     "src": "https://tv.arectv34.sbs/live/bsfamily.m3u8"
   },
   {
-    "name": "BEIN PREMIERE",
+    "name": "BEIN PREMIERE TR",
     "id": "xxx",
     "type": "hls",
     "src": "https://tv.arectv34.sbs/live/bspremier1.m3u8"
   },
   {
-    "name": "BEIN STARS",
+    "name": "BEIN STARS TR",
     "id": "xxx",
     "type": "hls",
     "src": "https://tv.arectv34.sbs/live/bsstars.m3u8"
   },
   {
-    "name": "SİNEMA KOMEDİ",
+    "name": "BYZBOX KOMEDİ",
     "id": "xxx",
     "type": "hls",
     "src": "https://tv.arectv34.sbs/live/sinemakomedi.m3u8"
   },
   {
-    "name": "SİNEMA AKSİYON",
+    "name": "BYZBOX AKSİYON",
     "id": "xxx",
     "type": "hls",
     "src": "https://tv.arectv34.sbs/live/sinemaaksiyon2.m3u8"
   },
   {
-    "name": "FX",
+    "name": "FX TR",
     "id": "xxx",
     "type": "hls",
     "src": "https://saran-live.ercdn.net/fx/index.m3u8"
@@ -283,19 +283,19 @@
     "src": "https://aegis-cloudfront-1.tubi.video/dc8bda97-ce9e-4091-b4e8-11254dea4da6/1080p-cc/index.m3u8"
   },
   {
-    "name": "BBC EARTH",
+    "name": "BBC EARTH TR",
     "id": "xxx",
     "type": "hls",
     "src": "https://tv.arectv34.sbs/live/bbc.m3u8"
   },
   {
-    "name": "VIASAT HISTORY",
+    "name": "VIASAT HISTORY TR",
     "id": "xxx",
     "type": "hls",
     "src": "https://tv.arectv34.sbs/live/viasathistory.m3u8"
   },
   {
-    "name": "VIASAT EXPLORE",
+    "name": "VIASAT EXPLORE TR",
     "id": "xxx",
     "type": "hls",
     "src": "https://tv.arectv34.sbs/live/viasatexplore.m3u8"
@@ -589,4 +589,5 @@
     "src": "https://fl3.moveonjoy.com/OXYGEN/index.m3u8"
   }
 ]
+
 
