@@ -499,12 +499,6 @@
     "src": "https://live-fi.tvkaista.net/tv5/live.m3u8"
   },
   {
-    "name": "TLC",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://dogus-live.daioncdn.net/tlc/tlc_720p.m3u8"
-  },
-  {
     "name": "D-MAX",
     "id": "xxx",
     "type": "hls",
@@ -589,5 +583,6 @@
     "src": "https://fl3.moveonjoy.com/OXYGEN/index.m3u8"
   }
 ]
+
 
 
