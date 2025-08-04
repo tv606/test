@@ -193,13 +193,13 @@
     "src": "https://foxkidstv.be:3369/stream/play.m3u8"
   },
   {
-    "name": "HBO",
+    "name": "HBO USA",
     "id": "xxx",
     "type": "hls",
     "src": "https://fl3.moveonjoy.com/HBO/index.m3u8"
   },
   {
-    "name": "HBO 2",
+    "name": "HBO USA 2",
     "id": "xxx",
     "type": "hls",
     "src": "https://fl3.moveonjoy.com/HBO_2/index.m3u8"
@@ -487,12 +487,6 @@
     "src": "https://apollo.production-public.tubi.io/live/ac-kcpq.m3u8"
   },
   {
-    "name": "D-MAX",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://dogus-live.daioncdn.net/dmax/dmax_720p.m3u8"
-  },
-  {
     "name": "FRANCE 24",
     "id": "xxx",
     "type": "hls",
@@ -527,6 +521,12 @@
     "id": "xxx",
     "type": "hls",
     "src": "https://uycyyuuzyh.turknet.ercdn.net/nphindgytw/nowtv/nowtv.m3u8"
+  },
+ {
+    "name": "D-MAX TR",
+    "id": "xxx",
+    "type": "hls",
+    "src": "https://dogus-live.daioncdn.net/dmax/dmax_720p.m3u8"
   },
   {
     "name": "TLC TR",
@@ -571,6 +571,7 @@
     "src": "https://fl3.moveonjoy.com/OXYGEN/index.m3u8"
   }
 ]
+
 
 
 
