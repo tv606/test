@@ -464,9 +464,9 @@
 
     {
     "name": "HALLMARK MOVIES MYSTERIES",
-    "src": "https://fl3.moveonjoy.com/HALLMARK_MOVIES_MYSTERIES/index.m3u8"
     "id": "xxx",
     "type": "hls",
+    "src": "https://fl3.moveonjoy.com/HALLMARK_MOVIES_MYSTERIES/index.m3u8"
   },
 
     {
@@ -932,6 +932,7 @@
   },
 
 ]
+
 
 
 
