@@ -13,58 +13,22 @@
     "src": "https://halktv-live.daioncdn.net/halktv/halktv.m3u8"
   },
   {
-    "name": "TELE 1",
+    "name": "SÖZCÜ TV",
     "id": "xxx",
     "type": "hls",
-    "src": "https://tele1-live.ercdn.net/tele1/tele1.m3u8"
+    "src": "https://trn03.tulix.tv/gt-sozcu-tv/playlist.m3u8"
   },
   {
-    "name": "NOW",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://uycyyuuzyh.turknet.ercdn.net/nphindgytw/nowtv/nowtv.m3u8"
-  },
-  {
-    "name": "BBC EARTH",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://tv.arectv34.sbs/live/bbc.m3u8"
-  },
-  {
-    "name": "VIASAT HISTORY",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://tv.arectv34.sbs/live/viasathistory.m3u8"
-  },
-  {
-    "name": "VIASAT EXPLR",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://tv.arectv34.sbs/live/viasatexplore.m3u8"
-  },
-  {
-    "name": "NAT-GEO",
+    "name": "NAT GEO",
     "id": "xxx",
     "type": "hls",
     "src": "https://saran-live.ercdn.net/natgeohd/index.m3u8"
   },
   {
-    "name": "NAT-GEO WILD",
+    "name": "NAT GEO WILD",
     "id": "xxx",
     "type": "hls",
     "src": "https://saran-live.ercdn.net/natgeowild/index.m3u8"
-  },
-  {
-    "name": "DISCOVERY",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://tv.arectv34.sbs/live/discovery.m3u8"
-  },
-  {
-    "name": "TARİH TV",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://tv.arectv34.sbs/live/tarihtv.m3u8"
   },
   {
     "name": "TRT BELGESEL",
@@ -73,304 +37,10 @@
     "src": "https://tv-trtbelgesel.medya.trt.com.tr/master.m3u8"
   },
   {
-    "name": "NAT-GEO USA",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://fl3.moveonjoy.com/National_Geographic/index.m3u8"
-  },
-  {
-    "name": "ANIMAL PLANET",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://fl3.moveonjoy.com/Animal_Planet/index.m3u8"
-  },
-  {
-    "name": "CTV NATURE",
-    "id": "xxx",
-    "type": "hls",
-    "src": "http://fl3.moveonjoy.com/Discovery_Science/index.m3u8"
-  },
-  {
-    "name": "DISCOVERY FAMILY",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://fl3.moveonjoy.com/DISCOVERY_FAMILY_CHANNEL/index.m3u8"
-  },
-  {
-    "name": "LOVE NATURE",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://aegis-cloudfront-1.tubi.video/dc8bda97-ce9e-4091-b4e8-11254dea4da6/1080p-cc/index.m3u8"
-  },
-  {
-    "name": "TRAVEL CHANNEL",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://fl3.moveonjoy.com/Travel_Channel/index.m3u8"
-  },
-  {
-    "name": "BEIN BOX 1",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://tv.arectv34.sbs/live/box1.m3u8"
-  },
-  {
-    "name": "BEIN BOX 2",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://tv.arectv34.sbs/live/box2.m3u8"
-  },
-  {
-    "name": "BEIN BOX 3",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://tv.arectv34.sbs/live/box3.m3u8"
-  },
-  {
-    "name": "BEIN FAMILY",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://tv.arectv34.sbs/live/bsfamily.m3u8"
-  },
-  {
-    "name": "BEIN PREMIERE",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://tv.arectv34.sbs/live/bspremier1.m3u8"
-  },
-  {
-    "name": "BEIN ACTION",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://tv.arectv34.sbs/live/bsaction1.m3u8"
-  },
-  {
-    "name": "BEIN STARS",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://tv.arectv34.sbs/live/bsstars.m3u8"
-  },
-  {
-    "name": "BYZBX KOMEDİ",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://tv.arectv34.sbs/live/sinemakomedi.m3u8"
-  },
-  {
-    "name": "BYZBX AKSİYON",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://tv.arectv34.sbs/live/sinemaaksiyon2.m3u8"
-  },
-  {
     "name": "FX",
     "id": "xxx",
     "type": "hls",
     "src": "https://saran-live.ercdn.net/fx/index.m3u8"
-  },
-  {
-    "name": "FXX",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://fl3.moveonjoy.com/FXX/index.m3u8"
-  },
-  {
-    "name": "FX USA",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://fl3.moveonjoy.com/FX/index.m3u8"
-  },
-  {
-    "name": "FX RETRO",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://fl3.moveonjoy.com/FX_MOVIE/index.m3u8"
-  },
-  {
-    "name": "HBO",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://fl3.moveonjoy.com/HBO/index.m3u8"
-  },
-  {
-    "name": "HBO2",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://fl3.moveonjoy.com/HBO_2/index.m3u8"
-  },
-  {
-    "name": "HBO ZONE",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://fl3.moveonjoy.com/HBO_ZONE/index.m3u8"
-  },
-  {
-    "name": "HBO FAMILY",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://fl3.moveonjoy.com/HBO_FAMILY/index.m3u8"
-  },
-  {
-    "name": "HBO SIGNATURE",
-    "id": "xxx",
-    "type": "hls",
-    "src": "http://23.237.104.106:8080/USA_HBO_SIGNATURE/index.m3u8"
-  },
-  {
-    "name": "HBO COMEDY",
-    "id": "xxx",
-    "type": "hls",
-    "src": "http://23.237.104.106:8080/USA_HBO_COMEDY/index.m3u8"
-  },
-  {
-    "name": "EPIX",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://fl3.moveonjoy.com/EPIX/index.m3u8"
-  },
-  {
-    "name": "EPIX 2",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://fl3.moveonjoy.com/EPIX_2/index.m3u8"
-  },
-  {
-    "name": "EPIX DRIVE IN",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://fl3.moveonjoy.com/EPIX_DRIVE_IN/index.m3u8"
-  },
-  {
-    "name": "EPIX HITS",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://fl3.moveonjoy.com/EPIX_HITS/index.m3u8"
-  },
-  {
-    "name": "STARZ",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://fl3.moveonjoy.com/STARZ/index.m3u8"
-  },
-  {
-    "name": "STARZ ENCORE",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://fl3.moveonjoy.com/STARZ_ENCORE/index.m3u8"
-  },
-  {
-    "name": "STARZ WESTERNS",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://fl3.moveonjoy.com/STARZ_ENCORE_WESTERNS/index.m3u8"
-  },
-  {
-    "name": "STARZ ACTION",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://fl3.moveonjoy.com/STARZ_ENCORE_ACTION/index.m3u8"
-  },
-  {
-    "name": "STARZ CINEMA",
-    "id": "xxx",
-    "type": "hls",
-    "src": "http://23.237.104.106:8080/USA_STARZ_CINEMA/index.m3u8"
-  },
-  {
-    "name": "STARZ COMEDY",
-    "id": "xxx",
-    "type": "hls",
-    "src": "http://23.237.104.106:8080/USA_STARZ_COMEDY/index.m3u8"
-  },
-  {
-    "name": "MOREMAX",
-    "id": "xxx",
-    "type": "hls",
-    "src": "http://23.237.104.106:8080/USA_MOREMAX/index.m3u8"
-  },
-  {
-    "name": "OUTER MAX",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://fl3.moveonjoy.com/OUTER_MAX/index.m3u8"
-  },
-  {
-    "name": "CINEMAX THRILLERMAX",
-    "id": "xxx",
-    "type": "hls",
-    "src": "http://23.237.104.106:8080/USA_CINEMAX_THRILLERMAX/index.m3u8"
-  },
-  {
-    "name": "COMEDY CENTRAL",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://fl3.moveonjoy.com/Comedy_Central/index.m3u8"
-  },
-  {
-    "name": "ENTERTAINMENT TELEVISION",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://fl3.moveonjoy.com/E_ENTERTAINMENT_TELEVISION/index.m3u8"
-  },
-  {
-    "name": "FUSE",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://fl3.moveonjoy.com/FUSE/index.m3u8"
-  },
-  {
-    "name": "PARAMOUNT",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://fl3.moveonjoy.com/PARAMOUNT_NETWORK/index.m3u8"
-  },
-  {
-    "name": "STARMAX",
-    "id": "xxx",
-    "type": "hls",
-    "src": "http://23.237.104.106:8080/USA_5STARMAX/index.m3u8"
-  },
-  {
-    "name": "CINEMAX",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://fl3.moveonjoy.com/CINEMAX/index.m3u8"
-  },
-  {
-    "name": "SHOW TIME",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://fl3.moveonjoy.com/SHOWTIME/index.m3u8"
-  },
-  {
-    "name": "SHOW TIME 2",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://fl3.moveonjoy.com/SHOWTIME_2/index.m3u8"
-  },
-  {
-    "name": "SHOW TIME NX",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://fl3.moveonjoy.com/SHOWTIME_NEXT/index.m3u8"
-  },
-  {
-    "name": "SHOWTIME EXTREME",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://fl3.moveonjoy.com/SHOWTIME_EXTREME/index.m3u8"
-  },
-  {
-    "name": "SHOWTIME WOMEN",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://fl3.moveonjoy.com/SHOWTIME_WOMEN/index.m3u8"
-  },
-  {
-    "name": "SYFY",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://fl3.moveonjoy.com/SYFY/index.m3u8"
   },
   {
     "name": "SCI-FI WORLD",
@@ -379,64 +49,22 @@
     "src": "https://streams2.sofast.tv/v1/master/611d79b11b77e2f571934fd80ca1413453772ac7/a985e052-6868-4365-ac45-52afe9008b25/manifest.m3u8"
   },
   {
+    "name": "NAT-GEO WILD",
+    "id": "xxx",
+    "type": "hls",
+    "src": "https://saran-live.ercdn.net/natgeowild/index.m3u8"
+  },
+  {
     "name": "TOP SCI-FI",
     "id": "xxx",
     "type": "hls",
     "src": "https://amg00609-amg00609c5-rakuten-uk-3764.playouts.now.amagi.tv/master.m3u8"
   },
   {
-    "name": "HALLMARK CH",
-    "id": "xxx",
-    "type": "hls",
-    "src": "http://fl3.moveonjoy.com/HALLMARK_CHANNEL/index.m3u8"
-  },
-  {
-    "name": "HALLMARK DRAMA",
-    "id": "xxx",
-    "type": "hls",
-    "src": "http://fl3.moveonjoy.com/HALLMARK_DRAMA/index.m3u8"
-  },
-  {
-    "name": "HALLMARK MOVIES MYSTERIES",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://fl3.moveonjoy.com/HALLMARK_MOVIES_MYSTERIES/index.m3u8"
-  },
-  {
     "name": "VH1",
     "id": "xxx",
     "type": "hls",
     "src": "http://23.237.104.106:8080/USA_VH1/index.m3u8"
-  },
-  {
-    "name": "MTV CLASSIC",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://fl3.moveonjoy.com/MTV_CLASSIC/index.m3u8"
-  },
-  {
-    "name": "MTV LIVE",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://fl5.moveonjoy.com/MTV_LIVE/index.m3u8"
-  },
-  {
-    "name": "MTV 2",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://fl5.moveonjoy.com/MTV_2/index.m3u8"
-  },
-  {
-    "name": "MTV East",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://fl3.moveonjoy.com/MTV/index.m3u8"
-  },
-  {
-    "name": "MTV U",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://fl3.moveonjoy.com/MTV_U/index.m3u8"
   },
   {
     "name": "M2 UKR",
@@ -457,76 +85,16 @@
     "src": "https://stream.rtl.lu/data/live/tele/rtlgold/1080p.m3u8"
   },
   {
-    "name": "REVOLT",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://fl3.moveonjoy.com/REVOLT/index.m3u8"
-  },
-  {
-    "name": "CARTOON NTWRK",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://tv.arectv34.sbs/live/cartoonnetwork.m3u8"
-  },
-  {
-    "name": "ANIME 1",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://jmp2.uk/sam-CHBD5100001EF.m3u8"
-  },
-  {
     "name": "ANIME 2",
     "id": "xxx",
     "type": "hls",
     "src": "https://foxkidstv.be:3369/stream/play.m3u8"
   },
   {
-    "name": "ANIME VISION",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://jmp2.uk/sam-ES300029LP.m3u8"
-  },
-  {
-    "name": "ANIME VISION CL",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://jmp2.uk/sam-ES3000288I.m3u8"
-  },
-  {
     "name": "WASABI",
     "id": "xxx",
     "type": "hls",
     "src": "https://amg01796-amg01796c3-rakuten-uk-2555.playouts.now.amagi.tv/playlist/amg01796-fastmediafast-wasabii-rakutenuk/playlist.m3u8"
-  },
-  {
-    "name": "BOOMERANG",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://fl3.moveonjoy.com/BOOMERANG/index.m3u8"
-  },
-  {
-    "name": "NICKELODEON",
-    "id": "xxx",
-    "type": "hls",
-    "src": "http://fl3.moveonjoy.com/NICKELODEON/index.m3u8"
-  },
-  {
-    "name": "DISNEY XD",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://fl3.moveonjoy.com/DISNEY_XD/index.m3u8"
-  },
-  {
-    "name": "EUROSPORT 1",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://tv.arectv34.sbs/live/euro1.m3u8"
-  },
-  {
-    "name": "EUROSPORT 2",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://tv.arectv34.sbs/live/euro2.m3u8"
   },
   {
     "name": "TRT SPOR",
@@ -541,160 +109,10 @@
     "src": "https://tv-trtspor2.medya.trt.com.tr/master.m3u8"
   },
   {
-    "name": "S SPORT",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://lively1.cf4-85e.workers.dev/static/ss11.m3u8"
-  },
-  {
-    "name": "S SPORT 2",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://lively1.cf4-85e.workers.dev/static/ss2.m3u8"
-  },
-  {
-    "name": "S SPORT 3",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://tv.arectv34.sbs/live/pl3.m3u8"
-  },
-  {
-    "name": "SPOR SMART 1",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://tv.arectv34.sbs/live/smart1.m3u8"
-  },
-  {
-    "name": "SPOR SMART 2",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://tv.arectv34.sbs/live/smart2.m3u8"
-  },
-  {
-    "name": "TİVİBU SPOR 1",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://tv.arectv34.sbs/live/t1.m3u8"
-  },
-  {
-    "name": "TİVİBU SPOR 2",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://tv.arectv34.sbs/live/t2.m3u8"
-  },
-  {
-    "name": "TİVİBU SPOR 3",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://tv.arectv34.sbs/live/t3.m3u8"
-  },
-  {
-    "name": "TİVİBU SPOR 4",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://tv.arectv34.sbs/live/t4.m3u8"
-  },
-  {
-    "name": "TABİ 1",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://tv.arectv34.sbs/live/tabi1.m3u8"
-  },
-  {
-    "name": "TABİ 2",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://tv.arectv34.sbs/live/tabi2.m3u8"
-  },
-  {
-    "name": "TABİ 3",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://tv.arectv34.sbs/live/tabi3.m3u8"
-  },
-  {
-    "name": "TABİ 4",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://tv.arectv34.sbs/live/tabi4.m3u8"
-  },
-  {
-    "name": "TABİ 5",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://tv.arectv34.sbs/live/tabi5.m3u8"
-  },
-  {
-    "name": "TABİ 6",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://tv.arectv34.sbs/live/tabi6.m3u8"
-  },
-  {
-    "name": "BEIN SPORTS",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://fl3.moveonjoy.com/BEIN_SPORTS/index.m3u8"
-  },
-  {
-    "name": "BEIN SPORTS XTRA",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://jmp2.uk/sam-CABA8000043F.m3u8"
-  },
-  {
-    "name": "BEIN SPORTS XTRA 2",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://jmp2.uk/sam-US2700004DX.m3u8"
-  },
-  {
-    "name": "ESPN",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://fl1.moveonjoy.com/Espn/index.m3u8"
-  },
-  {
-    "name": "ESPN 2",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://fl1.moveonjoy.com/ESPN_2/index.m3u8"
-  },
-  {
-    "name": "ESPN U",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://fl1.moveonjoy.com/ESPN_U/index.m3u8"
-  },
-  {
     "name": "NHL NETWORK",
     "id": "xxx",
     "type": "hls",
     "src": "http://23.237.104.106:8080/USA_NHL_NETWORK/index.m3u8"
-  },
-  {
-    "name": "FIFA PLUS",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://jmp2.uk/sam-ESBC2700009B4.m3u8"
-  },
-  {
-    "name": "DFB PLAY",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://jmp2.uk/sam-ES3200003OC.m3u8"
-  },
-  {
-    "name": "TLC",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://dogus-live.daioncdn.net/tlc/tlc.m3u8"
-  },
-  {
-    "name": "D-MAX",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://dogus-live.daioncdn.net/dmax/dmax_720p.m3u8"
   },
   {
     "name": "TRT1",
@@ -726,86 +144,21 @@
     "type": "hls",
     "src": "https://live-hls-web-aje.getaj.net/AJE/index.m3u8"
   },
-  {
-    "name": "FOX 13",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://apollo.production-public.tubi.io/live/ac-kcpq.m3u8"
-  },
-  {
-    "name": "NHK WORLD",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://master.nhkworld.jp/nhkworld-tv/playlist/live.m3u8"
-  },
-  {
-    "name": "NATURESCAPE",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://lotus.stingray.com/manifest/naturescape-a003-montreal/samsungtvplus/f7ed86a4-b8ac-38e0-a745-710077a95be6/3291200/manifest.m3u8"
-  },
-  {
-    "name": "CNN USA",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://fl3.moveonjoy.com/CNN/index.m3u8"
-  },
-  {
-    "name": "NBC",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://fl1.moveonjoy.com/NBC_EAST/index.m3u8"
-  },
-  {
+    {
     "name": "ABC",
     "id": "xxx",
     "type": "hls",
     "src": "https://fl1.moveonjoy.com/ABC_EAST/index.m3u8"
   },
   {
-    "name": "FYI",
+    "name": "NATURESCAPE",
     "id": "xxx",
     "type": "hls",
-    "src": "https://fl3.moveonjoy.com/FYI/index.m3u8"
-  },
-  {
-    "name": "BRAVO",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://fl3.moveonjoy.com/BRAVO/index.m3u8"
-  },
-  {
-    "name": "OXYGEN",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://fl3.moveonjoy.com/OXYGEN/index.m3u8"
-  },
-  {
-    "name": "FASHION TV",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://jmp2.uk/sam-ESAJ4500017Y1.m3u8"
-  },
-  {
-    "name": "COMET",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://fl3.moveonjoy.com/COMET/index.m3u8"
-  },
-  {
-    "name": "FREE FORM",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://fl3.moveonjoy.com/FREE_FORM/index.m3u8"
-  },
-  {
-    "name": "beinSCORE",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://pasgoliptv33.site/701.m3u8"
+    "src": "https://lotus.stingray.com/manifest/naturescape-a003-montreal/samsungtvplus/f7ed86a4-b8ac-38e0-a745-710077a95be6/3291200/manifest.m3u8"
   }
 
 ]
+
 
 
 
