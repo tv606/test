@@ -49,12 +49,6 @@
     "src": "https://streams2.sofast.tv/v1/master/611d79b11b77e2f571934fd80ca1413453772ac7/a985e052-6868-4365-ac45-52afe9008b25/manifest.m3u8"
   },
   {
-    "name": "NAT-GEO WILD",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://saran-live.ercdn.net/natgeowild/index.m3u8"
-  },
-  {
     "name": "TOP SCI-FI",
     "id": "xxx",
     "type": "hls",
@@ -158,6 +152,7 @@
   }
 
 ]
+
 
 
 
