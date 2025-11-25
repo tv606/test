@@ -13,12 +13,6 @@
     "src": "https://halktv-live.daioncdn.net/halktv/halktv.m3u8"
   },
   {
-    "name": "SÖZCÜ TV",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://trn03.tulix.tv/gt-sozcu-tv/playlist.m3u8"
-  },
-  {
     "name": "NAT GEO",
     "id": "xxx",
     "type": "hls",
@@ -31,127 +25,14 @@
     "src": "https://saran-live.ercdn.net/natgeowild/index.m3u8"
   },
   {
-    "name": "TRT BELGESEL",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://tv-trtbelgesel.medya.trt.com.tr/master.m3u8"
-  },
-  {
     "name": "FX",
     "id": "xxx",
     "type": "hls",
     "src": "https://saran-live.ercdn.net/fx/index.m3u8"
-  },
-  {
-    "name": "SCI-FI WORLD",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://streams2.sofast.tv/v1/master/611d79b11b77e2f571934fd80ca1413453772ac7/a985e052-6868-4365-ac45-52afe9008b25/manifest.m3u8"
-  },
-  {
-    "name": "TOP SCI-FI",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://amg00609-amg00609c5-rakuten-uk-3764.playouts.now.amagi.tv/master.m3u8"
-  },
-  {
-    "name": "VH1",
-    "id": "xxx",
-    "type": "hls",
-    "src": "http://23.237.104.106:8080/USA_VH1/index.m3u8"
-  },
-  {
-    "name": "M2 UKR",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://live.m2.tv/hls3/720/stream.m3u8"
-  },
-  {
-    "name": "90s",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://lotus.stingray.com/manifest/ose-142ads-montreal/samsungtvplus/f5102ca4-edd7-30ac-a357-877f60db023b/1790800/manifest.m3u8"
-  },
-  {
-    "name": "RTL GOLD",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://stream.rtl.lu/data/live/tele/rtlgold/1080p.m3u8"
-  },
-  {
-    "name": "ANIME 2",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://foxkidstv.be:3369/stream/play.m3u8"
-  },
-  {
-    "name": "WASABI",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://amg01796-amg01796c3-rakuten-uk-2555.playouts.now.amagi.tv/playlist/amg01796-fastmediafast-wasabii-rakutenuk/playlist.m3u8"
-  },
-  {
-    "name": "TRT SPOR",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://tv-trtspor1.medya.trt.com.tr/master.m3u8"
-  },
-  {
-    "name": "TRT * SPOR",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://tv-trtspor2.medya.trt.com.tr/master.m3u8"
-  },
-  {
-    "name": "NHL NETWORK",
-    "id": "xxx",
-    "type": "hls",
-    "src": "http://23.237.104.106:8080/USA_NHL_NETWORK/index.m3u8"
-  },
-  {
-    "name": "TRT1",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://tv-trt1.medya.trt.com.tr/master.m3u8"
-  },
-  {
-    "name": "TRT 2",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://tv-trt2.medya.trt.com.tr/master_720.m3u8"
-  },
-  {
-    "name": "CiNE 1",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://live.artidijitalmedya.com/artidijital_cine1/cine1/playlist.m3u8"
-  },
-  {
-    "name": "FRANCE 24",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://live.france24.com/hls/live/2037218-b/F24_EN_HI_HLS/master_5000.m3u8"
-  },
-  {
-    "name": "AL JAZEERA",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://live-hls-web-aje.getaj.net/AJE/index.m3u8"
-  },
-    {
-    "name": "ABC",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://fl1.moveonjoy.com/ABC_EAST/index.m3u8"
-  },
-  {
-    "name": "NATURESCAPE",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://lotus.stingray.com/manifest/naturescape-a003-montreal/samsungtvplus/f7ed86a4-b8ac-38e0-a745-710077a95be6/3291200/manifest.m3u8"
   }
 
 ]
+
 
 
 
