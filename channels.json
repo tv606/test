@@ -1,16 +1,10 @@
 [
 
   {
-    "name": "👇Bir Kanal Seçin👇",
+    "name": "👇Bir Kanal Seçin (VPN Gerektirir!)👇",
     "id": "xxx",
     "type": "hls",
     "src": "#"
-  },
-  {
-    "name": "HALK TV",
-    "id": "xxx",
-    "type": "hls",
-    "src": "https://halktv-live.daioncdn.net/halktv/halktv.m3u8"
   },
   {
     "name": "NAT GEO",
@@ -29,6 +23,102 @@
     "id": "xxx",
     "type": "hls",
     "src": "https://saran-live.ercdn.net/fx/index.m3u8"
+  },
+  {
+    "name": "S-Sport 1",
+    "id": "xxx",
+    "type": "hls",
+    "src": "https://wandering-pond-ff44.sadjj2390092.workers.dev/checklist/androstreamlivees1.m3u8"
+  },
+  {
+    "name": "S-Sport 2",
+    "id": "xxx",
+    "type": "hls",
+    "src": "https://wandering-pond-ff44.sadjj2390092.workers.dev/checklist/androstreamlivess2.m3u8"
+  },
+  {
+    "name": "Bein 1",
+    "id": "xxx",
+    "type": "hls",
+    "src": "https://wandering-pond-ff44.sadjj2390092.workers.dev/checklist/androstreamlivebs11.m3u8"
+  },
+  {
+    "name": "Bein 2",
+    "id": "xxx",
+    "type": "hls",
+    "src": "https://wandering-pond-ff44.sadjj2390092.workers.dev/checklist/androstreamlivebs2.m3u8"
+  },
+  {
+    "name": "Bein 3",
+    "id": "xxx",
+    "type": "hls",
+    "src": "https://wandering-pond-ff44.sadjj2390092.workers.dev/checklist/androstreamlivebs3.m3u8"
+  },
+  {
+    "name": "Bein 4",
+    "id": "xxx",
+    "type": "hls",
+    "src": "https://wandering-pond-ff44.sadjj2390092.workers.dev/checklist/androstreamlivebs4.m3u8"
+  },
+  {
+    "name": "Bein 5",
+    "id": "xxx",
+    "type": "hls",
+    "src": "https://wandering-pond-ff44.sadjj2390092.workers.dev/checklist/androstreamlivebs5.m3u8"
+  },
+  {
+    "name": "Bein Max 1",
+    "id": "xxx",
+    "type": "hls",
+    "src": "https://wandering-pond-ff44.sadjj2390092.workers.dev/checklist/androstreamlivebsm1.m3u8"
+  },
+  {
+    "name": "Bein Max 2",
+    "id": "xxx",
+    "type": "hls",
+    "src": "https://wandering-pond-ff44.sadjj2390092.workers.dev/checklist/androstreamlivebsm2.m3u8"
+  },
+  {
+    "name": "Idman TV",
+    "id": "xxx",
+    "type": "hls",
+    "src": "https://wandering-pond-ff44.sadjj2390092.workers.dev/checklist/androstreamliveidm.m3u8"
+  },
+  {
+    "name": "Tivibu SPOR 1",
+    "id": "xxx",
+    "type": "hls",
+    "src": "https://wandering-pond-ff44.sadjj2390092.workers.dev/checklist/androstreamlivets1.m3u8"
+  },
+  {
+    "name": "Tivibu SPOR 2",
+    "id": "xxx",
+    "type": "hls",
+    "src": "https://wandering-pond-ff44.sadjj2390092.workers.dev/checklist/androstreamlivets2.m3u8"
+  },
+  {
+    "name": "Tivibu SPOR 3",
+    "id": "xxx",
+    "type": "hls",
+    "src": "https://wandering-pond-ff44.sadjj2390092.workers.dev/checklist/androstreamlivets3.m3u8"
+  },
+  {
+    "name": "Tivibu SPOR 4",
+    "id": "xxx",
+    "type": "hls",
+    "src": "https://wandering-pond-ff44.sadjj2390092.workers.dev/checklist/androstreamlivets4.m3u8"
+  },
+  {
+    "name": "Smart Spor 1",
+    "id": "xxx",
+    "type": "hls",
+    "src": "https://wandering-pond-ff44.sadjj2390092.workers.dev/checklist/androstreamlivesm1.m3u8"
+  },
+  {
+    "name": "Smart Spor 2",
+    "id": "xxx",
+    "type": "hls",
+    "src": "https://wandering-pond-ff44.sadjj2390092.workers.dev/checklist/androstreamlivesm2.m3u8"
   }
 
 ]
