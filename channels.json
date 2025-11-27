@@ -1,7 +1,7 @@
 [
 
   {
-    "name": "👇Bir Kanal Seçin (VPN Gerektirir!)👇",
+    "name": "👇Bir Kanal Seçin (VPN Kullan!)👇",
     "id": "xxx",
     "type": "hls",
     "src": "#"
@@ -122,6 +122,7 @@
   }
 
 ]
+
 
 
 
