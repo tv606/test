@@ -87,7 +87,7 @@
   }
   .mobile-ch-card.active { border-color: var(--accent); background: rgba(255,62,62,0.15); transform: scale(1.02); }
   .mobile-ch-card h4 { font-size: 0.9rem; font-weight: 600; color: #e2e8f0; pointer-events: none; }
-  .drag-handle { margin-right: 15px; opacity: 1; padding: 5px; cursor: grab; }
+  .drag-handle { margin-right: 15px; opacity: 0.3; padding: 5px; cursor: grab; }
 
   .bottom-nav {
     position: fixed;
@@ -241,7 +241,7 @@ function renderChannels() {
     card.id = `ch-card-${i}`;
     card.className = `mobile-ch-card ${i === currentIndex ? 'active' : ''}`;
     card.draggable = true;
-    card.innerHTML = `<div class="drag-handle">🟢</div><h4>${ch.name}</h4>`;
+    card.innerHTML = `<div class="drag-handle">☰</div><h4>${ch.name}</h4>`;
     card.onclick = () => { if (!card.classList.contains('dragging')) playStream(i); };
 
     // Drag Drop Logic (Korundu)
@@ -348,6 +348,7 @@ renderChannels();
 </script>
 </body>
 </html>
+
 
 
 
