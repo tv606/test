@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>NEOTV Fixed Pro</title>
+<title>NEO TV</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='10' y='10' width='80' height='80' fill='none' stroke='%23e94560' stroke-width='12' rx='10'/><rect x='25' y='25' width='50' height='50' fill='%23e94560' rx='5'><animate attributeName='opacity' values='0.6;1;0.6' dur='2s' repeatCount='indefinite' /></rect></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
@@ -103,7 +103,7 @@
 </head>
 <body>
 
-<header class="app-header"><div class="app-logo" id="headerTitle">NEOTV</div></header>
+<header class="app-header"><div class="app-logo" id="headerTitle">NEO TV</div></header>
 
 <div class="player-section">
   <div class="video-box" id="videoBox">
@@ -116,19 +116,19 @@
 <div class="channel-grid" id="channelList"></div>
 
 <nav class="bottom-nav">
-  <div class="nav-item active"><div class="nav-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M2 8a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8zM7 21h10M12 18v3"/></svg></div><span>KANALLAR</span></div>
-  <div class="nav-item" onclick="toggleModal(true)"><div class="nav-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg></div><span>EKLE</span></div>
-  <div class="nav-item" id="recToggle" onclick="toggleRecording()"><div class="nav-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle fill="currentColor" cx="12" cy="12" r="5"/></svg></div><span id="recStatus">KAYDET</span></div>
+  <div class="nav-item active"><div class="nav-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M2 8a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8zM7 21h10M12 18v3"/></svg></div><span>CHANNELS</span></div>
+  <div class="nav-item" onclick="toggleModal(true)"><div class="nav-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg></div><span>ADD</span></div>
+  <div class="nav-item" id="recToggle" onclick="toggleRecording()"><div class="nav-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle fill="currentColor" cx="12" cy="12" r="5"/></svg></div><span id="recStatus">RECORD</span></div>
 </nav>
 
 <div id="addModal">
   <div class="modal-content">
-    <h3 style="margin-bottom:15px">Kanal Ekle</h3>
+    <h3 style="margin-bottom:15px">Add m3u8 Stream</h3>
     <input type="text" id="customName" placeholder="Kanal Adı">
     <input type="text" id="customUrl" placeholder="URL (.m3u8)">
     <div style="display:flex; gap:10px;">
-      <button style="flex:1; padding:12px; border-radius:10px; background:#2d3139; color:white; border:none" onclick="toggleModal(false)">Kapat</button>
-      <button style="flex:1; padding:12px; border-radius:10px; background:var(--accent); color:white; border:none" onclick="addNewChannel()">Ekle</button>
+      <button style="flex:1; padding:12px; border-radius:10px; background:#2d3139; color:white; border:none" onclick="toggleModal(false)">CLOSE</button>
+      <button style="flex:1; padding:12px; border-radius:10px; background:var(--accent); color:white; border:none" onclick="addNewChannel()">ADD</button>
     </div>
   </div>
 </div>
@@ -258,3 +258,4 @@ renderChannels();
 </script>
 </body>
 </html>
+
