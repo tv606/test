@@ -303,32 +303,45 @@ function playStream(i) {
 }
 
 // Ekran Görüntüsü ve Kayıt Özellikleri (Korundu)
-function takeScreenshot() {
+async function takeScreenshot() {
   const v = document.getElementById('videoPlayer');
   const c = document.getElementById('ssCanvas');
+  
   c.width = v.videoWidth; 
   c.height = v.videoHeight;
-
+  
   try {
-    c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
+    const ctx = c.getContext('2d');
+    ctx.drawImage(v, 0, 0, c.width, c.height);
     
-    // toDataURL yerine toBlob kullanmak daha "hafif" ve moderndir
-    c.toBlob((blob) => {
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.download = `TELE_X_Shot_${Date.now()}.png`;
-      link.href = url;
-      
-      document.body.appendChild(link); // DOM'a ekleme şart
-      link.click();
-      document.body.removeChild(link);
-      
-      // Belleği temizle
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    // 1. Canvas'ı Blob'a çeviriyoruz (Paylaşım için dosya lazım)
+    c.toBlob(async (blob) => {
+      const file = new File([blob], `TELE_X_Shot_${Date.now()}.png`, { type: "image/png" });
+
+      // 2. Tarayıcı "Paylaş" özelliğini destekliyor mu kontrol et
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({
+            files: [file],
+            title: 'TELE X Ekran Görüntüsü',
+            text: 'Ekran görüntüsü galeriye kaydedilmeye hazır.'
+          });
+        } catch (shareError) {
+          // Kullanıcı paylaşımı iptal ederse buraya düşer, hata vermemize gerek yok
+          console.log("Paylaşım iptal edildi.");
+        }
+      } else {
+        // Masaüstü veya desteklemeyen tarayıcılar için eski yöntem (Fallback)
+        const link = document.createElement('a');
+        link.download = file.name;
+        link.href = URL.createObjectURL(blob);
+        link.click();
+      }
     }, 'image/png');
-    
+
   } catch(e) { 
-    alert("Güvenlik hatası veya Stream kısıtlaması."); 
+    alert("Güvenlik: Stream içeriği paylaşılamıyor."); 
+    console.error(e);
   }
 }
 
@@ -366,6 +379,7 @@ renderChannels();
 </script>
 </body>
 </html>
+
 
 
 
