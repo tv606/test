@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>TELE X</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='10' y='10' width='80' height='80' fill='none' stroke='%23e94560' stroke-width='12' rx='10'/><rect x='25' y='25' width='50' height='50' fill='%23e94560' rx='5'><animate attributeName='opacity' values='0.6;1;0.6' dur='2s' repeatCount='indefinite' /></rect></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #05070a;
+    --surface: #101218;
+    --accent: #ff3e3e;
+    --text: #ffffff;
+    --nav-height: 85px;
+    --header-height: 65px; /* Kanal ismi için biraz genişletildi */
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+  }
+
+  /* Header with Active Channel Name */
+  .app-header {
+    height: var(--header-height);
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    position: absolute;
+    top: 0; width: 100%; z-index: 1000;
+  }
+  .app-logo { font-weight: 800; font-size: 0.75rem; color: var(--accent); text-transform: uppercase; letter-spacing: 2px; opacity: 0.8; }
+  .active-ch-display { font-weight: 600; font-size: 0.95rem; color: #fff; margin-top: 2px; }
+
+  /* Player Area */
+  .player-section {
+    position: absolute;
+    top: var(--header-height);
+    width: 100%;
+    z-index: 900;
+    background: #000;
+  }
+  .video-box { width: 100%; aspect-ratio: 16 / 9; position: relative; background: #000; }
+  video { width: 100%; height: 100%; background: #000; }
+  
+  /* Swipe Overlay (Kritik: Swipe'ı çalıştıran katman) */
+  .swipe-overlay {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    z-index: 950;
+    background: transparent;
+  }
+
+  .vid-btn {
+    position: absolute; background: rgba(0,0,0,0.6); color: white; border: none;
+    padding: 10px; border-radius: 10px; backdrop-filter: blur(5px); z-index: 1001;
+  }
+  .fs-btn { bottom: 10px; right: 10px; }
+  .ss-btn { bottom: 10px; left: 10px; }
+
+  /* Scrollable Channel List */
+  .channel-grid {
+    position: absolute;
+    top: calc(var(--header-height) + (100vw * 9 / 16)); 
+    bottom: var(--nav-height);
+    width: 100%;
+    overflow-y: scroll;
+    -webkit-overflow-scrolling: touch;
+    padding: 15px;
+    background: var(--bg);
+    z-index: 800;
+  }
+
+  .mobile-ch-card {
+    display: flex; align-items: center; padding: 15px;
+    background: var(--surface); border-radius: 14px; margin-bottom: 10px;
+    border: 1px solid rgba(255,255,255,0.05);
+  }
+  .mobile-ch-card.active { border-color: var(--accent); background: rgba(255,62,62,0.1); }
+  .mobile-ch-card.dragging { opacity: 0.4; transform: scale(0.98); border: 1px dashed var(--accent); }
+  .mobile-ch-card h4 { font-size: 0.9rem; font-weight: 600; color: #e2e8f0; pointer-events: none; }
+  
+  .drag-handle { margin-right: 15px; opacity: 0.3; padding: 5px; cursor: grab; }
+
+  /* Navigation */
+  .bottom-nav {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: var(--nav-height);
+    background: #0f1116;
+    display: flex; justify-content: space-around; align-items: center;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    z-index: 1000;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .nav-item { color: #64748b; font-size: 10px; display: flex; flex-direction: column; align-items: center; gap: 5px; flex: 1; height: 100%; justify-content: center; }
+  .nav-item.active { color: var(--accent); }
+  .nav-icon { width: 22px; height: 22px; }
+
+  /* Modal */
+  #addModal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); z-index: 2000; display: none; align-items: center; justify-content: center; padding: 20px; }
+  .modal-content { background: var(--surface); padding: 25px; border-radius: 24px; width: 100%; max-width: 350px; border: 1px solid rgba(255,255,255,0.1); }
+  input { width: 100%; background: #000; border: 1px solid #334155; padding: 14px; border-radius: 12px; color: white; margin-bottom: 15px; font-size: 16px; outline: none; }
+  .modal-btns { display: flex; gap: 10px; }
+  .btn-action { flex: 1; padding: 14px; border-radius: 12px; font-weight: 700; border: none; cursor: pointer; }
+
+  .is-recording { color: var(--accent) !important; animation: blink 1s infinite; }
+  @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="app-logo">TELE X</div>
+  <div class="active-ch-display" id="activeChName">Select a Channel</div>
+</header>
+
+<div class="player-section">
+  <div class="video-box" id="videoBox">
+    <div class="swipe-overlay" id="swipeOverlay"></div>
+    <video id="videoPlayer" playsinline webkit-playsinline autoplay crossorigin="anonymous"></video>
+    <button class="vid-btn ss-btn" onclick="takeScreenshot()"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+    <button class="vid-btn fs-btn" onclick="toggleFullScreen()"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
+  </div>
+</div>
+
+<div class="channel-grid" id="channelList"></div>
+
+<div id="addModal">
+  <div class="modal-content">
+    <h3 style="margin-bottom:20px; text-align:center">Add Channel</h3>
+    <input type="text" id="customName" placeholder="Name">
+    <input type="text" id="customUrl" placeholder="URL (.m3u8)">
+    <div class="modal-btns">
+      <button class="btn-action" style="background:#334155; color:white" onclick="toggleModal(false)">CANCEL</button>
+      <button class="btn-action" style="background:var(--accent); color:white" onclick="addNewChannel()">SAVE</button>
+    </div>
+  </div>
+</div>
+
+<nav class="bottom-nav">
+  <div class="nav-item active"><div class="nav-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M2 8a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8zM7 21h10M12 18v3"/></svg></div><span>CHANNELS</span></div>
+  <div class="nav-item" onclick="toggleModal(true)"><div class="nav-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg></div><span>ADD</span></div>
+  <div class="nav-item" id="recToggle" onclick="toggleRecording()"><div class="nav-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle fill="currentColor" cx="12" cy="12" r="5"/></svg></div><span id="recStatus">RECORD</span></div>
+</nav>
+
+<canvas id="ssCanvas" style="display:none;"></canvas>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.4.10/hls.min.js"></script>
+
+<script>
+let channels = [
+  { name: "CNN INT", url: "https://d3bp6dwmpbdajl.cloudfront.net/v1/manifest/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-ury0meh5m4nzm/2a65a3b9-8cf2-4c6a-b4c8-69b41f958f52/0.m3u8", icon: "📺" },
+  { name: "IRAN TV", url: "https://live.playstop.me/LS-63503-4/chunklist_b1196000.m3u8", icon: "📺" },
+  { name: "FRANCE 24", url: "https://live.france24.com/hls/live/2037218-b/F24_EN_HI_HLS/master_5000.m3u8", icon: "📺" },
+  { name: "BBC NEWS", url: "https://vs-hls-push-ww-live.akamaized.net/x=4/i=urn:bbc:pips:service:bbc_news_channel_hd/t=3840/v=pv14/b=5070016/main.m3u8", icon: "📺" },
+  { name: "LEBANON TV", url: "https://live.kwikmotion.com/redtvlive/redtv.smil/redtvpublish/redtv_source/chunks.m3u8", icon: "📺" },
+  { name: "JORDAN TV", url: "https://jmc-live.ercdn.net/altaghier/altaghier_1080p.m3u8", icon: "📺" },
+  { name: "HALK TV", url: "https://halktv-live.daioncdn.net/halktv/halktv_1080p.m3u8", icon: "📺" },
+  { name: "FX TR", url: "https://saran-live.ercdn.net/fx/index.m3u8", icon: "📺" },
+  { name: "NAT GEO TR", url: "https://saran-live.ercdn.net/natgeohd/index.m3u8", icon: "📺" },
+  { name: "NAT GEO WILD TR", url: "https://saran-live.ercdn.net/natgeowild/index.m3u8", icon: "📺" },
+  { name: "ARTE HD", url: "https://dash4.antik.sk/live/test_arte_avc_25p/playlist.m3u8", icon: "📺" },
+  { name: "DW ENG", url: "https://dwamdstream102.akamaized.net/hls/live/2015525/dwstream102/stream05/streamPlaylist.m3u8", icon: "📺" },
+  { name: "PRO 7", url: "https://dash4.antik.sk/live/test_pro_sieben_tizen/playlist.m3u8", icon: "📺" },
+  { name: "SAT 1 GOLD", url: "https://dash4.antik.sk/live/test_sat_eins_gold_tizen/playlist.m3u8", icon: "📺" },
+  { name: "BBC TWO", url: "https://streamer.nexyl.uk/69ef899e-8ca9-4537-9f1a-fe8b4216afbb_output_0.m3u8?session=8aPdqrefTg4Ru8rBKj3RyK", icon: "📺" },
+  { name: "BBC EARTH", url: "https://amg00793-amg00793c6-xumo-us-2669.playouts.now.amagi.tv/BBCStudios-BBCEarthA-hls/playlist1080p.m3u8", icon: "📺" },
+  { name: "BBC Earth (US)", url: "https://amg00793-bbcstudios-amg00793c3-lg-us-2528.playouts.now.amagi.tv/playlist/amg00793-bbcstudios-bbcearta-lgus/playlist.m3u8", icon: "📺" },
+  { name: "BBC Dinos 24x7 (US)", url: "https://amg00793-amg00793c35-lg-us-6412.playouts.now.amagi.tv/playlist.m3u8", icon: "📺" },
+  { name: "TYT", url: "https://tyt-samsungus.amagi.tv/playlist720p.m3u8", icon: "📺" },
+  { name: "LOVE NATURE", url: "https://aegis-cloudfront-1.tubi.video/6d6d0f24-8445-4b4c-bdf6-44f9e38beaa4/1080p-cc/index.m3u8", icon: "📺" },
+  { name: "NATURESCAPE", url: "https://lotus.stingray.com/manifest/naturescape-a003-montreal/samsungtvplus/f7ed86a4-b8ac-38e0-a745-710077a95be6/3291200/manifest.m3u8", icon: "📺" },
+  { name: "Adventure Earth (GB)", url: "https://autentic-adventure-earth-1-gb.lg.wurl.tv/playlist.m3u8", icon: "📺" },
+  { name: "Air and Space (GB)", url: "https://wingspan-airandspace-1-gb.lg.wurl.tv/playlist.m3u8", icon: "📺" },
+  { name: "NATURE TIME", url: "https://amg01515-amg01515c13-xiaomi-international-4618.playouts.now.amagi.tv/playlist.m3u8", icon: "📺" },
+  { name: "FASHION TV", url: "https://cdn-ue1-prod.tsv2.amagi.tv/linear/amg01546-ftv-fashiontv-xiaomi/playlist.m3u8", icon: "📺" },
+  { name: "Bref Cinema ", url: "https://lagenceducourtmetrage-brefcinema-01-eu.xiaomi.wurl.tv/playlist.m3u8", icon: "📺" },
+  { name: "Now 90s", url: "https://lightning-now90s-xiaomi.amagi.tv/playlist.m3u8", icon: "📺" },
+  { name: "Travel XP (GB)", url: "https://travelxp-travelxp-1-gb.lg.wurl.tv/playlist.m3u8", icon: "📺" },
+  { name: "Wild Earth (KR)", url: "https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg01290-wildearthmediap-wildearth-lgkr/playlist.m3u8", icon: "📺" },
+  { name: "Alleskino (DE)", url: "https://lighthousehomeentertainment-alleskino-1-de.lg.wurl.tv/playlist.m3u8", icon: "📺" },
+  { name: "Autentic History (GB)", url: "https://autentic-autentichistory-1-gb.lg.wurl.tv/playlist.m3u8", icon: "📺" },
+  { name: "RETRO TV", url: "http://stream.mediawork.cz/retrotv//retrotvHQ1/playlist.m3u8", icon: "📺" },
+  { name: "History Hit (FI)", url: "https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg00426-littledotstudio-historyhit-lgfi/playlist.m3u8", icon: "📺" },
+  { name: "History Time (CA)", url: "https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg00090-blueantllc-historytime-lgca/playlist.m3u8", icon: "📺" },
+  { name: "Himmlischeskino (DE)", url: "https://wdr-media-group-himmlischeskino-1-de.lg.wurl.tv/playlist.m3u8", icon: "📺" },
+  { name: "Icon Film Classics (GB)", url: "https://iconfilmsdistribution-iconfilmchannelclassics-1-gb.lg.wurl.tv/playlist.m3u8", icon: "📺" },
+  { name: "Infast (GB)", url: "https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg00861-terninternation-lifestyle-lggb/playlist.m3u8", icon: "📺" },
+  { name: "Life Downunder (GB)", url: "https://wtfn-lifedownunder-2-gb.lg.wurl.tv/playlist.m3u8", icon: "📺" },
+  { name: "Pop Flix (GB)", url: "https://signatureentertainment-popflix-1-gb.lg.wurl.tv/playlist.m3u8", icon: "📺" },
+  { name: "Sparkle Movies (AU)", url: "https://candlelightmedia-sparklemovies-1-au.lg.wurl.tv/playlist.m3u8", icon: "📺" },
+  { name: "Unbeaten (GB)", url: "https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg00721-inverleigh-unbeatengb-lggb/playlist.m3u8", icon: "📺" },
+  { name: "TRT BELGESEL", url: "https://tv-trtbelgesel.medya.trt.com.tr/master.m3u8", icon: "📺" },
+  { name: "TRT SPOR", url: "https://tv-trtspor1.medya.trt.com.tr/master.m3u8", icon: "📺" },
+  { name: "TRT1", url: "https://tv-trt1.medya.trt.com.tr/master_1080.m3u8", icon: "📺" },
+  { name: "RTL GOLD", url: "https://stream.rtl.lu/data/live/tele/rtlgold/1080p.m3u8", icon: "📺" },
+  { name: "STINGRAY 90's", url: "https://lotus.stingray.com/manifest/ose-142ads-montreal/samsungtvplus/f5102ca4-edd7-30ac-a357-877f60db023b/1790800/manifest.m3u8", icon: "📺" },
+  { name: "BEIN S1 VPN", url: "https://wandering-pond-ff44.sadjj2390092.workers.dev/checklist/androstreamlivebs1.m3u8", icon: "📺" },
+];
+
+let hls = null, currentIndex = -1, isRecording = false, mediaRecorder, recordedChunks = [], dragItem = null;
+
+// --- SWIPE LOGIC (Fixed for iOS) ---
+let touchStartX = 0;
+const swipeOverlay = document.getElementById('swipeOverlay');
+
+swipeOverlay.addEventListener('touchstart', (e) => {
+    touchStartX = e.changedTouches[0].screenX;
+}, {passive: true});
+
+swipeOverlay.addEventListener('touchend', (e) => {
+    let touchEndX = e.changedTouches[0].screenX;
+    let diff = touchStartX - touchEndX;
+    if (Math.abs(diff) > 60) {
+        if (diff > 0) changeChannel(1);
+        else changeChannel(-1);
+    }
+}, {passive: true});
+
+function changeChannel(direction) {
+    if (channels.length === 0) return;
+    let nextIndex = (currentIndex + direction + channels.length) % channels.length;
+    playStream(nextIndex);
+}
+
+// --- RENDER & DRAG DROP ---
+function renderChannels() {
+  const container = document.getElementById('channelList');
+  container.innerHTML = '';
+  channels.forEach((ch, i) => {
+    const card = document.createElement('div');
+    card.className = `mobile-ch-card ${i === currentIndex ? 'active' : ''}`;
+    card.draggable = true;
+    card.innerHTML = `<div class="drag-handle">☰</div><h4>${ch.name}</h4>`;
+    card.onclick = () => { if (!card.classList.contains('dragging')) playStream(i); };
+
+    card.addEventListener('dragstart', () => { dragItem = card; setTimeout(() => card.classList.add('dragging'), 0); });
+    card.addEventListener('dragend', () => { card.classList.remove('dragging'); saveNewOrder(); });
+    card.addEventListener('dragover', e => {
+      e.preventDefault();
+      const afterElement = getDragAfterElement(container, e.clientY);
+      if (afterElement == null) container.appendChild(dragItem);
+      else container.insertBefore(dragItem, afterElement);
+    });
+    container.appendChild(card);
+  });
+}
+
+function getDragAfterElement(container, y) {
+  const elements = [...container.querySelectorAll('.mobile-ch-card:not(.dragging)')];
+  return elements.reduce((closest, child) => {
+    const box = child.getBoundingClientRect();
+    const offset = y - box.top - box.height / 2;
+    if (offset < 0 && offset > closest.offset) return { offset: offset, element: child };
+    else return closest;
+  }, { offset: Number.NEGATIVE_INFINITY }).element;
+}
+
+function saveNewOrder() {
+  const newOrder = [];
+  document.querySelectorAll('.mobile-ch-card h4').forEach(h4 => {
+    const ch = channels.find(c => c.name === h4.innerText);
+    if(ch) newOrder.push(ch);
+  });
+  channels = newOrder;
+  const activeH4 = document.querySelector('.mobile-ch-card.active h4');
+  if(activeH4) currentIndex = channels.findIndex(c => c.name === activeH4.innerText);
+}
+
+function playStream(i) {
+  currentIndex = i;
+  const video = document.getElementById('videoPlayer');
+  const ch = channels[i];
+  
+  // Update Header Name
+  document.getElementById('activeChName').textContent = ch.name;
+  
+  renderChannels();
+  if (hls) hls.destroy();
+  if (Hls.isSupported()) {
+    hls = new Hls(); hls.loadSource(ch.url); hls.attachMedia(video);
+    hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+  } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+    video.src = ch.url; video.play();
+  }
+}
+
+function toggleModal(show) { document.getElementById('addModal').style.display = show ? 'flex' : 'none'; }
+
+function addNewChannel() {
+  const n = document.getElementById('customName').value || "Channel " + (channels.length + 1);
+  const u = document.getElementById('customUrl').value;
+  if (u) {
+    channels.unshift({name:n, url:u});
+    renderChannels(); toggleModal(false); playStream(0);
+    document.getElementById('customName').value = ""; document.getElementById('customUrl').value = "";
+  }
+}
+
+function toggleFullScreen() {
+  const v = document.getElementById('videoPlayer');
+  if (v.webkitEnterFullscreen) v.webkitEnterFullscreen();
+  else if (v.requestFullscreen) v.requestFullscreen();
+}
+
+function takeScreenshot() {
+  const v = document.getElementById('videoPlayer');
+  const c = document.getElementById('ssCanvas');
+  c.width = v.videoWidth; c.height = v.videoHeight;
+  try {
+    c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
+    const link = document.createElement('a');
+    link.download = `Shot_${Date.now()}.png`; link.href = c.toDataURL(); link.click();
+  } catch(e) { alert("Security: Cannot capture stream."); }
+}
+
+function toggleRecording() {
+  const v = document.getElementById('videoPlayer');
+  const btn = document.getElementById('recToggle');
+  if (!isRecording) {
+    try {
+      recordedChunks = [];
+      const stream = v.captureStream ? v.captureStream() : v.mozCaptureStream();
+      mediaRecorder = new MediaRecorder(stream);
+      mediaRecorder.ondataavailable = e => recordedChunks.push(e.data);
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(recordedChunks, {type: 'video/webm'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url; a.download=`Record_${Date.now()}.webm`; a.click();
+      };
+      mediaRecorder.start(); 
+      isRecording = true; btn.classList.add('is-recording');
+      document.getElementById('recStatus').textContent = "STOP";
+    } catch(e) { alert("Recording not supported."); }
+  } else {
+    mediaRecorder.stop(); isRecording = false; btn.classList.remove('is-recording');
+    document.getElementById('recStatus').textContent = "RECORD";
+  }
+}
+
+renderChannels();
+</script>
+</body>
+</html>
