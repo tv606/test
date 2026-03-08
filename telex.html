@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>TELE X</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='10' y='10' width='80' height='80' fill='none' stroke='%23e94560' stroke-width='12' rx='10'/><rect x='25' y='25' width='50' height='50' fill='%23e94560' rx='5'><animate attributeName='opacity' values='0.6;1;0.6' dur='2s' repeatCount='indefinite' /></rect></svg>">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #05070a;
@@ -13,7 +13,7 @@
     --accent: #ff3e3e;
     --text: #ffffff;
     --nav-height: 85px;
-    --header-height: 65px; /* Kanal ismi için biraz genişletildi */
+    --header-height: 65px;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -28,7 +28,6 @@
     width: 100%;
   }
 
-  /* Header with Active Channel Name */
   .app-header {
     height: var(--header-height);
     background: var(--surface);
@@ -40,10 +39,9 @@
     position: absolute;
     top: 0; width: 100%; z-index: 1000;
   }
-  .app-logo { font-weight: 800; font-size: 0.75rem; color: var(--accent); text-transform: uppercase; letter-spacing: 2px; opacity: 0.8; }
-  .active-ch-display { font-weight: 600; font-size: 0.95rem; color: #fff; margin-top: 2px; }
+  .app-logo { font-weight: 800; font-size: 0.85rem; color: var(--accent); text-transform: uppercase; letter-spacing: 3px; }
+  .active-ch-display { font-weight: 600; font-size: 0.9rem; color: #fff; margin-top: 2px; }
 
-  /* Player Area */
   .player-section {
     position: absolute;
     top: var(--header-height);
@@ -54,7 +52,6 @@
   .video-box { width: 100%; aspect-ratio: 16 / 9; position: relative; background: #000; }
   video { width: 100%; height: 100%; background: #000; }
   
-  /* Swipe Overlay (Kritik: Swipe'ı çalıştıran katman) */
   .swipe-overlay {
     position: absolute;
     top: 0; left: 0; width: 100%; height: 100%;
@@ -69,13 +66,13 @@
   .fs-btn { bottom: 10px; right: 10px; }
   .ss-btn { bottom: 10px; left: 10px; }
 
-  /* Scrollable Channel List */
   .channel-grid {
     position: absolute;
     top: calc(var(--header-height) + (100vw * 9 / 16)); 
     bottom: var(--nav-height);
     width: 100%;
     overflow-y: scroll;
+    scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
     padding: 15px;
     background: var(--bg);
@@ -86,14 +83,12 @@
     display: flex; align-items: center; padding: 15px;
     background: var(--surface); border-radius: 14px; margin-bottom: 10px;
     border: 1px solid rgba(255,255,255,0.05);
+    transition: all 0.3s ease;
   }
-  .mobile-ch-card.active { border-color: var(--accent); background: rgba(255,62,62,0.1); }
-  .mobile-ch-card.dragging { opacity: 0.4; transform: scale(0.98); border: 1px dashed var(--accent); }
+  .mobile-ch-card.active { border-color: var(--accent); background: rgba(255,62,62,0.15); transform: scale(1.02); }
   .mobile-ch-card h4 { font-size: 0.9rem; font-weight: 600; color: #e2e8f0; pointer-events: none; }
-  
   .drag-handle { margin-right: 15px; opacity: 0.3; padding: 5px; cursor: grab; }
 
-  /* Navigation */
   .bottom-nav {
     position: absolute;
     bottom: 0; left: 0; right: 0;
@@ -105,16 +100,11 @@
     padding-bottom: env(safe-area-inset-bottom);
   }
 
-  .nav-item { color: #64748b; font-size: 10px; display: flex; flex-direction: column; align-items: center; gap: 5px; flex: 1; height: 100%; justify-content: center; }
+  .nav-item { color: #64748b; font-size: 10px; display: flex; flex-direction: column; align-items: center; gap: 5px; flex: 1; height: 100%; justify-content: center; transition: 0.2s; }
   .nav-item.active { color: var(--accent); }
-  .nav-icon { width: 22px; height: 22px; }
-
-  /* Modal */
-  #addModal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); z-index: 2000; display: none; align-items: center; justify-content: center; padding: 20px; }
-  .modal-content { background: var(--surface); padding: 25px; border-radius: 24px; width: 100%; max-width: 350px; border: 1px solid rgba(255,255,255,0.1); }
-  input { width: 100%; background: #000; border: 1px solid #334155; padding: 14px; border-radius: 12px; color: white; margin-bottom: 15px; font-size: 16px; outline: none; }
-  .modal-btns { display: flex; gap: 10px; }
-  .btn-action { flex: 1; padding: 14px; border-radius: 12px; font-weight: 700; border: none; cursor: pointer; }
+  
+  .is-zapping { color: #00f2ff !important; animation: zap-pulse 1s infinite; }
+  @keyframes zap-pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.7; transform: scale(1.1); } 100% { opacity: 1; transform: scale(1); } }
 
   .is-recording { color: var(--accent) !important; animation: blink 1s infinite; }
   @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
@@ -124,7 +114,7 @@
 
 <header class="app-header">
   <div class="app-logo">TELE X</div>
-  <div class="active-ch-display" id="activeChName">Select a Channel</div>
+  <div class="active-ch-display" id="activeChName">READY</div>
 </header>
 
 <div class="player-section">
@@ -138,22 +128,10 @@
 
 <div class="channel-grid" id="channelList"></div>
 
-<div id="addModal">
-  <div class="modal-content">
-    <h3 style="margin-bottom:20px; text-align:center">Add Channel</h3>
-    <input type="text" id="customName" placeholder="Name">
-    <input type="text" id="customUrl" placeholder="URL (.m3u8)">
-    <div class="modal-btns">
-      <button class="btn-action" style="background:#334155; color:white" onclick="toggleModal(false)">CANCEL</button>
-      <button class="btn-action" style="background:var(--accent); color:white" onclick="addNewChannel()">SAVE</button>
-    </div>
-  </div>
-</div>
-
 <nav class="bottom-nav">
-  <div class="nav-item active"><div class="nav-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M2 8a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8zM7 21h10M12 18v3"/></svg></div><span>CHANNELS</span></div>
-  <div class="nav-item" onclick="toggleModal(true)"><div class="nav-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg></div><span>ADD</span></div>
-  <div class="nav-item" id="recToggle" onclick="toggleRecording()"><div class="nav-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle fill="currentColor" cx="12" cy="12" r="5"/></svg></div><span id="recStatus">RECORD</span></div>
+  <div class="nav-item active"><div class="nav-icon"><svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M2 8a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8zM7 21h10M12 18v3"/></svg></div><span>CHANNELS</span></div>
+  <div class="nav-item" id="zapBtn" onclick="toggleZapping()"><div class="nav-icon"><svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div><span id="zapStatus">ZAP</span></div>
+  <div class="nav-item" id="recToggle" onclick="toggleRecording()"><div class="nav-icon"><svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle fill="currentColor" cx="12" cy="12" r="5"/></svg></div><span id="recStatus">RECORD</span></div>
 </nav>
 
 <canvas id="ssCanvas" style="display:none;"></canvas>
@@ -211,21 +189,18 @@ let channels = [
 ];
 
 let hls = null, currentIndex = -1, isRecording = false, mediaRecorder, recordedChunks = [], dragItem = null;
+let zapInterval = null, isZapping = false;
 
-// --- SWIPE LOGIC (Fixed for iOS) ---
+// --- SWIPE LOGIC ---
 let touchStartX = 0;
 const swipeOverlay = document.getElementById('swipeOverlay');
 
-swipeOverlay.addEventListener('touchstart', (e) => {
-    touchStartX = e.changedTouches[0].screenX;
-}, {passive: true});
-
+swipeOverlay.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; }, {passive: true});
 swipeOverlay.addEventListener('touchend', (e) => {
-    let touchEndX = e.changedTouches[0].screenX;
-    let diff = touchStartX - touchEndX;
+    let diff = touchStartX - e.changedTouches[0].screenX;
     if (Math.abs(diff) > 60) {
-        if (diff > 0) changeChannel(1);
-        else changeChannel(-1);
+        if (isZapping) toggleZapping(); // Swipe yapılırsa zapping durur
+        changeChannel(diff > 0 ? 1 : -1);
     }
 }, {passive: true});
 
@@ -235,17 +210,41 @@ function changeChannel(direction) {
     playStream(nextIndex);
 }
 
-// --- RENDER & DRAG DROP ---
+// --- ZAPPING MODU ---
+function toggleZapping() {
+    const btn = document.getElementById('zapBtn');
+    if (!isZapping) {
+        isZapping = true;
+        btn.classList.add('is-zapping');
+        document.getElementById('zapStatus').textContent = "STOP ZAP";
+        zapInterval = setInterval(() => {
+            let randomIndex;
+            do {
+                randomIndex = Math.floor(Math.random() * channels.length);
+            } while (randomIndex === currentIndex && channels.length > 1);
+            playStream(randomIndex);
+        }, 5500);
+    } else {
+        isZapping = false;
+        btn.classList.remove('is-zapping');
+        document.getElementById('zapStatus').textContent = "ZAP";
+        clearInterval(zapInterval);
+    }
+}
+
+// --- RENDER & AUTO FOCUS ---
 function renderChannels() {
   const container = document.getElementById('channelList');
   container.innerHTML = '';
   channels.forEach((ch, i) => {
     const card = document.createElement('div');
+    card.id = `ch-card-${i}`;
     card.className = `mobile-ch-card ${i === currentIndex ? 'active' : ''}`;
     card.draggable = true;
     card.innerHTML = `<div class="drag-handle">☰</div><h4>${ch.name}</h4>`;
     card.onclick = () => { if (!card.classList.contains('dragging')) playStream(i); };
 
+    // Drag Drop Logic (Korundu)
     card.addEventListener('dragstart', () => { dragItem = card; setTimeout(() => card.classList.add('dragging'), 0); });
     card.addEventListener('dragend', () => { card.classList.remove('dragging'); saveNewOrder(); });
     card.addEventListener('dragover', e => {
@@ -256,6 +255,14 @@ function renderChannels() {
     });
     container.appendChild(card);
   });
+
+  // Auto Scroll Focus
+  if (currentIndex !== -1) {
+      const activeCard = document.getElementById(`ch-card-${currentIndex}`);
+      if (activeCard) {
+          activeCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+  }
 }
 
 function getDragAfterElement(container, y) {
@@ -283,38 +290,19 @@ function playStream(i) {
   currentIndex = i;
   const video = document.getElementById('videoPlayer');
   const ch = channels[i];
-  
-  // Update Header Name
   document.getElementById('activeChName').textContent = ch.name;
   
   renderChannels();
   if (hls) hls.destroy();
   if (Hls.isSupported()) {
     hls = new Hls(); hls.loadSource(ch.url); hls.attachMedia(video);
-    hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+    hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(() => {}));
   } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-    video.src = ch.url; video.play();
+    video.src = ch.url; video.play().catch(() => {});
   }
 }
 
-function toggleModal(show) { document.getElementById('addModal').style.display = show ? 'flex' : 'none'; }
-
-function addNewChannel() {
-  const n = document.getElementById('customName').value || "Channel " + (channels.length + 1);
-  const u = document.getElementById('customUrl').value;
-  if (u) {
-    channels.unshift({name:n, url:u});
-    renderChannels(); toggleModal(false); playStream(0);
-    document.getElementById('customName').value = ""; document.getElementById('customUrl').value = "";
-  }
-}
-
-function toggleFullScreen() {
-  const v = document.getElementById('videoPlayer');
-  if (v.webkitEnterFullscreen) v.webkitEnterFullscreen();
-  else if (v.requestFullscreen) v.requestFullscreen();
-}
-
+// Ekran Görüntüsü ve Kayıt Özellikleri (Korundu)
 function takeScreenshot() {
   const v = document.getElementById('videoPlayer');
   const c = document.getElementById('ssCanvas');
@@ -322,7 +310,7 @@ function takeScreenshot() {
   try {
     c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
     const link = document.createElement('a');
-    link.download = `Shot_${Date.now()}.png`; link.href = c.toDataURL(); link.click();
+    link.download = `TELE_X_Shot_${Date.now()}.png`; link.href = c.toDataURL(); link.click();
   } catch(e) { alert("Security: Cannot capture stream."); }
 }
 
@@ -338,7 +326,7 @@ function toggleRecording() {
       mediaRecorder.onstop = () => {
         const blob = new Blob(recordedChunks, {type: 'video/webm'});
         const url = URL.createObjectURL(blob);
-        const a = document.createElement('a'); a.href = url; a.download=`Record_${Date.now()}.webm`; a.click();
+        const a = document.createElement('a'); a.href = url; a.download=`TELE_X_Rec_${Date.now()}.webm`; a.click();
       };
       mediaRecorder.start(); 
       isRecording = true; btn.classList.add('is-recording');
@@ -348,6 +336,12 @@ function toggleRecording() {
     mediaRecorder.stop(); isRecording = false; btn.classList.remove('is-recording');
     document.getElementById('recStatus').textContent = "RECORD";
   }
+}
+
+function toggleFullScreen() {
+  const v = document.getElementById('videoPlayer');
+  if (v.webkitEnterFullscreen) v.webkitEnterFullscreen();
+  else if (v.requestFullscreen) v.requestFullscreen();
 }
 
 renderChannels();
