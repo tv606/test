@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>NEOTV Video Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #05070a;
+    --surface: #101218;
+    --surface-light: #1c1f26;
+    --accent: #ff3e3e;
+    --text: #ffffff;
+    --text-muted: #94a3b8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* HEADER */
+  .app-header {
+    height: 60px;
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    z-index: 100;
+  }
+  .app-logo { font-weight: 800; font-size: 1.1rem; color: var(--accent); text-transform: uppercase; text-align: center; }
+
+  /* PLAYER */
+  .video-box {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: #000;
+    position: relative;
+    overflow: hidden;
+  }
+  video { width: 100%; height: 100%; object-fit: contain; }
+
+  .vid-btn {
+    position: absolute;
+    background: rgba(0,0,0,0.5);
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 10px;
+    backdrop-filter: blur(4px);
+    z-index: 20;
+    display: flex;
+    cursor: pointer;
+  }
+  .fs-btn { bottom: 10px; right: 10px; }
+  .ss-btn { bottom: 10px; left: 10px; }
+
+  /* CONTENT AREA */
+  .content-area {
+    flex: 1;
+    background: var(--bg);
+    border-top-left-radius: 24px;
+    border-top-right-radius: 24px;
+    margin-top: -20px;
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+  }
+  .sheet-handle { width: 40px; height: 4px; background: var(--surface-light); border-radius: 2px; margin: 12px auto; }
+  .channel-grid { flex: 1; overflow-y: auto; padding: 0 15px 100px; }
+
+  /* CHANNEL CARD */
+  .mobile-ch-card {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    background: var(--surface);
+    border-radius: 16px;
+    margin-bottom: 10px;
+    border: 1px solid transparent;
+    transition: transform 0.2s;
+  }
+  .mobile-ch-card.active { border-color: var(--accent); background: rgba(255, 62, 62, 0.05); }
+  .mobile-ch-card.dragging { opacity: 0.5; border: 1px dashed var(--accent); }
+
+  /* BOTTOM NAV */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0; height: 75px;
+    background: rgba(16, 18, 24, 0.95); backdrop-filter: blur(20px);
+    display: flex; justify-content: space-around; align-items: center;
+    border-top: 1px solid rgba(255,255,255,0.05); z-index: 1000;
+  }
+  .nav-item { color: var(--text-muted); font-size: 10px; display: flex; flex-direction: column; align-items: center; text-decoration: none; font-weight: 600; gap: 5px; }
+  .nav-item.active { color: var(--accent); }
+  .nav-icon { width: 22px; height: 22px; display: flex; }
+
+  /* RECORDING BLINK */
+  @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+  .is-recording { color: #ff3e3e !important; animation: blink 1s infinite; }
+
+  /* MODAL */
+  #addModal {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.8);
+    z-index: 2000; display: none; align-items: center; justify-content: center; padding: 20px;
+  }
+  .modal-content { background: var(--surface); padding: 25px; border-radius: 20px; width: 100%; max-width: 400px; }
+  .modal-content input { width: 100%; background: var(--bg); border: 1px solid var(--surface-light); padding: 12px; border-radius: 10px; color: white; margin-bottom: 15px; outline: none; }
+</style>
+</head>
+<body>
+
+<div id="addModal">
+  <div class="modal-content">
+    <h3>Yeni Kanal Ekle</h3>
+    <input type="text" id="customName" placeholder="Kanal Adı">
+    <input type="text" id="customUrl" placeholder="M3U8 URL">
+    <div style="display:flex; gap:10px;">
+      <button style="flex:1; padding:12px; border-radius:10px; border:none; background:#2d3139; color:white;" onclick="toggleModal(false)">Vazgeç</button>
+      <button style="flex:1; padding:12px; border-radius:10px; border:none; background:var(--accent); color:white;" onclick="addNewChannel()">Ekle</button>
+    </div>
+  </div>
+</div>
+
+<header class="app-header">
+  <div class="app-logo" id="headerTitle">NEOTV</div>
+</header>
+
+<div class="player-container">
+  <div class="video-box" id="videoBox">
+    <video id="videoPlayer" playsinline crossorigin="anonymous"></video>
+    <button class="vid-btn ss-btn" onclick="takeScreenshot()">
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+    </button>
+    <button class="vid-btn fs-btn" onclick="toggleFullScreen()">
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+    </button>
+  </div>
+
+  <main class="content-area">
+    <div class="sheet-handle"></div>
+    <div class="channel-grid" id="channelList"></div>
+  </main>
+</div>
+
+<nav class="bottom-nav">
+  <a href="#" class="nav-item active">
+    <div class="nav-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M2 8a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8zM7 21h10M12 18v3"/></svg></div>
+    <span>KANALLAR</span>
+  </a>
+  <a href="#" class="nav-item" onclick="toggleModal(true)">
+    <div class="nav-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg></div>
+    <span>EKLE</span>
+  </a>
+  <a href="#" class="nav-item" id="recToggle" onclick="toggleRecording()">
+    <div class="nav-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle fill="currentColor" cx="12" cy="12" r="5"/></svg></div>
+    <span id="recStatus">KAYDET</span>
+  </a>
+</nav>
+
+<canvas id="ssCanvas" style="display:none;"></canvas>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.4.10/hls.min.js"></script>
+<script>
+let channels = [
+  { name: "CNN INT", url: "https://d3bp6dwmpbdajl.cloudfront.net/v1/manifest/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-ury0meh5m4nzm/2a65a3b9-8cf2-4c6a-b4c8-69b41f958f52/0.m3u8", icon: "📺" },
+  { name: "IRAN TV", url: "https://live.playstop.me/LS-63503-4/chunklist_b1196000.m3u8", icon: "📺" },
+  { name: "FRANCE 24", url: "https://live.france24.com/hls/live/2037218-b/F24_EN_HI_HLS/master_5000.m3u8", icon: "📺" },
+  { name: "BBC NEWS", url: "https://vs-hls-push-ww-live.akamaized.net/x=4/i=urn:bbc:pips:service:bbc_news_channel_hd/t=3840/v=pv14/b=5070016/main.m3u8", icon: "📺" },
+  { name: "LEBANON TV", url: "https://live.kwikmotion.com/redtvlive/redtv.smil/redtvpublish/redtv_source/chunks.m3u8", icon: "📺" },
+  { name: "JORDAN TV", url: "https://jmc-live.ercdn.net/altaghier/altaghier_1080p.m3u8", icon: "📺" },
+  { name: "HALK TV", url: "https://halktv-live.daioncdn.net/halktv/halktv_1080p.m3u8", icon: "📺" },
+  { name: "FX TR", url: "https://saran-live.ercdn.net/fx/index.m3u8", icon: "📺" },
+  { name: "NAT GEO TR", url: "https://saran-live.ercdn.net/natgeohd/index.m3u8", icon: "📺" },
+  { name: "NAT GEO WILD TR", url: "https://saran-live.ercdn.net/natgeowild/index.m3u8", icon: "📺" },
+  { name: "ARTE HD", url: "https://dash4.antik.sk/live/test_arte_avc_25p/playlist.m3u8", icon: "📺" },
+  { name: "DW ENG", url: "https://dwamdstream102.akamaized.net/hls/live/2015525/dwstream102/stream05/streamPlaylist.m3u8", icon: "📺" },
+  { name: "PRO 7", url: "https://dash4.antik.sk/live/test_pro_sieben_tizen/playlist.m3u8", icon: "📺" },
+  { name: "SAT 1 GOLD", url: "https://dash4.antik.sk/live/test_sat_eins_gold_tizen/playlist.m3u8", icon: "📺" },
+  { name: "BBC TWO", url: "https://streamer.nexyl.uk/69ef899e-8ca9-4537-9f1a-fe8b4216afbb_output_0.m3u8?session=8aPdqrefTg4Ru8rBKj3RyK", icon: "📺" },
+  { name: "BBC EARTH", url: "https://amg00793-amg00793c6-xumo-us-2669.playouts.now.amagi.tv/BBCStudios-BBCEarthA-hls/playlist1080p.m3u8", icon: "📺" },
+  { name: "BBC Earth (US)", url: "https://amg00793-bbcstudios-amg00793c3-lg-us-2528.playouts.now.amagi.tv/playlist/amg00793-bbcstudios-bbcearta-lgus/playlist.m3u8", icon: "📺" },
+  { name: "BBC Dinos 24x7 (US)", url: "https://amg00793-amg00793c35-lg-us-6412.playouts.now.amagi.tv/playlist.m3u8", icon: "📺" },
+  { name: "TYT", url: "https://tyt-samsungus.amagi.tv/playlist720p.m3u8", icon: "📺" },
+  { name: "LOVE NATURE", url: "https://aegis-cloudfront-1.tubi.video/6d6d0f24-8445-4b4c-bdf6-44f9e38beaa4/1080p-cc/index.m3u8", icon: "📺" },
+  { name: "NATURESCAPE", url: "https://lotus.stingray.com/manifest/naturescape-a003-montreal/samsungtvplus/f7ed86a4-b8ac-38e0-a745-710077a95be6/3291200/manifest.m3u8", icon: "📺" },
+  { name: "Adventure Earth (GB)", url: "https://autentic-adventure-earth-1-gb.lg.wurl.tv/playlist.m3u8", icon: "📺" },
+  { name: "Air and Space (GB)", url: "https://wingspan-airandspace-1-gb.lg.wurl.tv/playlist.m3u8", icon: "📺" },
+  { name: "NATURE TIME", url: "https://amg01515-amg01515c13-xiaomi-international-4618.playouts.now.amagi.tv/playlist.m3u8", icon: "📺" },
+  { name: "FASHION TV", url: "https://cdn-ue1-prod.tsv2.amagi.tv/linear/amg01546-ftv-fashiontv-xiaomi/playlist.m3u8", icon: "📺" },
+  { name: "Bref Cinema ", url: "https://lagenceducourtmetrage-brefcinema-01-eu.xiaomi.wurl.tv/playlist.m3u8", icon: "📺" },
+  { name: "Now 90s", url: "https://lightning-now90s-xiaomi.amagi.tv/playlist.m3u8", icon: "📺" },
+  { name: "Travel XP (GB)", url: "https://travelxp-travelxp-1-gb.lg.wurl.tv/playlist.m3u8", icon: "📺" },
+  { name: "Wild Earth (KR)", url: "https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg01290-wildearthmediap-wildearth-lgkr/playlist.m3u8", icon: "📺" },
+  { name: "Alleskino (DE)", url: "https://lighthousehomeentertainment-alleskino-1-de.lg.wurl.tv/playlist.m3u8", icon: "📺" },
+  { name: "Autentic History (GB)", url: "https://autentic-autentichistory-1-gb.lg.wurl.tv/playlist.m3u8", icon: "📺" },
+  { name: "RETRO TV", url: "http://stream.mediawork.cz/retrotv//retrotvHQ1/playlist.m3u8", icon: "📺" },
+  { name: "History Hit (FI)", url: "https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg00426-littledotstudio-historyhit-lgfi/playlist.m3u8", icon: "📺" },
+  { name: "History Time (CA)", url: "https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg00090-blueantllc-historytime-lgca/playlist.m3u8", icon: "📺" },
+  { name: "Himmlischeskino (DE)", url: "https://wdr-media-group-himmlischeskino-1-de.lg.wurl.tv/playlist.m3u8", icon: "📺" },
+  { name: "Icon Film Classics (GB)", url: "https://iconfilmsdistribution-iconfilmchannelclassics-1-gb.lg.wurl.tv/playlist.m3u8", icon: "📺" },
+  { name: "Infast (GB)", url: "https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg00861-terninternation-lifestyle-lggb/playlist.m3u8", icon: "📺" },
+  { name: "Life Downunder (GB)", url: "https://wtfn-lifedownunder-2-gb.lg.wurl.tv/playlist.m3u8", icon: "📺" },
+  { name: "Pop Flix (GB)", url: "https://signatureentertainment-popflix-1-gb.lg.wurl.tv/playlist.m3u8", icon: "📺" },
+  { name: "Sparkle Movies (AU)", url: "https://candlelightmedia-sparklemovies-1-au.lg.wurl.tv/playlist.m3u8", icon: "📺" },
+  { name: "Unbeaten (GB)", url: "https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg00721-inverleigh-unbeatengb-lggb/playlist.m3u8", icon: "📺" },
+  { name: "TRT BELGESEL", url: "https://tv-trtbelgesel.medya.trt.com.tr/master.m3u8", icon: "📺" },
+  { name: "TRT SPOR", url: "https://tv-trtspor1.medya.trt.com.tr/master.m3u8", icon: "📺" },
+  { name: "TRT1", url: "https://tv-trt1.medya.trt.com.tr/master_1080.m3u8", icon: "📺" },
+  { name: "RTL GOLD", url: "https://stream.rtl.lu/data/live/tele/rtlgold/1080p.m3u8", icon: "📺" },
+  { name: "STINGRAY 90's", url: "https://lotus.stingray.com/manifest/ose-142ads-montreal/samsungtvplus/f5102ca4-edd7-30ac-a357-877f60db023b/1790800/manifest.m3u8", icon: "📺" },
+  { name: "BEIN S1 VPN", url: "https://wandering-pond-ff44.sadjj2390092.workers.dev/checklist/androstreamlivebs1.m3u8", icon: "📺" },
+];
+
+let hls = null;
+let currentIndex = -1;
+let mediaRecorder;
+let recordedChunks = [];
+let isRecording = false;
+
+// --- SÜRÜKLE BIRAK ---
+const container = document.getElementById('channelList');
+let dragItem = null;
+
+function initSortable() {
+  document.querySelectorAll('.mobile-ch-card').forEach(card => {
+    card.addEventListener('dragstart', () => { dragItem = card; setTimeout(() => card.classList.add('dragging'), 0); });
+    card.addEventListener('dragend', () => { card.classList.remove('dragging'); saveNewOrder(); });
+    card.addEventListener('dragover', e => {
+      e.preventDefault();
+      const afterElement = getDragAfterElement(container, e.clientY);
+      if (afterElement == null) container.appendChild(dragItem); else container.insertBefore(dragItem, afterElement);
+    });
+  });
+}
+
+function getDragAfterElement(container, y) {
+  const elements = [...container.querySelectorAll('.mobile-ch-card:not(.dragging)')];
+  return elements.reduce((closest, child) => {
+    const box = child.getBoundingClientRect();
+    const offset = y - box.top - box.height / 2;
+    if (offset < 0 && offset > closest.offset) return { offset: offset, element: child }; else return closest;
+  }, { offset: Number.NEGATIVE_INFINITY }).element;
+}
+
+function saveNewOrder() {
+  const newOrder = [];
+  document.querySelectorAll('.mobile-ch-card').forEach(card => {
+    const name = card.querySelector('h4').textContent;
+    const ch = channels.find(c => c.name === name);
+    if (ch) newOrder.push(ch);
+  });
+  channels = newOrder;
+  const active = document.querySelector('.mobile-ch-card.active');
+  if(active) currentIndex = channels.findIndex(c => c.name === active.querySelector('h4').textContent);
+}
+
+// --- KAYIT SİSTEMİ ---
+function toggleRecording() {
+  const video = document.getElementById('videoPlayer');
+  const btn = document.getElementById('recToggle');
+  const statusTxt = document.getElementById('recStatus');
+
+  if (!isRecording) {
+    recordedChunks = [];
+    let stream;
+    try {
+      stream = video.captureStream ? video.captureStream() : video.mozCaptureStream();
+      mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9' });
+      mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(recordedChunks, { type: 'video/webm' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = `NEO_Record_${Date.now()}.webm`; a.click();
+      };
+      mediaRecorder.start();
+      isRecording = true;
+      btn.classList.add('is-recording');
+      statusTxt.textContent = "DURDUR";
+    } catch (e) { alert("Bu kanal kayıt korumalı (CORS)."); }
+  } else {
+    mediaRecorder.stop();
+    isRecording = false;
+    btn.classList.remove('is-recording');
+    statusTxt.textContent = "KAYDET";
+  }
+}
+
+// --- ANA FONKSİYONLAR ---
+function renderChannels() {
+  container.innerHTML = '';
+  channels.forEach((ch, i) => {
+    const card = document.createElement('div');
+    card.className = `mobile-ch-card ${i === currentIndex ? 'active' : ''}`;
+    card.draggable = true;
+    card.innerHTML = `
+      <div style="width:20px; height:20px; margin-right:15px; color:var(--text-muted); cursor:move">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </div>
+      <div class="ch-details"><h4>${ch.name}</h4></div>
+    `;
+    card.onclick = () => { if (!card.classList.contains('dragging')) playStream(i); };
+    container.appendChild(card);
+  });
+  initSortable();
+}
+
+function playStream(index) {
+  currentIndex = index;
+  const video = document.getElementById('videoPlayer');
+  const ch = channels[index];
+  document.getElementById('headerTitle').textContent = ch.name;
+  renderChannels();
+  if (hls) hls.destroy();
+  if (Hls.isSupported()) {
+    hls = new Hls(); hls.loadSource(ch.url); hls.attachMedia(video);
+    hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+  } else if (video.canPlayType('application/vnd.apple.mpegurl')) { video.src = ch.url; video.play(); }
+}
+
+// Swipe & UI
+let touchStartX = 0;
+document.getElementById('videoBox').addEventListener('touchstart', e => touchStartX = e.changedTouches[0].screenX);
+document.getElementById('videoBox').addEventListener('touchend', e => {
+  let endX = e.changedTouches[0].screenX;
+  if (endX < touchStartX - 60) changeChannel(1);
+  if (endX > touchStartX + 60) changeChannel(-1);
+});
+function changeChannel(dir) {
+  let next = currentIndex + dir;
+  if (next >= channels.length) next = 0; if (next < 0) next = channels.length - 1;
+  playStream(next);
+}
+function toggleModal(s) { document.getElementById('addModal').style.display = s ? 'flex' : 'none'; }
+function addNewChannel() {
+  const n = document.getElementById('customName').value || "Yeni Kanal";
+  const u = document.getElementById('customUrl').value;
+  if(u) { channels.unshift({name:n, url:u}); renderChannels(); toggleModal(false); playStream(0); }
+}
+function takeScreenshot() {
+  const v = document.getElementById('videoPlayer');
+  const c = document.getElementById('ssCanvas');
+  c.width = v.videoWidth; c.height = v.videoHeight;
+  try { c.getContext('2d').drawImage(v, 0, 0, c.width, c.height); const l = document.createElement('a'); l.download=`SS_${Date.now()}.png`; l.href=c.toDataURL(); l.click(); } catch(e) { alert("CORS Engeli."); }
+}
+function toggleFullScreen() {
+  const v = document.getElementById('videoPlayer');
+  if (v.requestFullscreen) v.requestFullscreen(); else if (v.webkitEnterFullscreen) v.webkitEnterFullscreen();
+}
+renderChannels();
+</script>
+</body>
+</html>
