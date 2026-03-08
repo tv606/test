@@ -1,10 +1,9 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>NEO TV</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='10' y='10' width='80' height='80' fill='none' stroke='%23e94560' stroke-width='12' rx='10'/><rect x='25' y='25' width='50' height='50' fill='%23e94560' rx='5'><animate attributeName='opacity' values='0.6;1;0.6' dur='2s' repeatCount='indefinite' /></rect></svg>">
+<title>TELEMISSION Pro</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -12,7 +11,7 @@
     --surface: #101218;
     --accent: #ff3e3e;
     --text: #ffffff;
-    --nav-height: 80px; /* Alt menü yüksekliği */
+    --nav-height: 85px;
     --header-height: 50px;
   }
 
@@ -23,12 +22,12 @@
     background: var(--bg);
     color: var(--text);
     height: 100vh;
-    overflow: hidden; /* Tüm sayfanın kaymasını engelle */
-    position: fixed; /* iOS kaydırma zıplamalarını önle */
+    overflow: hidden;
+    position: fixed;
     width: 100%;
   }
 
-  /* Sabit Header */
+  /* Header */
   .app-header {
     height: var(--header-height);
     background: var(--surface);
@@ -37,77 +36,95 @@
     justify-content: center;
     border-bottom: 1px solid rgba(255,255,255,0.05);
     position: absolute;
-    top: 0; width: 100%; z-index: 100;
+    top: 0; width: 100%; z-index: 1000;
   }
-  .app-logo { font-weight: 800; font-size: 0.9rem; color: var(--accent); text-transform: uppercase; }
+  .app-logo { font-weight: 800; font-size: 0.9rem; color: var(--accent); text-transform: uppercase; letter-spacing: 1.5px; }
 
-  /* Sabit Player Alanı */
+  /* Player Area */
   .player-section {
     position: absolute;
     top: var(--header-height);
     width: 100%;
-    z-index: 90;
+    z-index: 900;
     background: #000;
   }
   .video-box { width: 100%; aspect-ratio: 16 / 9; position: relative; background: #000; }
-  video { width: 100%; height: 100%; }
+  video { width: 100%; height: 100%; background: #000; }
 
   .vid-btn {
-    position: absolute; background: rgba(0,0,0,0.5); color: white; border: none;
-    padding: 8px; border-radius: 8px; backdrop-filter: blur(4px); z-index: 100;
+    position: absolute; background: rgba(0,0,0,0.6); color: white; border: none;
+    padding: 10px; border-radius: 10px; backdrop-filter: blur(5px); z-index: 1001;
   }
-  .fs-btn { bottom: 8px; right: 8px; }
-  .ss-btn { bottom: 8px; left: 8px; }
+  .fs-btn { bottom: 10px; right: 10px; }
+  .ss-btn { bottom: 10px; left: 10px; }
 
-  /* KAYDIRILABİLİR LİSTE ALANI (DİNAMİK HESAPLAMA) */
+  /* Scrollable Channel List */
   .channel-grid {
     position: absolute;
-    /* Player'ın altından başla (Header + Player Yüksekliği) */
     top: calc(var(--header-height) + (100vw * 9 / 16)); 
-    bottom: var(--nav-height); /* Alt menüye kadar uzan */
+    bottom: var(--nav-height);
     width: 100%;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch; /* iPhone akıcı scroll */
-    padding: 20px 15px;
+    overflow-y: scroll;
+    -webkit-overflow-scrolling: touch;
+    padding: 15px;
     background: var(--bg);
+    z-index: 800;
   }
 
   .mobile-ch-card {
-    display: flex; align-items: center; padding: 14px;
-    background: var(--surface); border-radius: 12px; margin-bottom: 8px;
-    border: 1px solid transparent;
+    display: flex; align-items: center; padding: 15px;
+    background: var(--surface); border-radius: 14px; margin-bottom: 10px;
+    border: 1px solid rgba(255,255,255,0.05);
   }
   .mobile-ch-card.active { border-color: var(--accent); background: rgba(255,62,62,0.1); }
+  .mobile-ch-card h4 { font-size: 0.9rem; font-weight: 600; color: #e2e8f0; }
 
-  /* Sabit Alt Menü */
+  /* Fixed Bottom Navigation */
   .bottom-nav {
     position: absolute;
     bottom: 0; left: 0; right: 0;
     height: var(--nav-height);
-    background: rgba(16, 18, 24, 0.98);
+    background: #0f1116;
     display: flex; justify-content: space-around; align-items: center;
     border-top: 1px solid rgba(255,255,255,0.1);
-    z-index: 100;
-    padding-bottom: env(safe-area-inset-bottom); /* iPhone Mini Çentiği */
+    z-index: 1000;
+    padding-bottom: env(safe-area-inset-bottom);
   }
 
-  .nav-item { color: #94a3b8; font-size: 10px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .nav-item { color: #64748b; font-size: 10px; display: flex; flex-direction: column; align-items: center; gap: 5px; flex: 1; height: 100%; justify-content: center; }
   .nav-item.active { color: var(--accent); }
   .nav-icon { width: 22px; height: 22px; }
 
-  /* Modal */
-  #addModal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; display: none; align-items: center; justify-content: center; padding: 20px; }
-  .modal-content { background: var(--surface); padding: 25px; border-radius: 20px; width: 100%; max-width: 400px; }
-  input { width: 100%; background: #000; border: 1px solid #333; padding: 12px; border-radius: 10px; color: white; margin-bottom: 15px; font-size: 16px; }
+  /* Modal (Add Channel) */
+  #addModal { 
+    position: fixed; inset: 0; 
+    background: rgba(0,0,0,0.85); 
+    backdrop-filter: blur(10px);
+    z-index: 9999; /* En üstte olduğundan emin olalım */
+    display: none; align-items: center; justify-content: center; padding: 20px; 
+  }
+  .modal-content { background: var(--surface); padding: 25px; border-radius: 24px; width: 100%; max-width: 350px; border: 1px solid rgba(255,255,255,0.1); }
+  .modal-content h3 { margin-bottom: 20px; text-align: center; font-size: 1.2rem; }
+  input { 
+    width: 100%; background: #000; border: 1px solid #334155; padding: 14px; 
+    border-radius: 12px; color: white; margin-bottom: 15px; font-size: 16px; outline: none;
+  }
+  input:focus { border-color: var(--accent); }
+  
+  .modal-btns { display: flex; gap: 10px; }
+  .btn-action { flex: 1; padding: 14px; border-radius: 12px; font-weight: 700; border: none; cursor: pointer; }
+
+  .is-recording { color: var(--accent) !important; animation: blink 1s infinite; }
+  @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
 </style>
 </head>
 <body>
 
-<header class="app-header"><div class="app-logo" id="headerTitle">NEO TV</div></header>
+<header class="app-header"><div class="app-logo">TELEMISSION</div></header>
 
 <div class="player-section">
   <div class="video-box" id="videoBox">
-    <video id="videoPlayer" playsinline crossorigin="anonymous" webkit-playsinline></video>
+    <video id="videoPlayer" playsinline webkit-playsinline muted autoplay crossorigin="anonymous"></video>
     <button class="vid-btn ss-btn" onclick="takeScreenshot()"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
     <button class="vid-btn fs-btn" onclick="toggleFullScreen()"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
   </div>
@@ -115,26 +132,36 @@
 
 <div class="channel-grid" id="channelList"></div>
 
-<nav class="bottom-nav">
-  <div class="nav-item active"><div class="nav-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M2 8a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8zM7 21h10M12 18v3"/></svg></div><span>CHANNELS</span></div>
-  <div class="nav-item" onclick="toggleModal(true)"><div class="nav-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg></div><span>ADD</span></div>
-  <div class="nav-item" id="recToggle" onclick="toggleRecording()"><div class="nav-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle fill="currentColor" cx="12" cy="12" r="5"/></svg></div><span id="recStatus">RECORD</span></div>
-</nav>
-
 <div id="addModal">
   <div class="modal-content">
-    <h3 style="margin-bottom:15px">Add m3u8 Stream</h3>
-    <input type="text" id="customName" placeholder="Kanal Adı">
+    <h3>Add Channel</h3>
+    <input type="text" id="customName" placeholder="Name (e.g. BBC)">
     <input type="text" id="customUrl" placeholder="URL (.m3u8)">
-    <div style="display:flex; gap:10px;">
-      <button style="flex:1; padding:12px; border-radius:10px; background:#2d3139; color:white; border:none" onclick="toggleModal(false)">CLOSE</button>
-      <button style="flex:1; padding:12px; border-radius:10px; background:var(--accent); color:white; border:none" onclick="addNewChannel()">ADD</button>
+    <div class="modal-btns">
+      <button class="btn-action" style="background:#334155; color:white" onclick="toggleModal(false)">CANCEL</button>
+      <button class="btn-action" style="background:var(--accent); color:white" onclick="addNewChannel()">SAVE</button>
     </div>
   </div>
 </div>
 
+<nav class="bottom-nav">
+  <div class="nav-item active">
+    <div class="nav-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M2 8a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8zM7 21h10M12 18v3"/></svg></div>
+    <span>CHANNELS</span>
+  </div>
+  <div class="nav-item" onclick="toggleModal(true)">
+    <div class="nav-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg></div>
+    <span>ADD</span>
+  </div>
+  <div class="nav-item" id="recToggle" onclick="toggleRecording()">
+    <div class="nav-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle fill="currentColor" cx="12" cy="12" r="5"/></svg></div>
+    <span id="recStatus">RECORD</span>
+  </div>
+</nav>
+
 <canvas id="ssCanvas" style="display:none;"></canvas>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.4.10/hls.min.js"></script>
+
 <script>
 let channels = [
   { name: "CNN INT", url: "https://d3bp6dwmpbdajl.cloudfront.net/v1/manifest/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-ury0meh5m4nzm/2a65a3b9-8cf2-4c6a-b4c8-69b41f958f52/0.m3u8", icon: "📺" },
@@ -186,12 +213,11 @@ let channels = [
   { name: "BEIN S1 VPN", url: "https://wandering-pond-ff44.sadjj2390092.workers.dev/checklist/androstreamlivebs1.m3u8", icon: "📺" },
 ];
 
-// Test amaçlı 40 kanal daha ekle (iPhone scroll testi için)
-//for(let i=1; i<=40; i++) { channels.push({name: "Test Kanal " + i, url: ""}); }
-
 let hls = null;
 let currentIndex = -1;
 let isRecording = false;
+let mediaRecorder;
+let recordedChunks = [];
 
 function renderChannels() {
   const container = document.getElementById('channelList');
@@ -199,7 +225,7 @@ function renderChannels() {
   channels.forEach((ch, i) => {
     const card = document.createElement('div');
     card.className = `mobile-ch-card ${i === currentIndex ? 'active' : ''}`;
-    card.innerHTML = `<div style="margin-right:15px; opacity:0.5">☰</div><h4>${ch.name}</h4>`;
+    card.innerHTML = `<div style="margin-right:15px; opacity:0.2">☰</div><h4>${ch.name}</h4>`;
     card.onclick = () => playStream(i);
     container.appendChild(card);
   });
@@ -209,38 +235,52 @@ function playStream(i) {
   currentIndex = i;
   const video = document.getElementById('videoPlayer');
   const ch = channels[i];
-  document.getElementById('headerTitle').textContent = ch.name;
   renderChannels();
+
   if (hls) hls.destroy();
+
   if (Hls.isSupported()) {
-    hls = new Hls(); hls.loadSource(ch.url); hls.attachMedia(video);
-    hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(()=>{}));
-  } else if (video.canPlayType('application/vnd.apple.mpegurl')) { video.src = ch.url; }
+    hls = new Hls();
+    hls.loadSource(ch.url);
+    hls.attachMedia(video);
+    hls.on(Hls.Events.MANIFEST_PARSED, () => {
+      video.muted = true;
+      video.play().catch(e => console.log("Play failed"));
+    });
+  } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+    video.src = ch.url;
+    video.muted = true;
+    video.play().catch(e => console.log("Play failed"));
+  }
 }
 
-// Swipe (Kanal Geçişi)
-let startX = 0;
-document.getElementById('videoBox').addEventListener('touchstart', e => startX = e.touches[0].clientX);
-document.getElementById('videoBox').addEventListener('touchend', e => {
-  let diff = e.changedTouches[0].clientX - startX;
-  if (Math.abs(diff) > 70) changeChannel(diff > 0 ? -1 : 1);
-});
-
-function changeChannel(dir) {
-  let n = (currentIndex + dir + channels.length) % channels.length;
-  playStream(n);
+function toggleModal(show) {
+  document.getElementById('addModal').style.display = show ? 'flex' : 'none';
 }
 
-function toggleModal(s) { document.getElementById('addModal').style.display = s ? 'flex' : 'none'; }
 function addNewChannel() {
-  const n = document.getElementById('customName').value || "Yeni Kanal";
-  const u = document.getElementById('customUrl').value;
-  if(u) { channels.unshift({name:n, url:u}); renderChannels(); toggleModal(false); playStream(0); }
+  const nameInput = document.getElementById('customName');
+  const urlInput = document.getElementById('customUrl');
+  
+  if (urlInput.value.trim() !== "") {
+    const newCh = {
+      name: nameInput.value || "Channel " + (channels.length + 1),
+      url: urlInput.value
+    };
+    channels.unshift(newCh);
+    renderChannels();
+    toggleModal(false);
+    playStream(0);
+    
+    nameInput.value = "";
+    urlInput.value = "";
+  }
 }
 
 function toggleFullScreen() {
   const v = document.getElementById('videoPlayer');
   if (v.webkitEnterFullscreen) v.webkitEnterFullscreen();
+  else if (v.requestFullscreen) v.requestFullscreen();
 }
 
 function takeScreenshot() {
@@ -250,12 +290,38 @@ function takeScreenshot() {
   try {
     c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
     const link = document.createElement('a');
-    link.download = `SS_${Date.now()}.png`; link.href = c.toDataURL(); link.click();
-  } catch(e) { alert("CORS Engeli."); }
+    link.download = `Shot_${Date.now()}.png`; link.href = c.toDataURL(); link.click();
+  } catch(e) { alert("Security: Cannot capture stream."); }
+}
+
+function toggleRecording() {
+  const v = document.getElementById('videoPlayer');
+  const btn = document.getElementById('recToggle');
+  if (!isRecording) {
+    try {
+      recordedChunks = [];
+      const stream = v.captureStream ? v.captureStream() : v.mozCaptureStream();
+      mediaRecorder = new MediaRecorder(stream);
+      mediaRecorder.ondataavailable = e => recordedChunks.push(e.data);
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(recordedChunks, {type: 'video/webm'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url; a.download=`Record_${Date.now()}.webm`; a.click();
+      };
+      mediaRecorder.start(); 
+      isRecording = true;
+      btn.classList.add('is-recording');
+      document.getElementById('recStatus').textContent = "STOP";
+    } catch(e) { alert("Not supported."); }
+  } else {
+    mediaRecorder.stop(); 
+    isRecording = false;
+    btn.classList.remove('is-recording');
+    document.getElementById('recStatus').textContent = "RECORD";
+  }
 }
 
 renderChannels();
 </script>
 </body>
 </html>
-
