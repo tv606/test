@@ -306,12 +306,30 @@ function playStream(i) {
 function takeScreenshot() {
   const v = document.getElementById('videoPlayer');
   const c = document.getElementById('ssCanvas');
-  c.width = v.videoWidth; c.height = v.videoHeight;
+  c.width = v.videoWidth; 
+  c.height = v.videoHeight;
+
   try {
     c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
-    const link = document.createElement('a');
-    link.download = `TELE_X_Shot_${Date.now()}.png`; link.href = c.toDataURL(); link.click();
-  } catch(e) { alert("Security: Cannot capture stream."); }
+    
+    // toDataURL yerine toBlob kullanmak daha "hafif" ve moderndir
+    c.toBlob((blob) => {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.download = `TELE_X_Shot_${Date.now()}.png`;
+      link.href = url;
+      
+      document.body.appendChild(link); // DOM'a ekleme şart
+      link.click();
+      document.body.removeChild(link);
+      
+      // Belleği temizle
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }, 'image/png');
+    
+  } catch(e) { 
+    alert("Güvenlik hatası veya Stream kısıtlaması."); 
+  }
 }
 
 function toggleRecording() {
@@ -348,6 +366,7 @@ renderChannels();
 </script>
 </body>
 </html>
+
 
 
 
