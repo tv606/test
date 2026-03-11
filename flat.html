@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IPTV Stream Player - Pro Recording & Snap</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c10;
+    --surface: #12151c;
+    --surface2: #1a1e29;
+    --border: #232838;
+    --accent: #e63946;
+    --accent2: #ff6b6b;
+    --snap-color: #4cc9f0; /* Screenshot için yeni renk */
+    --zap-color: #ff9f1c;
+    --rec-color: #ff0000;
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --active: #1e2535;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Rajdhani', sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+  .topbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 10px 20px; display: flex; align-items: center; gap: 12px; z-index: 10; }
+  .topbar .logo { font-size: 18px; font-weight: 700; letter-spacing: 3px; color: var(--accent); text-transform: uppercase; }
+  .topbar .time { font-family: 'Share Tech Mono', monospace; font-size: 12px; color: var(--muted); margin-left: auto; }
+
+  .main { display: flex; flex: 1; width: 100%; overflow: hidden; }
+
+  .sidebar { width: 280px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
+  .sidebar-header { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .sidebar-header h2 { font-size: 11px; font-weight: 700; letter-spacing: 3px; color: var(--muted); text-transform: uppercase; }
+
+  .m3u8-input-wrap { padding: 12px; border-bottom: 1px solid var(--border); background: var(--bg); }
+  .m3u8-input-wrap input { width: 100%; background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 8px; font-family: 'Share Tech Mono', monospace; font-size: 11px; outline: none; margin-bottom: 6px; }
+  .load-btn { width: 100%; background: var(--accent); border: none; color: #fff; padding: 8px; font-weight: 700; cursor: pointer; text-transform: uppercase; }
+
+  .channel-list { overflow-y: auto; flex: 1; }
+  .channel-item { padding: 12px 16px; cursor: pointer; border-bottom: 1px solid rgba(35,40,56,0.4); display: flex; align-items: center; gap: 10px; }
+  .channel-item:hover { background: var(--active); }
+  .channel-item.active { background: var(--active); border-left: 3px solid var(--accent); }
+  .channel-item.active .ch-name { color: var(--accent); }
+
+  .player-area { flex: 1; background: #000; display: flex; flex-direction: column; position: relative; }
+  .video-wrap { flex: 1; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+  video { max-width: 100%; max-height: 100%; width: 100%; height: auto; }
+
+  .hud-status { position: absolute; top: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; align-items: flex-end; z-index: 10; }
+  .badge { padding: 6px 15px; font-family: 'Share Tech Mono', monospace; font-weight: bold; font-size: 12px; display: none; }
+  #zapIndicator { background: var(--zap-color); color: #000; box-shadow: 0 0 15px rgba(255,159,28,0.5); }
+  #recIndicator { background: var(--rec-color); color: #fff; animation: blink 1s infinite; box-shadow: 0 0 15px rgba(255,0,0,0.5); }
+
+  .video-info { position: absolute; top: 20px; left: 20px; background: rgba(0,0,0,0.8); padding: 10px 20px; border-left: 4px solid var(--accent); display: none; z-index: 10; }
+  .video-info.show { display: block; animation: fadeIn 0.5s; }
+
+  .controls { background: var(--surface); border-top: 1px solid var(--border); padding: 15px 30px; display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+  .ctrl-btn { background: var(--surface2); border: 1px solid var(--border); color: var(--text); min-width: 60px; height: 40px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; transition: 0.2s; }
+  .ctrl-btn:hover { background: var(--border); }
+  .ctrl-btn.primary { background: var(--accent); border: none; width: 50px; height: 50px; font-size: 20px; }
+  
+  .zap-active { background: var(--zap-color) !important; color: #000 !important; }
+  .rec-active { background: var(--rec-color) !important; color: #fff !important; border-color: #fff !important; }
+  /*.snap-btn { color: var(--snap-color); border-color: var(--snap-color); } */
+  .snap-btn:active { background: var(--snap-color); color: #000; }
+
+  .now-playing { flex: 1; text-align: center; min-width: 200px; }
+  .np-name { font-weight: 700; color: var(--accent); font-size: 18px; }
+
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">IPTV<span>·</span>STREAM</div>
+  <div class="time" id="clock">00:00:00</div>
+</div>
+
+<div class="main">
+  <div class="sidebar">
+    <div class="m3u8-input-wrap">
+      <input type="text" id="m3u8Url" placeholder="Stream URL (.m3u8)">
+      <button class="load-btn" onclick="loadFromUrl()">KANAL EKLE</button>
+    </div>
+    <div class="sidebar-header">
+      <h2>CHANNELS</h2>
+      <span id="chCount" style="color:var(--accent)">0</span>
+    </div>
+    <div class="channel-list" id="channelList"></div>
+  </div>
+
+  <div class="player-area">
+    <div class="hud-status">
+      <div class="badge" id="zapIndicator">ZAPPING ACTIVE [5.5s]</div>
+      <div class="badge" id="recIndicator">● RECORDING</div>
+    </div>
+    
+    <div class="video-info" id="videoInfo">
+      <div id="infoNum" style="color:var(--muted); font-family:monospace; font-size:12px;">CH 01</div>
+      <div id="infoName" style="font-size:20px; font-weight:700;">KANAL ADI</div>
+    </div>
+
+    <div class="video-wrap">
+      <video id="videoPlayer" crossorigin="anonymous" playsinline></video>
+    </div>
+
+    <div class="controls">
+      <button class="ctrl-btn" onclick="prevChannel()">◀</button>
+      <button class="ctrl-btn primary" id="playPauseBtn" onclick="togglePlay()">▶</button>
+      <button class="ctrl-btn" onclick="nextChannel()">▶</button>
+      <button class="ctrl-btn" id="zapBtn" onclick="toggleZapping()">ZAP</button>
+      <button class="ctrl-btn" id="recBtn" onclick="toggleRecording()">REC</button>
+      <button class="ctrl-btn snap-btn" title="Ekran Görüntüsü Al" onclick="takeScreenshot()">SNAP</button>
+
+      <div class="now-playing">
+        <div style="font-size:10px; color:var(--muted)">NOW STREAMING</div>
+        <div class="np-name" id="nowPlayingName">LÜTFEN KANAL SEÇİN</div>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span>🔊</span>
+        <input type="range" min="0" max="1" step="0.1" value="1" oninput="document.getElementById('videoPlayer').volume = this.value">
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.4.10/hls.min.js"></script>
+<script>
+let channels = [
+  { name: "CNN INT", url: "https://d3bp6dwmpbdajl.cloudfront.net/v1/manifest/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-ury0meh5m4nzm/2a65a3b9-8cf2-4c6a-b4c8-69b41f958f52/0.m3u8", icon: "📺" },
+  { name: "IRAN TV", url: "https://live.playstop.me/LS-63503-4/chunklist_b1196000.m3u8", icon: "📺" },
+  { name: "FRANCE 24", url: "https://live.france24.com/hls/live/2037218-b/F24_EN_HI_HLS/master_5000.m3u8", icon: "📺" },
+  { name: "BBC NEWS", url: "https://vs-hls-push-ww-live.akamaized.net/x=4/i=urn:bbc:pips:service:bbc_news_channel_hd/t=3840/v=pv14/b=5070016/main.m3u8", icon: "📺" },
+  { name: "LEBANON TV", url: "https://live.kwikmotion.com/redtvlive/redtv.smil/redtvpublish/redtv_source/chunks.m3u8", icon: "📺" },
+  { name: "JORDAN TV", url: "https://jmc-live.ercdn.net/altaghier/altaghier_1080p.m3u8", icon: "📺" },
+  { name: "HALK TV", url: "https://halktv-live.daioncdn.net/halktv/halktv_1080p.m3u8", icon: "📺" },
+  { name: "FX TR", url: "https://saran-live.ercdn.net/fx/index.m3u8", icon: "📺" },
+  { name: "NAT GEO TR", url: "https://saran-live.ercdn.net/natgeohd/index.m3u8", icon: "📺" },
+  { name: "NAT GEO WILD TR", url: "https://saran-live.ercdn.net/natgeowild/index.m3u8", icon: "📺" },
+  { name: "ARTE HD", url: "https://dash4.antik.sk/live/test_arte_avc_25p/playlist.m3u8", icon: "📺" },
+  { name: "DW ENG", url: "https://dwamdstream102.akamaized.net/hls/live/2015525/dwstream102/stream05/streamPlaylist.m3u8", icon: "📺" },
+  { name: "PRO 7", url: "https://dash4.antik.sk/live/test_pro_sieben_tizen/playlist.m3u8", icon: "📺" },
+  { name: "SAT 1 GOLD", url: "https://dash4.antik.sk/live/test_sat_eins_gold_tizen/playlist.m3u8", icon: "📺" },
+  { name: "BBC TWO", url: "https://streamer.nexyl.uk/69ef899e-8ca9-4537-9f1a-fe8b4216afbb_output_0.m3u8?session=8aPdqrefTg4Ru8rBKj3RyK", icon: "📺" },
+  { name: "BBC EARTH", url: "https://amg00793-amg00793c6-xumo-us-2669.playouts.now.amagi.tv/BBCStudios-BBCEarthA-hls/playlist1080p.m3u8", icon: "📺" },
+  { name: "BBC Earth (US)", url: "https://amg00793-bbcstudios-amg00793c3-lg-us-2528.playouts.now.amagi.tv/playlist/amg00793-bbcstudios-bbcearta-lgus/playlist.m3u8", icon: "📺" },
+  { name: "BBC Dinos 24x7 (US)", url: "https://amg00793-amg00793c35-lg-us-6412.playouts.now.amagi.tv/playlist.m3u8", icon: "📺" },
+  { name: "TYT", url: "https://tyt-samsungus.amagi.tv/playlist720p.m3u8", icon: "📺" },
+  { name: "LOVE NATURE", url: "https://aegis-cloudfront-1.tubi.video/6d6d0f24-8445-4b4c-bdf6-44f9e38beaa4/1080p-cc/index.m3u8", icon: "📺" },
+  { name: "NATURESCAPE", url: "https://lotus.stingray.com/manifest/naturescape-a003-montreal/samsungtvplus/f7ed86a4-b8ac-38e0-a745-710077a95be6/3291200/manifest.m3u8", icon: "📺" },
+  { name: "Adventure Earth (GB)", url: "https://autentic-adventure-earth-1-gb.lg.wurl.tv/playlist.m3u8", icon: "📺" },
+  { name: "Air and Space (GB)", url: "https://wingspan-airandspace-1-gb.lg.wurl.tv/playlist.m3u8", icon: "📺" },
+  { name: "NATURE TIME", url: "https://amg01515-amg01515c13-xiaomi-international-4618.playouts.now.amagi.tv/playlist.m3u8", icon: "📺" },
+  { name: "FASHION TV", url: "https://cdn-ue1-prod.tsv2.amagi.tv/linear/amg01546-ftv-fashiontv-xiaomi/playlist.m3u8", icon: "📺" },
+  { name: "Bref Cinema ", url: "https://lagenceducourtmetrage-brefcinema-01-eu.xiaomi.wurl.tv/playlist.m3u8", icon: "📺" },
+  { name: "Now 90s", url: "https://lightning-now90s-xiaomi.amagi.tv/playlist.m3u8", icon: "📺" },
+  { name: "Travel XP (GB)", url: "https://travelxp-travelxp-1-gb.lg.wurl.tv/playlist.m3u8", icon: "📺" },
+  { name: "Wild Earth (KR)", url: "https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg01290-wildearthmediap-wildearth-lgkr/playlist.m3u8", icon: "📺" },
+  { name: "Alleskino (DE)", url: "https://lighthousehomeentertainment-alleskino-1-de.lg.wurl.tv/playlist.m3u8", icon: "📺" },
+  { name: "Autentic History (GB)", url: "https://autentic-autentichistory-1-gb.lg.wurl.tv/playlist.m3u8", icon: "📺" },
+  { name: "RETRO TV", url: "http://stream.mediawork.cz/retrotv//retrotvHQ1/playlist.m3u8", icon: "📺" },
+  { name: "History Hit (FI)", url: "https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg00426-littledotstudio-historyhit-lgfi/playlist.m3u8", icon: "📺" },
+  { name: "History Time (CA)", url: "https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg00090-blueantllc-historytime-lgca/playlist.m3u8", icon: "📺" },
+  { name: "Himmlischeskino (DE)", url: "https://wdr-media-group-himmlischeskino-1-de.lg.wurl.tv/playlist.m3u8", icon: "📺" },
+  { name: "Icon Film Classics (GB)", url: "https://iconfilmsdistribution-iconfilmchannelclassics-1-gb.lg.wurl.tv/playlist.m3u8", icon: "📺" },
+  { name: "Infast (GB)", url: "https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg00861-terninternation-lifestyle-lggb/playlist.m3u8", icon: "📺" },
+  { name: "Life Downunder (GB)", url: "https://wtfn-lifedownunder-2-gb.lg.wurl.tv/playlist.m3u8", icon: "📺" },
+  { name: "Pop Flix (GB)", url: "https://signatureentertainment-popflix-1-gb.lg.wurl.tv/playlist.m3u8", icon: "📺" },
+  { name: "Sparkle Movies (AU)", url: "https://candlelightmedia-sparklemovies-1-au.lg.wurl.tv/playlist.m3u8", icon: "📺" },
+  { name: "Unbeaten (GB)", url: "https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg00721-inverleigh-unbeatengb-lggb/playlist.m3u8", icon: "📺" },
+  { name: "TRT BELGESEL", url: "https://tv-trtbelgesel.medya.trt.com.tr/master.m3u8", icon: "📺" },
+  { name: "TRT SPOR", url: "https://tv-trtspor1.medya.trt.com.tr/master.m3u8", icon: "📺" },
+  { name: "TRT1", url: "https://tv-trt1.medya.trt.com.tr/master_1080.m3u8", icon: "📺" },
+  { name: "RTL GOLD", url: "https://stream.rtl.lu/data/live/tele/rtlgold/1080p.m3u8", icon: "📺" },
+  { name: "STINGRAY 90's", url: "https://lotus.stingray.com/manifest/ose-142ads-montreal/samsungtvplus/f5102ca4-edd7-30ac-a357-877f60db023b/1790800/manifest.m3u8", icon: "📺" },
+  { name: "HABER GLOBAL", url: "https://tv.ensonhaber.com/haberglobal/haberglobal_720p.m3u8", icon: "📺" },
+  { name: "HABER TÜRK", url: "https://tv.ensonhaber.com/haberturk/haberturk_720p.m3u8", icon: "📺" },
+  { name: "TV 100", url: "https://tv100-live.daioncdn.net/tv100/tv100.m3u8", icon: "📺" },
+  { name: "TELE 1", url: "https://tele1-live.ercdn.net/tele1/tele1_720p.m3u8", icon: "📺" },
+  { name: "TV 41", url: "https://live.artidijitalmedya.com/artidijital_tv41/tv41/playlist.m3u8", icon: "📺" },
+  { name: "TV 24", url: "https://tv.ensonhaber.com/tv24/tv24_720p.m3u8", icon: "📺" },
+  { name: "TV 360", url: "https://turkmedya-live.ercdn.net/tv360/tv360_720p.m3u8", icon: "📺" },
+  { name: "BENGÜ TÜRK", url: "https://tv.ensonhaber.com/benguturk/benguturk_720p.m3u8", icon: "📺" },
+  { name: "BLOOMBERG HT", url: "https://tv.ensonhaber.com/bloomberght/bloomberght_720p.m3u8", icon: "📺" },
+  { name: "CNBC-E", url: "https://hnpsechtsc.turknet.ercdn.net/xpnvudnlsv/cnbc-e/cnbc-e_720p.m3u8", icon: "📺" },
+  { name: "DENİZ POSTASI", url: "https://live.artidijitalmedya.com/artidijital_denizpostasi/denizpostasi/playlist.m3u8", icon: "📺" },
+  { name: "GZT TV", url: "https://mn-nl.mncdn.com/gzttv/gzttv/playlist.m3u8", icon: "📺" },
+  { name: "TRT 2", url: "https://tv-trt2.medya.trt.com.tr/master_720.m3u8", icon: "📺" },
+  { name: "TRT MÜZİK", url: "https://tv-trtmuzik.medya.trt.com.tr/master_720.m3u8", icon: "📺" },
+  { name: "TRT TÜRK", url: "https://tv-trtturk.medya.trt.com.tr/master_720.m3u8", icon: "📺" },
+  { name: "TRT AVAZ", url: "https://tv-trtavaz.medya.trt.com.tr/master_720.m3u8", icon: "📺" },
+  { name: "BEIN S1 VPN", url: "https://wandering-pond-ff44.sadjj2390092.workers.dev/checklist/androstreamlivebs1.m3u8", icon: "📺" },
+];
+
+let currentIndex = -1;
+let hls = null;
+let zapInterval = null;
+let mediaRecorder = null;
+let recordedChunks = [];
+
+function init() {
+  renderChannels();
+  setInterval(() => { document.getElementById('clock').textContent = new Date().toLocaleTimeString(); }, 1000);
+}
+
+function renderChannels() {
+  const list = document.getElementById('channelList');
+  document.getElementById('chCount').textContent = channels.length;
+  list.innerHTML = '';
+  channels.forEach((ch, i) => {
+    const item = document.createElement('div');
+    item.className = 'channel-item' + (i === currentIndex ? ' active' : '');
+    item.innerHTML = `<strong>${i+1}</strong> <span>${ch.name}</span>`;
+    item.onclick = () => selectChannel(i);
+    list.appendChild(item);
+  });
+}
+
+function selectChannel(index) {
+  if (mediaRecorder && mediaRecorder.state === "recording") {
+      if(!confirm("Kanal değiştirirseniz kayıt duracak. Devam edilsin mi?")) return;
+      toggleRecording();
+  }
+  
+  currentIndex = index;
+  const ch = channels[index];
+  renderChannels();
+  
+  const video = document.getElementById('videoPlayer');
+  if (hls) hls.destroy();
+
+  if (Hls.isSupported()) {
+    hls = new Hls();
+    hls.loadSource(ch.url);
+    hls.attachMedia(video);
+    hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+  }
+
+  document.getElementById('nowPlayingName').textContent = ch.name;
+  showInfo(ch.name, index + 1);
+}
+
+// SCREENSHOT ÖZELLİĞİ
+function takeScreenshot() {
+  const video = document.getElementById('videoPlayer');
+  if (!video.videoWidth) return alert("Video henüz yüklenmedi!");
+
+  const canvas = document.createElement('canvas');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext('2d');
+  
+  // Videoyu canvasa çiz
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  
+  // PNG olarak indir
+  try {
+    const dataUrl = canvas.toDataURL("image/png");
+    const link = document.createElement('a');
+    link.download = `iptv-snap-${Date.now()}.png`;
+    link.href = dataUrl;
+    link.click();
+  } catch (e) {
+    alert("Hata: CORS kısıtlamaları nedeniyle bu kanaldan görüntü alınamıyor.");
+  }
+}
+
+function toggleRecording() {
+  const video = document.getElementById('videoPlayer');
+  const recBtn = document.getElementById('recBtn');
+  const recInd = document.getElementById('recIndicator');
+
+  if (mediaRecorder && mediaRecorder.state === "recording") {
+    mediaRecorder.stop();
+    recBtn.classList.remove('rec-active');
+    recBtn.innerText = "REC";
+    recInd.style.display = 'none';
+  } else {
+    recordedChunks = [];
+    try {
+      const stream = video.captureStream ? video.captureStream() : video.mozCaptureStream();
+      mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9' });
+      
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) recordedChunks.push(e.data);
+      };
+
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(recordedChunks, { type: 'video/webm' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `iptv-record-${Date.now()}.webm`;
+        a.click();
+      };
+
+      mediaRecorder.start();
+      recBtn.classList.add('rec-active');
+      recBtn.innerText = "STOP";
+      recInd.style.display = 'block';
+    } catch (e) {
+      alert("Hata: Kayıt başlatılamadı. Tarayıcı desteğini kontrol edin.");
+    }
+  }
+}
+
+function showInfo(name, num) {
+  const info = document.getElementById('videoInfo');
+  document.getElementById('infoName').textContent = name;
+  document.getElementById('infoNum').textContent = 'CH ' + num;
+  info.classList.add('show');
+  setTimeout(() => info.classList.remove('show'), 3000);
+}
+
+function toggleZapping() {
+  const btn = document.getElementById('zapBtn');
+  const ind = document.getElementById('zapIndicator');
+  if (zapInterval) {
+    clearInterval(zapInterval); zapInterval = null;
+    btn.classList.remove('zap-active'); ind.style.display = 'none';
+  } else {
+    btn.classList.add('zap-active'); ind.style.display = 'block';
+    zapInterval = setInterval(() => { selectChannel(Math.floor(Math.random() * channels.length)); }, 5500);
+  }
+}
+
+function togglePlay() {
+  const v = document.getElementById('videoPlayer');
+  if (v.paused) v.play(); else v.pause();
+  document.getElementById('playPauseBtn').textContent = v.paused ? '▶' : '⏸';
+}
+
+function nextChannel() { selectChannel((currentIndex + 1) % channels.length); }
+function prevChannel() { selectChannel((currentIndex - 1 + channels.length) % channels.length); }
+
+function loadFromUrl() {
+  const url = document.getElementById('m3u8Url').value;
+  if(url) { channels.push({name: "Custom Stream", url: url}); renderChannels(); selectChannel(channels.length - 1); }
+}
+
+init();
+</script>
+</body>
+</html>
