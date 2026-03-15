@@ -7,42 +7,6 @@
     "src": "#"
   },
   {
-    "name": "CNN INT",
-    "id": "cnn-int",
-    "type": "hls",
-    "src": "https://d3bp6dwmpbdajl.cloudfront.net/v1/manifest/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-ury0meh5m4nzm/2a65a3b9-8cf2-4c6a-b4c8-69b41f958f52/0.m3u8"
-  },
-  {
-    "name": "IRAN TV",
-    "id": "iran-tv",
-    "type": "hls",
-    "src": "https://live.playstop.me/LS-63503-4/chunklist_b1196000.m3u8"
-  },
-  {
-    "name": "FRANCE 24",
-    "id": "france-24",
-    "type": "hls",
-    "src": "https://live.france24.com/hls/live/2037218-b/F24_EN_HI_HLS/master_5000.m3u8"
-  },
-  {
-    "name": "BBC NEWS",
-    "id": "bbc-news",
-    "type": "hls",
-    "src": "https://vs-hls-push-ww-live.akamaized.net/x=4/i=urn:bbc:pips:service:bbc_news_channel_hd/t=3840/v=pv14/b=5070016/main.m3u8"
-  },
-  {
-    "name": "LEBANON TV",
-    "id": "lebanon-tv",
-    "type": "hls",
-    "src": "https://live.kwikmotion.com/redtvlive/redtv.smil/redtvpublish/redtv_source/chunks.m3u8"
-  },
-  {
-    "name": "JORDAN TV",
-    "id": "jordan-tv",
-    "type": "hls",
-    "src": "https://jmc-live.ercdn.net/altaghier/altaghier_1080p.m3u8"
-  },
-  {
     "name": "HALK TV",
     "id": "halk-tv",
     "type": "hls",
@@ -89,6 +53,24 @@
     "id": "sat-1-gold",
     "type": "hls",
     "src": "https://dash4.antik.sk/live/test_sat_eins_gold_tizen/playlist.m3u8"
+  },
+    {
+    "name": "CNN INT",
+    "id": "cnn-int",
+    "type": "hls",
+    "src": "https://d3bp6dwmpbdajl.cloudfront.net/v1/manifest/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-ury0meh5m4nzm/2a65a3b9-8cf2-4c6a-b4c8-69b41f958f52/0.m3u8"
+  },
+  {
+    "name": "FRANCE 24",
+    "id": "france-24",
+    "type": "hls",
+    "src": "https://live.france24.com/hls/live/2037218-b/F24_EN_HI_HLS/master_5000.m3u8"
+  },
+  {
+    "name": "BBC NEWS",
+    "id": "bbc-news",
+    "type": "hls",
+    "src": "https://vs-hls-push-ww-live.akamaized.net/x=4/i=urn:bbc:pips:service:bbc_news_channel_hd/t=3840/v=pv14/b=5070016/main.m3u8"
   },
   {
     "name": "BBC TWO",
@@ -283,7 +265,7 @@
     "src": "https://lotus.stingray.com/manifest/ose-142ads-montreal/samsungtvplus/f5102ca4-edd7-30ac-a357-877f60db023b/1790800/manifest.m3u8"
   },
   {
-    "name": "BEIN S1 VPN",
+    "name": "BXS1 VPN",
     "id": "bein-s1-vpn",
     "type": "hls",
     "src": "https://wandering-pond-ff44.sadjj2390092.workers.dev/checklist/androstreamlivebs1.m3u8"
