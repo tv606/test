@@ -269,6 +269,18 @@
     "id": "bein-s1-vpn",
     "type": "hls",
     "src": "https://wandering-pond-ff44.sadjj2390092.workers.dev/checklist/androstreamlivebs1.m3u8"
+  },
+  {
+    "name": "EUS1",
+    "id": "bein-s1-vpn",
+    "type": "hls",
+    "src": "https://api.hitnova.net/s/eu1/mono.m3u8"
+  },
+  {
+    "name": "EUS2",
+    "id": "bein-s1-vpn",
+    "type": "hls",
+    "src": "https://api.hitnova.net/s/eu2/mono.m3u8"
   }
 ]
 
