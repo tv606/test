@@ -20,10 +20,10 @@
     --muted: #6b7280;
     --active: #1e2535;
   }
-
+  html {scrollbar-color: #1a1818 #2e2e2e;}
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: 'Rajdhani', sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-  html {scrollbar-color: #1a1818 #2e2e2e;}
+
   .topbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 10px 20px; display: flex; align-items: center; gap: 12px; z-index: 10; }
   .topbar .logo { font-size: 18px; font-weight: 700; letter-spacing: 3px; color: var(--accent); text-transform: uppercase; }
   .topbar .time { font-family: 'Share Tech Mono', monospace; font-size: 12px; color: var(--muted); margin-left: auto; }
@@ -82,6 +82,10 @@
 
 <div class="main">
   <div class="sidebar">
+    <div class="m3u8-input-wrap">
+      <input type="text" id="m3u8Url" placeholder="Stream URL (.m3u8)">
+      <button class="load-btn" onclick="loadFromUrl()">KANAL EKLE</button>
+    </div>
     <div class="sidebar-header">
       <h2>CHANNELS</h2>
       <span id="chCount" style="color:var(--accent)">0</span>
@@ -129,20 +133,41 @@
 <script>
 let channels = [
   { name: "CNN INT", url: "https://d3bp6dwmpbdajl.cloudfront.net/v1/manifest/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-ury0meh5m4nzm/2a65a3b9-8cf2-4c6a-b4c8-69b41f958f52/0.m3u8", icon: "📺" },
+  { name: "FRANCE 24", url: "https://live.france24.com/hls/live/2037218-b/F24_EN_HI_HLS/master_5000.m3u8", icon: "📺" },
+  { name: "BBC NEWS", url: "https://vs-hls-push-ww-live.akamaized.net/x=4/i=urn:bbc:pips:service:bbc_news_channel_hd/t=3840/v=pv14/b=5070016/main.m3u8", icon: "📺" },
+  { name: "SKY NEWS", url: "https://linear417-gb-hls1-prd-ak.cdn.skycdp.com/100e/Content/HLS_001_720_30/Live/channel(skynews)/index_720-30.m3u8", icon: "📺" },
+  { name: "CBS NEWS", url: "https://cbsn-us.cbsnstream.cbsnews.com/out/v1/55a8648e8f134e82a470f83d562deeca/master_24.m3u8", icon: "📺" },
+  { name: "IRAN TV", url: "https://live.playstop.me/LS-63503-4/chunklist_b1196000.m3u8", icon: "📺" },
+  { name: "LEBANON TV", url: "https://live.kwikmotion.com/redtvlive/redtv.smil/redtvpublish/redtv_source/chunks.m3u8", icon: "📺" },
+  { name: "JORDAN TV", url: "https://jmc-live.ercdn.net/altaghier/altaghier_1080p.m3u8", icon: "📺" },
+  { name: "DW ENG", url: "https://dwamdstream102.akamaized.net/hls/live/2015525/dwstream102/stream05/streamPlaylist.m3u8", icon: "📺" },
+  { name: "TYT", url: "https://tyt-samsungus.amagi.tv/playlist720p.m3u8", icon: "📺" },
+  { name: "📺📺📺📺📺📺📺📺📺", url: "#", icon: "📺" },
+  { name: "HALK TV", url: "https://halktv-live.daioncdn.net/halktv/halktv_1080p.m3u8", icon: "📺" },
+  { name: "HABER GLOBAL", url: "https://tv.ensonhaber.com/haberglobal/haberglobal_720p.m3u8", icon: "📺" },
+  { name: "HABER TÜRK", url: "https://tv.ensonhaber.com/haberturk/haberturk_720p.m3u8", icon: "📺" },
+  { name: "EKOL TV", url: "https://ekoltv-live.ercdn.net/ekoltv/ekoltv.m3u8", icon: "📺" },
+  { name: "BLOOMBERG HT", url: "https://tv.ensonhaber.com/bloomberght/bloomberght_720p.m3u8", icon: "📺" },
   { name: "FX TR", url: "https://saran-live.ercdn.net/fx/index.m3u8", icon: "📺" },
   { name: "NAT GEO TR", url: "https://saran-live.ercdn.net/natgeohd/index.m3u8", icon: "📺" },
   { name: "NAT GEO WILD TR", url: "https://saran-live.ercdn.net/natgeowild/index.m3u8", icon: "📺" },
+  { name: "TV 24", url: "https://tv.ensonhaber.com/tv24/tv24_720p.m3u8", icon: "📺" },
+  { name: "TV 100", url: "https://tv100-live.daioncdn.net/tv100/tv100.m3u8", icon: "📺" },
+  { name: "CNBC-E", url: "https://hnpsechtsc.turknet.ercdn.net/xpnvudnlsv/cnbc-e/cnbc-e_720p.m3u8", icon: "📺" },
+  { name: "DENİZ POSTASI", url: "https://live.artidijitalmedya.com/artidijital_denizpostasi/denizpostasi/playlist.m3u8", icon: "📺" },
+  { name: "GZT TV", url: "https://mn-nl.mncdn.com/gzttv/gzttv/playlist.m3u8", icon: "📺" },
+  { name: "TRT 2", url: "https://tv-trt2.medya.trt.com.tr/master_720.m3u8", icon: "📺" },
+  { name: "TRT BELGESEL", url: "https://tv-trtbelgesel.medya.trt.com.tr/master.m3u8", icon: "📺" },
+  { name: "TRT SPOR", url: "https://tv-trtspor1.medya.trt.com.tr/master.m3u8", icon: "📺" },
+  { name: "TRT1", url: "https://tv-trt1.medya.trt.com.tr/master_1080.m3u8", icon: "📺" },
+  { name: "📺📺📺📺📺📺📺📺📺", url: "#", icon: "📺" },
   { name: "ARTE HD", url: "https://dash4.antik.sk/live/test_arte_avc_25p/playlist.m3u8", icon: "📺" },
-  { name: "DW ENG", url: "https://dwamdstream102.akamaized.net/hls/live/2015525/dwstream102/stream05/streamPlaylist.m3u8", icon: "📺" },
   { name: "PRO 7", url: "https://dash4.antik.sk/live/test_pro_sieben_tizen/playlist.m3u8", icon: "📺" },
   { name: "SAT 1 GOLD", url: "https://dash4.antik.sk/live/test_sat_eins_gold_tizen/playlist.m3u8", icon: "📺" },
-  { name: "FRANCE 24", url: "https://live.france24.com/hls/live/2037218-b/F24_EN_HI_HLS/master_5000.m3u8", icon: "📺" },
-  { name: "BBC NEWS", url: "https://vs-hls-push-ww-live.akamaized.net/x=4/i=urn:bbc:pips:service:bbc_news_channel_hd/t=3840/v=pv14/b=5070016/main.m3u8", icon: "📺" },
   { name: "BBC TWO", url: "https://streamer.nexyl.uk/69ef899e-8ca9-4537-9f1a-fe8b4216afbb_output_0.m3u8?session=8aPdqrefTg4Ru8rBKj3RyK", icon: "📺" },
   { name: "BBC EARTH", url: "https://amg00793-amg00793c6-xumo-us-2669.playouts.now.amagi.tv/BBCStudios-BBCEarthA-hls/playlist1080p.m3u8", icon: "📺" },
   { name: "BBC Earth (US)", url: "https://amg00793-bbcstudios-amg00793c3-lg-us-2528.playouts.now.amagi.tv/playlist/amg00793-bbcstudios-bbcearta-lgus/playlist.m3u8", icon: "📺" },
   { name: "BBC Dinos 24x7 (US)", url: "https://amg00793-amg00793c35-lg-us-6412.playouts.now.amagi.tv/playlist.m3u8", icon: "📺" },
-  { name: "TYT", url: "https://tyt-samsungus.amagi.tv/playlist720p.m3u8", icon: "📺" },
   { name: "LOVE NATURE", url: "https://aegis-cloudfront-1.tubi.video/6d6d0f24-8445-4b4c-bdf6-44f9e38beaa4/1080p-cc/index.m3u8", icon: "📺" },
   { name: "NATURESCAPE", url: "https://lotus.stingray.com/manifest/naturescape-a003-montreal/samsungtvplus/f7ed86a4-b8ac-38e0-a745-710077a95be6/3291200/manifest.m3u8", icon: "📺" },
   { name: "Adventure Earth (GB)", url: "https://autentic-adventure-earth-1-gb.lg.wurl.tv/playlist.m3u8", icon: "📺" },
@@ -167,33 +192,8 @@ let channels = [
   { name: "Unbeaten (GB)", url: "https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg00721-inverleigh-unbeatengb-lggb/playlist.m3u8", icon: "📺" },
   { name: "RTL GOLD", url: "https://stream.rtl.lu/data/live/tele/rtlgold/1080p.m3u8", icon: "📺" },
   { name: "STINGRAY 90's", url: "https://lotus.stingray.com/manifest/ose-142ads-montreal/samsungtvplus/f5102ca4-edd7-30ac-a357-877f60db023b/1790800/manifest.m3u8", icon: "📺" },
-  { name: "TRT BELGESEL", url: "https://tv-trtbelgesel.medya.trt.com.tr/master.m3u8", icon: "📺" },
-  { name: "TRT SPOR", url: "https://tv-trtspor1.medya.trt.com.tr/master.m3u8", icon: "📺" },
-  { name: "TRT1", url: "https://tv-trt1.medya.trt.com.tr/master_1080.m3u8", icon: "📺" },
-  { name: "HALK TV", url: "https://halktv-live.daioncdn.net/halktv/halktv_1080p.m3u8", icon: "📺" },
-  { name: "EUS1", url: "https://api.hitnova.net/s/eu1/mono.m3u8", icon: "📺" },
-  { name: "EUS2 ", url: "https://api.hitnova.net/s/eu2/mono.m3u8", icon: "📺" },
-  { name: "HABER GLOBAL", url: "https://tv.ensonhaber.com/haberglobal/haberglobal_720p.m3u8", icon: "📺" },
-  { name: "HABER TÜRK", url: "https://tv.ensonhaber.com/haberturk/haberturk_720p.m3u8", icon: "📺" },
-  { name: "TV 100", url: "https://tv100-live.daioncdn.net/tv100/tv100.m3u8", icon: "📺" },
-  { name: "TELE 1", url: "https://tele1-live.ercdn.net/tele1/tele1_720p.m3u8", icon: "📺" },
-  { name: "TV 41", url: "https://live.artidijitalmedya.com/artidijital_tv41/tv41/playlist.m3u8", icon: "📺" },
-  { name: "TV 24", url: "https://tv.ensonhaber.com/tv24/tv24_720p.m3u8", icon: "📺" },
-  { name: "TV 360", url: "https://turkmedya-live.ercdn.net/tv360/tv360_720p.m3u8", icon: "📺" },
-  { name: "BENGÜ TÜRK", url: "https://tv.ensonhaber.com/benguturk/benguturk_720p.m3u8", icon: "📺" },
-  { name: "BLOOMBERG HT", url: "https://tv.ensonhaber.com/bloomberght/bloomberght_720p.m3u8", icon: "📺" },
-  { name: "CNBC-E", url: "https://hnpsechtsc.turknet.ercdn.net/xpnvudnlsv/cnbc-e/cnbc-e_720p.m3u8", icon: "📺" },
-  { name: "DENİZ POSTASI", url: "https://live.artidijitalmedya.com/artidijital_denizpostasi/denizpostasi/playlist.m3u8", icon: "📺" },
-  { name: "GZT TV", url: "https://mn-nl.mncdn.com/gzttv/gzttv/playlist.m3u8", icon: "📺" },
-  { name: "TRT 2", url: "https://tv-trt2.medya.trt.com.tr/master_720.m3u8", icon: "📺" },
-  { name: "TRT MÜZİK", url: "https://tv-trtmuzik.medya.trt.com.tr/master_720.m3u8", icon: "📺" },
-  { name: "TRT TÜRK", url: "https://tv-trtturk.medya.trt.com.tr/master_720.m3u8", icon: "📺" },
-  { name: "TRT AVAZ", url: "https://tv-trtavaz.medya.trt.com.tr/master_720.m3u8", icon: "📺" },
-  { name: "IRAN TV", url: "https://live.playstop.me/LS-63503-4/chunklist_b1196000.m3u8", icon: "📺" },
-  { name: "LEBANON TV", url: "https://live.kwikmotion.com/redtvlive/redtv.smil/redtvpublish/redtv_source/chunks.m3u8", icon: "📺" },
-  { name: "JORDAN TV", url: "https://jmc-live.ercdn.net/altaghier/altaghier_1080p.m3u8", icon: "📺" },
   { name: "BXS1 (VPN)", url: "https://wandering-pond-ff44.sadjj2390092.workers.dev/checklist/androstreamlivebs1.m3u8", icon: "📺" },
-
+  { name: "", url: "#", icon: "📺" },
 ];
 
 let currentIndex = -1;
