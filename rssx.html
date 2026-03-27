@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HaberTR - Ultra Native Nav</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg: #09090b;
+            --surface: #18181b;
+            --primary: #60a5fa; 
+            --text: #fafafa;
+            --text-muted: #a1a1aa;
+            --border: #27272a;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg); color: var(--text); line-height: 1.6; overflow-x: hidden; }
+
+        header { padding: 1.2rem 1.5rem; position: sticky; top: 0; background: rgba(9, 9, 11, 0.95); backdrop-filter: blur(15px); border-bottom: 1px solid var(--border); z-index: 10; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-weight: 800; font-size: 1.3rem; letter-spacing: -1px; }
+        .logo span { color: var(--primary); }
+
+        .news-list { padding: 1rem; max-width: 650px; margin: 0 auto; }
+        .card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 1.25rem; margin-bottom: 1rem; cursor: pointer; transition: all 0.2s; }
+        .card:active { transform: scale(0.97); }
+        .card-title { font-size: 1.1rem; font-weight: 600; color: #fff; margin-bottom: 0.8rem; }
+        .source-pill { background: #27272a; color: var(--primary); padding: 4px 10px; border-radius: 30px; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; }
+
+        .view-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 100; transform: translateX(100%); transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1); overflow-y: auto; }
+        .view-layer.open { transform: translateX(0); }
+
+        .layer-header { padding: 1rem; display: flex; align-items: center; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--bg); z-index: 2; }
+        .back-btn { background: var(--surface); border: none; color: var(--primary); width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; margin-right: 1rem; }
+
+        .detail-body { padding: 2rem 1.2rem; max-width: 600px; margin: 0 auto; }
+        
+        /* 2. Sayfadaki Renkli Kart Stilleri (Tıklanabilir) */
+        .content-area a { 
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 18px; border-radius: 14px; margin: 12px 0;
+            color: #fff !important; text-decoration: none !important;
+            font-weight: 600; font-style: normal; border: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+            cursor: pointer; transition: transform 0.1s;
+        }
+        .content-area a:active { transform: scale(0.96); }
+
+        /* Renk Döngüsü Sınıfları */
+        .color-1 { background: linear-gradient(135deg, #3b82f6, #2563eb) !important; } 
+        .color-2 { background: linear-gradient(135deg, #f59e0b, #d97706) !important; } 
+        .color-3 { background: linear-gradient(135deg, #ef4444, #dc2626) !important; } 
+        .color-4 { background: linear-gradient(135deg, #10b981, #059669) !important; } 
+        .color-5 { background: linear-gradient(135deg, #8b5cf6, #7c3aed) !important; } 
+
+        .shimmer { text-align: center; padding: 5rem 2rem; color: var(--primary); }
+
+
+        .footer{height:100px; width:100%; text-align: center;}
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <header><div class="logo">HABER<span>TR</span></div><i class="fas fa-bars"></i></header>
+    <div id="news-list" class="news-list">
+        <div class="shimmer"><i class="fas fa-circle-notch fa-spin fa-2x"></i></div>
+    </div>
+    <div class="footer"></div>
+</div>
+
+<div id="detail-view" class="view-layer">
+    <div class="layer-header">
+        <div class="back-btn" onclick="closeLayer('detail-view')"><i class="fas fa-chevron-left"></i></div>
+        <span style="font-weight: 600;">Haber Kaynakları</span>
+    </div>
+    <div class="detail-body">
+        <h1 id="det-title" style="margin-bottom:1.5rem; font-size: 1.4rem;"></h1>
+        <p style="color: var(--text-muted); margin-bottom: 1rem; font-size: 0.9rem;">Haberin detayını okumak için bir kaynağa dokunun:</p>
+        <div id="det-content" class="content-area"></div>
+    </div>
+    <div class="footer"></div>
+</div>
+    
+
+<script>
+    const RSS_URL = "https://news.google.com/rss?hl=tr&gl=TR&ceid=TR:tr";
+    const PROXY_URL = "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(RSS_URL);
+    let startX = 0, endX = 0;
+
+    async function loadNews() {
+        try {
+            const res = await fetch(PROXY_URL);
+            const data = await res.json();
+            if (data.status === 'ok') {
+                const shuffledItems = data.items.sort(() => Math.random() - 0.5);
+                renderList(shuffledItems.slice(0, 20));
+            }
+        } catch (err) { console.error(err); }
+    }
+
+    function renderList(items) {
+        const list = document.getElementById('news-list');
+        list.innerHTML = '';
+        items.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.onclick = () => openDetail(item);
+            card.innerHTML = `<div class="card-title">${item.title.split(' - ')[0]}</div>
+                <div class="source-pill">${item.author || item.title.split(' - ').pop()}</div>`;
+            list.appendChild(card);
+        });
+    }
+
+    function openDetail(item) {
+        document.getElementById('det-title').innerText = item.title.split(' - ')[0];
+        
+        let tempDiv = document.createElement('div');
+        tempDiv.innerHTML = item.description;
+        
+        // 2. Sayfadaki linkleri düzenle ve renklendir
+        const links = tempDiv.querySelectorAll('a');
+        links.forEach((a, index) => {
+            const text = a.innerText.trim();
+            if(text.length > 2) {
+                a.target = "_blank";
+                a.classList.add('color-' + ((index % 5) + 1));
+                // İçeriğine ikon ekle
+                a.innerHTML = `<span>${text}</span> <i class="fas fa-external-link-alt"></i>`;
+            } else {
+                a.style.display = 'none'; // Çok kısa/anlamsız linkleri gizle
+            }
+        });
+
+        document.getElementById('det-content').innerHTML = tempDiv.innerHTML;
+        document.getElementById('detail-view').classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeLayer(id) {
+        document.getElementById(id).classList.remove('open');
+        document.body.style.overflow = 'auto';
+    }
+
+    // Swipe ile geri gelme özelliği
+    const handleSwipe = () => {
+        const threshold = 100;
+        if (endX - startX > threshold) {
+            closeLayer('detail-view');
+        }
+    }
+
+    const detailLayer = document.getElementById('detail-view');
+    detailLayer.addEventListener('touchstart', e => { startX = e.touches[0].clientX; }, {passive: true});
+    detailLayer.addEventListener('touchend', e => { endX = e.changedTouches[0].clientX; handleSwipe(); }, {passive: true});
+
+    loadNews();
+</script>
+
+</body>
+</html>
