@@ -109,21 +109,35 @@
     let currentItem = null;
 
     async function loadNews() {
+    try {
         const res = await fetch(PROXY_URL);
         const data = await res.json();
-        if (data.status === 'ok') renderList(data.items.slice(0, 20));
-    }
+        if (data.status === 'ok') {
+            // Haberleri önce al, sonra karıştır, sonra ilk 20 tanesini göster
+            const shuffledItems = data.items.sort(() => Math.random() - 0.5);
+            renderList(shuffledItems.slice(0, 20));
+        }
+    } catch (err) { console.error(err); }
+}
 
     function renderList(items) {
         const list = document.getElementById('news-list');
+        list.innerHTML = '';
         items.forEach(item => {
             const card = document.createElement('div');
             card.className = 'card';
             card.onclick = () => openDetail(item);
-            card.innerHTML = `<div class="card-title">${item.title.split(' - ')[0]}</div>`;
+            card.innerHTML = `
+                <div class="card-title">${item.title.split(' - ')[0]}</div>
+                <div class="source-pill">${item.author || item.title.split(' - ').pop()}</div>
+            `;
             list.appendChild(card);
         });
     }
+
+function shuffle(array) {
+  return array.sort(() => Math.random() - 0.5);
+}
 
     function openDetail(item) {
         currentItem = item;
