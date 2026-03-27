@@ -20,26 +20,22 @@
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg); color: var(--text); line-height: 1.6; overflow-x: hidden; }
 
-        /* Ortak Header ve Yapı */
         header { padding: 1.2rem 1.5rem; position: sticky; top: 0; background: rgba(9, 9, 11, 0.95); backdrop-filter: blur(15px); border-bottom: 1px solid var(--border); z-index: 10; display: flex; justify-content: space-between; align-items: center; }
         .logo { font-weight: 800; font-size: 1.3rem; letter-spacing: -1px; }
         .logo span { color: var(--primary); }
 
-        /* Ana Liste */
         .news-list { padding: 1rem; max-width: 650px; margin: 0 auto; }
         .card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 1.25rem; margin-bottom: 1rem; cursor: pointer; transition: all 0.2s; }
         .card:active { transform: scale(0.97); }
         .card-title { font-size: 1.1rem; font-weight: 600; color: #fff; margin-bottom: 0.8rem; }
         .source-pill { background: #27272a; color: var(--primary); padding: 4px 10px; border-radius: 30px; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; }
 
-        /* Katmanlı Görünüm Sistemi (Layering) */
-        .view-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 100; transform: translateX(100%); transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); overflow-y: auto; }
+        .view-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 100; transform: translateX(100%); transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); overflow-y: auto; scroll-behavior: smooth; }
         .view-layer.open { transform: translateX(0); }
 
-        .layer-header { padding: 1rem; display: flex; align-items: center; border-bottom: 1px solid var(--border); sticky; top: 0; background: var(--bg); z-index: 2; }
+        .layer-header { padding: 1rem; display: flex; align-items: center; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--bg); z-index: 2; }
         .back-btn { background: var(--surface); border: none; color: var(--primary); width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; margin-right: 1rem; }
 
-        /* Detay Sayfası ve Renkli Bloklar */
         .detail-body { padding: 2rem 1.2rem; max-width: 600px; margin: 0 auto; }
         .content-area a { 
             display: block; background: #1c1c21; padding: 16px; border-radius: 12px; 
@@ -47,35 +43,12 @@
             pointer-events: none; position: relative; font-style: italic; border-left: 5px solid;
         }
 
-.quote-block {
-            flex: 1;
-            padding: 20px;
-            border-radius: 15px;
-            color: #000; /* Yazılar koyu */
-            font-weight: 600;
-            font-style: italic;
-            position: relative;
-            margin-bottom: 8px;
-        }
+        .content-area a:nth-child(5n+1) { border-color: #60a5fa; background: rgba(96, 165, 250, 0.05); }
+        .content-area a:nth-child(5n+2) { border-color: #fbbf24; background: rgba(251, 191, 36, 0.05); } 
+        .content-area a:nth-child(5n+3) { border-color: #f87171; background: rgba(248, 113, 113, 0.05); }
+        .content-area a:nth-child(5n+4) { border-color: #34d399; background: rgba(52, 211, 153, 0.05); }
+        .content-area a:nth-child(5n+5) { border-color: #a78bfa; background: rgba(167, 139, 250, 0.05); }
 
-        .source-name { color: #fff; font-size: 0.85rem; padding-left: 30px; margin-bottom: 20px; display: block; }
-
-        /* Renk Paleti (Görseldeki sırayla) */
-        .block-0 { background-color: #00ced1; } /* Turkuaz */
-        .block-1 { background-color: #ffcc4d; } /* Sarı */
-        .block-2 { background-color: #ff4d4d; } /* Kırmızı */
-        .block-3 { background-color: #fca581; } /* Somon */
-        .block-4 { background-color: #9370db; } /* Mor */
-
-
-        /* Blok Renk Döngüsü */
-        .content-area a:nth-child(5n+1) { border-color: #60a5fa; background: rgba(96, 165, 250, 0.05); } /* Mavi */
-        .content-area a:nth-child(5n+2) { border-color: #fbbf24; background: rgba(251, 191, 36, 0.05); }  /* Sarı */
-        .content-area a:nth-child(5n+3) { border-color: #f87171; background: rgba(248, 113, 113, 0.05); } /* Kırmızı */
-        .content-area a:nth-child(5n+4) { border-color: #34d399; background: rgba(52, 211, 153, 0.05); } /* Yeşil */
-        .content-area a:nth-child(5n+5) { border-color: #a78bfa; background: rgba(167, 139, 250, 0.05); } /* Mor */
-
-        /* 3. Sayfa (Kaynaklar) Listesi */
         .source-item { 
             background: var(--surface); padding: 1.2rem; border-radius: 15px; margin-bottom: 10px; 
             display: flex; justify-content: space-between; align-items: center; text-decoration: none; color: #fff;
@@ -127,27 +100,33 @@
 <script>
     const RSS_URL = "https://news.google.com/rss?hl=tr&gl=TR&ceid=TR:tr";
     const PROXY_URL = "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(RSS_URL);
+    
+    let newsItems = [];
+    let currentIndex = -1;
     let currentItem = null;
 
+    // Swipe Değişkenleri
+    let touchstartX = 0;
+    let touchendX = 0;
+
     async function loadNews() {
-    try {
-        const res = await fetch(PROXY_URL);
-        const data = await res.json();
-        if (data.status === 'ok') {
-            // Haberleri önce al, sonra karıştır, sonra ilk 20 tanesini göster
-            const shuffledItems = data.items.sort(() => Math.random() - 0.5);
-            renderList(shuffledItems.slice(0, 20));
-        }
-    } catch (err) { console.error(err); }
-}
+        try {
+            const res = await fetch(PROXY_URL);
+            const data = await res.json();
+            if (data.status === 'ok') {
+                newsItems = data.items.sort(() => Math.random() - 0.5).slice(0, 20);
+                renderList(newsItems);
+            }
+        } catch (err) { console.error(err); }
+    }
 
     function renderList(items) {
         const list = document.getElementById('news-list');
         list.innerHTML = '';
-        items.forEach(item => {
+        items.forEach((item, index) => {
             const card = document.createElement('div');
             card.className = 'card';
-            card.onclick = () => openDetail(item);
+            card.onclick = () => openDetail(item, index);
             card.innerHTML = `
                 <div class="card-title">${item.title.split(' - ')[0]}</div>
                 <div class="source-pill">${item.author || item.title.split(' - ').pop()}</div>
@@ -156,12 +135,10 @@
         });
     }
 
-function shuffle(array) {
-  return array.sort(() => Math.random() - 0.5);
-}
-
-    function openDetail(item) {
+    function openDetail(item, index) {
+        currentIndex = index;
         currentItem = item;
+        
         document.getElementById('det-title').innerText = item.title.split(' - ')[0];
         
         let tempDiv = document.createElement('div');
@@ -171,13 +148,17 @@ function shuffle(array) {
         document.getElementById('det-content').innerHTML = tempDiv.innerHTML;
         document.getElementById('detail-view').classList.add('open');
         document.body.style.overflow = 'hidden';
+
+        // Eğer kaynaklar penceresi zaten açıksa (swipe ile geçişte), içeriğini tazele
+        if(document.getElementById('source-view').classList.contains('open')) {
+            openSources();
+        }
     }
 
     function openSources() {
         const listContainer = document.getElementById('source-links-list');
         listContainer.innerHTML = '';
         
-        // Google News description içindeki gerçek linkleri ayıklayalım
         let tempDiv = document.createElement('div');
         tempDiv.innerHTML = currentItem.description;
         const links = tempDiv.querySelectorAll('a');
@@ -200,8 +181,56 @@ function shuffle(array) {
 
     function closeLayer(id) {
         document.getElementById(id).classList.remove('open');
-        if(id === 'detail-view') document.body.style.overflow = 'auto';
+        if(id === 'detail-view') {
+            document.body.style.overflow = 'auto';
+            currentIndex = -1;
+        }
     }
+
+    // Swipe Mantığı
+    function handleGesture() {
+        const threshold = 80;
+        const isSourceViewOpen = document.getElementById('source-view').classList.contains('open');
+        const isDetailViewOpen = document.getElementById('detail-view').classList.contains('open');
+
+        if (!isDetailViewOpen) return; // Ana listedeyken swipe çalışma
+
+        // Sola Kaydır (Sonraki Haber)
+        if (touchstartX - touchendX > threshold) {
+            if (currentIndex < newsItems.length - 1) {
+                const nextIdx = currentIndex + 1;
+                openDetail(newsItems[nextIdx], nextIdx);
+                resetScrolls();
+            }
+        }
+        
+        // Sağa Kaydır (Önceki Haber)
+        if (touchendX - touchstartX > threshold) {
+            if (currentIndex > 0) {
+                const prevIdx = currentIndex - 1;
+                openDetail(newsItems[prevIdx], prevIdx);
+                resetScrolls();
+            }
+        }
+    }
+
+    function resetScrolls() {
+        document.getElementById('detail-view').scrollTo(0,0);
+        document.getElementById('source-view').scrollTo(0,0);
+    }
+
+    // Event Listenerlar (Her iki katman için)
+    ['detail-view', 'source-view'].forEach(id => {
+        const el = document.getElementById(id);
+        el.addEventListener('touchstart', e => {
+            touchstartX = e.changedTouches[0].screenX;
+        }, {passive: true});
+
+        el.addEventListener('touchend', e => {
+            touchendX = e.changedTouches[0].screenX;
+            handleGesture();
+        }, {passive: true});
+    });
 
     loadNews();
 </script>
