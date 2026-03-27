@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HaberTR - Native Experience</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg: #09090b;
+            --surface: #18181b;
+            --primary: #60a5fa; /* İstediğin açık "Electric Blue" */
+            --text: #fafafa;
+            --text-muted: #a1a1aa;
+            --border: #27272a;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Ana Konteynır */
+        .app-container { max-width: 650px; margin: 0 auto; padding-bottom: 2rem; }
+
+        header {
+            padding: 1.2rem 1.5rem;
+            position: sticky;
+            top: 0;
+            background: rgba(9, 9, 11, 0.95);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--border);
+            z-index: 10;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo { font-weight: 800; font-size: 1.3rem; letter-spacing: -1px; }
+        .logo span { color: var(--primary); }
+
+        .news-list { padding: 1rem; }
+        
+        /* Haber Kartları */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card:active { transform: scale(0.97); }
+        .card:hover { border-color: var(--primary); background: #1c1c21; }
+
+        .card-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.8rem; line-height: 1.4; color: #fff; }
+        
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .source-pill {
+            background: #27272a;
+            color: var(--primary);
+            padding: 4px 10px;
+            border-radius: 30px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        /* Detay Görünümü (Sağdan Kayar) */
+        #detail-view {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg);
+            z-index: 100;
+            transform: translateX(100%);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow-y: auto;
+        }
+
+        #detail-view.open { transform: translateX(0); }
+
+        .detail-header {
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            background: var(--bg);
+            z-index: 2;
+        }
+
+        .back-btn {
+            background: var(--surface);
+            border: none;
+            color: var(--primary);
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            margin-right: 1rem;
+        }
+
+        .detail-body {
+            padding: 2rem 1.2rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .detail-body h1 { font-size: 1.6rem; line-height: 1.3; margin-bottom: 1.5rem; color: #fff; }
+        
+        /* İçerik ve Link Renkleri */
+        .content-area { font-size: 1.15rem; color: #d4d4d8; line-height: 1.8; }
+        
+        /* Linklerin mavisi senin istediğin açık tonda */
+        .content-area a { 
+            color: var(--primary) !important; 
+            text-decoration: underline; 
+            font-weight: 600;
+        }
+        
+        .content-area img { max-width: 100%; border-radius: 12px; margin: 1.5rem 0; }
+        
+        .visit-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: var(--primary);
+            color: #000;
+            text-align: center;
+            padding: 1.1rem;
+            border-radius: 14px;
+            text-decoration: none;
+            margin-top: 2.5rem;
+            font-weight: 800;
+            box-shadow: 0 4px 15px rgba(96, 165, 250, 0.3);
+        }
+
+        /* Yükleme Ekranı */
+        .shimmer { text-align: center; padding: 5rem 2rem; color: var(--primary); }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <header>
+        <div class="logo">HABER<span>TR</span></div>
+        <i class="fas fa-globe" style="color: var(--text-muted)"></i>
+    </header>
+
+    <div id="news-list" class="news-list">
+        <div class="shimmer"><i class="fas fa-circle-notch fa-spin fa-2x"></i></div>
+    </div>
+</div>
+
+<div id="detail-view">
+    <div class="detail-header">
+        <div class="back-btn" onclick="closeDetail()"><i class="fas fa-chevron-left"></i></div>
+        <span style="font-size: 0.9rem; font-weight: 600;">Haber Detayı</span>
+    </div>
+    <div class="detail-body">
+        <h1 id="det-title"></h1>
+        <div id="det-content" class="content-area"></div>
+        <a id="det-link" href="#" target="_blank" class="visit-btn">Habere Git</a>
+    </div>
+</div>
+
+<script>
+    // RSS_URL Türkiye ve Dünya karışık manşetler için güncellendi
+    const RSS_URL = "https://news.google.com/rss?hl=tr&gl=TR&ceid=TR:tr";
+    const PROXY_URL = "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(RSS_URL);
+
+    async function loadNews() {
+        try {
+            const res = await fetch(PROXY_URL);
+            const data = await res.json();
+            // Gelen haberlerden sadece ilk 20 tanesini alıyoruz
+            if (data.status === 'ok') renderList(data.items.slice(0, 20));
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    function renderList(items) {
+        const list = document.getElementById('news-list');
+        list.innerHTML = '';
+
+        items.forEach(item => {
+            const source = item.author || item.title.split(' - ').pop();
+            const title = item.title.split(' - ')[0];
+
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.onclick = () => openDetail(item);
+            card.innerHTML = `
+                <div class="card-title">${title}</div>
+                <div class="card-footer">
+                    <span class="source-pill">${source}</span>
+                    <span>${new Date(item.pubDate).toLocaleDateString('tr-TR')}</span>
+                </div>
+            `;
+            list.appendChild(card);
+        });
+    }
+
+    function openDetail(item) {
+        const view = document.getElementById('detail-view');
+        document.getElementById('det-title').innerText = item.title.split(' - ')[0];
+        
+        let cleanContent = item.description || item.content;
+        document.getElementById('det-content').innerHTML = cleanContent;
+        document.getElementById('det-link').href = item.link;
+
+        view.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeDetail() {
+        document.getElementById('detail-view').classList.remove('open');
+        document.body.style.overflow = 'auto';
+    }
+
+    loadNews();
+</script>
+
+</body>
+</html>
