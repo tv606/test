@@ -17,6 +17,8 @@
             --border: #27272a;
         }
 
+        
+
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg); color: var(--text); line-height: 1.6; overflow-x: hidden; }
 
@@ -57,6 +59,9 @@
         .color-5 { background: linear-gradient(135deg, #8b5cf6, #7c3aed) !important; } 
 
         .shimmer { text-align: center; padding: 5rem 2rem; color: var(--primary); }
+
+
+        .footer{height:45px; width:100%; text-align: center;}
     </style>
 </head>
 <body>
@@ -66,6 +71,7 @@
     <div id="news-list" class="news-list">
         <div class="shimmer"><i class="fas fa-circle-notch fa-spin fa-2x"></i></div>
     </div>
+    <div class="footer"></div>
 </div>
 
 <div id="detail-view" class="view-layer">
@@ -78,7 +84,9 @@
         <p style="color: var(--text-muted); margin-bottom: 1rem; font-size: 0.9rem;">Haberin detayını okumak için bir kaynağa dokunun:</p>
         <div id="det-content" class="content-area"></div>
     </div>
+    <div class="footer"></div>
 </div>
+    
 
 <script>
     const RSS_URL = "https://news.google.com/rss?hl=tr&gl=TR&ceid=TR:tr";
@@ -110,10 +118,19 @@
     }
 
     function openDetail(item) {
-        document.getElementById('det-title').innerText = item.title.split(' - ')[0];
-        
-        let tempDiv = document.createElement('div');
-        tempDiv.innerHTML = item.description;
+    document.getElementById('det-title').innerText = item.title.split(' - ')[0];
+    
+    let tempDiv = document.createElement('div');
+    tempDiv.innerHTML = item.description;
+
+    // --- EKLEMENİZ GEREKEN KISIM BAŞLANGICI ---
+    // Gelen içerikteki tüm liste öğelerinin başındaki numaraları kaldırır
+    const listItems = tempDiv.querySelectorAll('li');
+    listItems.forEach(li => {
+        li.style.listStyle = 'none'; 
+        li.style.padding = '0';
+        li.style.margin = '0';
+    });
         
         // 2. Sayfadaki linkleri düzenle ve renklendir
         const links = tempDiv.querySelectorAll('a');
