@@ -2,175 +2,75 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CORS Test: Google News RSS</title>
+    <title>Eklentisiz Haber Rehberi</title>
     <style>
-        :root {
-            --sidebar-width: 350px;
-            --bg: #121212;
-            --card: #1e1e1e;
-            --accent: #bb86fc;
-            --text: #e0e0e0;
-        }
-
-        body, html {
-            margin: 0; padding: 0; height: 100%;
-            background: var(--bg); color: var(--text);
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            overflow: hidden;
-        }
-
-        .app-container {
-            display: flex; height: 100vh;
-        }
-
-        /* Sol Haber Listesi */
-        .sidebar {
-            width: var(--sidebar-width);
-            border-right: 1px solid #333;
-            display: flex;
-            flex-direction: column;
-            background: var(--card);
-        }
-
-        .sidebar-header {
-            padding: 20px;
-            background: #252525;
-            border-bottom: 1px solid #333;
-            font-weight: bold;
-            color: var(--accent);
-            text-align: center;
-        }
-
-        #news-list {
-            flex-grow: 1;
-            overflow-y: auto;
-            padding: 10px;
-        }
-
-        .news-item {
-            padding: 15px;
-            border-bottom: 1px solid #333;
-            cursor: pointer;
-            transition: 0.2s;
-            border-radius: 8px;
-            margin-bottom: 5px;
-        }
-
-        .news-item:hover {
-            background: #2c2c2c;
-        }
-
-        .news-item.active {
-            border-left: 4px solid var(--accent);
-            background: #2c2c2c;
-        }
-
-        .news-title {
-            font-size: 0.95rem;
-            line-height: 1.4;
-            margin-bottom: 5px;
-        }
-
-        .news-date {
-            font-size: 0.75rem;
-            color: #888;
-        }
-
-        /* Sağ iFrame Alanı */
-        .content-area {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            background: #000;
-        }
-
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            background: #fff; /* Beyaz background sayfalar yüklenirken iyi görünür */
-        }
-
-        .placeholder {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100%;
-            color: #555;
-            font-size: 1.2rem;
-        }
+        body { background: #1a1a1a; color: white; font-family: sans-serif; display: flex; height: 100vh; margin: 0; }
+        #list { width: 350px; border-right: 1px solid #333; overflow-y: auto; background: #222; }
+        #content { flex: 1; background: white; }
+        .item { padding: 15px; border-bottom: 1px solid #333; cursor: pointer; transition: 0.3s; }
+        .item:hover { background: #333; }
+        .title { font-size: 0.9rem; font-weight: bold; }
+        .date { font-size: 0.7rem; color: #888; margin-top: 5px; }
+        iframe { width: 100%; height: 100%; border: none; }
+        .error { color: #ff6b6b; padding: 20px; font-size: 0.8rem; }
     </style>
 </head>
 <body>
 
-<div class="app-container">
-    <aside class="sidebar">
-        <div class="sidebar-header">Google News - Türkiye</div>
-        <div id="news-list">
-            <div class="placeholder" style="font-size: 0.8rem;">Haberler yükleniyor...</div>
-        </div>
-    </aside>
+<div id="list">
+    <div style="padding:20px; text-align:center; border-bottom:1px solid #333;">
+        <b>Google News TR</b>
+    </div>
+    <div id="news-container">
+        <div style="padding:20px;">Haberler yükleniyor...</div>
+    </div>
+</div>
 
-    <main class="content-area">
-        <div id="iframe-placeholder" class="placeholder">Yanda bir habere tıklayın</div>
-        <iframe id="news-viewer" style="display:none;"></iframe>
-    </main>
+<div id="content">
+    <div id="msg" style="color:#555; padding:50px; text-align:center;">
+        Okumak istediğiniz habere tıklayın.<br>
+        <small>(Not: Bazı siteler güvenlik nedeniyle iframe içinde açılmayı engelleyebilir.)</small>
+    </div>
+    <iframe id="viewer" style="display:none;"></iframe>
 </div>
 
 <script>
-    // Ücretsiz bir CORS Proxy servisi ekliyoruz (allorigins gibi)
-    const RSS_URL = 'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://news.google.com/rss?hl=tr&gl=TR&ceid=TR:tr');
-    const newsList = document.getElementById('news-list');
-    const viewer = document.getElementById('news-viewer');
-    const placeholder = document.getElementById('iframe-placeholder');
+    // RSS'i JSON'a çeviren ücretsiz ve stabil bir servis kullanıyoruz
+    const GOOGLE_NEWS_RSS = 'https://news.google.com/rss?hl=tr&gl=TR&ceid=TR:tr';
+    const API_URL = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(GOOGLE_NEWS_RSS)}`;
 
     async function loadNews() {
         try {
-            // CORS Unblock aktifse bu istek başarılı olacaktır
-            const response = await fetch(RSS_URL);
-            const text = await response.text();
-            
-            const parser = new DOMParser();
-            const xmlDoc = parser.parseFromString(text, "text/xml");
-            const items = xmlDoc.querySelectorAll("item");
+            const response = await fetch(API_URL);
+            const data = await response.json();
 
-            newsList.innerHTML = ''; // Temizle
+            if (data.status !== 'ok') throw new Error('Veri alınamadı');
 
-            items.forEach((item, index) => {
-                const title = item.querySelector("title").innerHTML;
-                const link = item.querySelector("link").innerHTML;
-                const pubDate = new Date(item.querySelector("pubDate").innerHTML).toLocaleString('tr-TR');
+            const container = document.getElementById('news-container');
+            container.innerHTML = '';
 
-                const newsEl = document.createElement('div');
-                newsEl.className = 'news-item';
-                newsEl.innerHTML = `
-                    <div class="news-title">${title}</div>
-                    <div class="news-date">${pubDate}</div>
+            data.items.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'item';
+                div.innerHTML = `
+                    <div class="title">${item.title}</div>
+                    <div class="date">${item.pubDate}</div>
                 `;
-
-                newsEl.onclick = () => {
-                    // Aktif sınıfını yönet
-                    document.querySelectorAll('.news-item').forEach(el => el.classList.remove('active'));
-                    newsEl.classList.add('active');
-
-                    // iFrame'i yükle
-                    placeholder.style.display = 'none';
-                    viewer.style.display = 'block';
-                    viewer.src = link;
+                div.onclick = () => {
+                    document.getElementById('msg').style.display = 'none';
+                    const iframe = document.getElementById('viewer');
+                    iframe.style.display = 'block';
+                    iframe.src = item.link;
                 };
-
-                newsList.appendChild(newsEl);
+                container.appendChild(div);
             });
-
-        } catch (error) {
-            newsList.innerHTML = `<div style="color:red; padding:20px;">Hata: CORS engeli takıldı veya bağlantı yok. Eklentiyi kontrol edin.</div>`;
-            console.error("Fetch hatası:", error);
+        } catch (e) {
+            document.getElementById('news-container').innerHTML = 
+                `<div class="error">Hata: ${e.message}<br>Lütfen sayfayı yenileyin.</div>`;
         }
     }
 
     loadNews();
 </script>
-
 </body>
 </html>
