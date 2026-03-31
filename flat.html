@@ -339,6 +339,12 @@ function loadFromUrl() {
 }
 
 init();
+
+  // Web sitesi açıkken internetin koptuğunu anladığı an çalışır
+window.addEventListener('offline', () => {
+    // Electron ortamında olduğumuz için yerel dosyaya bu şekilde dönebiliriz
+    window.location.href = "index.html"; 
+});
 </script>
 </body>
 </html>
