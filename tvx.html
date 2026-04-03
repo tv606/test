@@ -3,29 +3,29 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>TVX Vertical Pro</title>
+  <title>TVX Dikey Pro</title>
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --side-width: 350px;
-      --accent: #00d2ff; /* Modern Cyber Blue */
-      --glass: rgba(15, 15, 20, 0.85);
-      --font-main: 'Inter', sans-serif;
+      --sidebar-width: 380px;
+      --bg-dark: #0a0a0c;
+      --accent: #ff3d00; /* Enerjik bir turuncu-kırmızı */
+      --glass: rgba(20, 20, 25, 0.8);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body, html {
       background: #000;
-      font-family: var(--font-main);
+      font-family: 'Poppins', sans-serif;
       color: white;
       height: 100vh;
       width: 100vw;
       overflow: hidden;
     }
 
-    /* Tam Ekran Video */
+    /* Video Arka Plan */
     #videoContainer {
       position: fixed;
       top: 0;
@@ -41,116 +41,100 @@
       object-fit: cover;
     }
 
-    /* Sol Dikey Kanal Barı */
-    #sideBar {
+    /* Sol Kenar Çubuğu (Dikey Liste) */
+    #sideMenu {
       position: fixed;
       top: 0;
       left: 0;
-      width: var(--side-width);
+      width: var(--sidebar-width);
       height: 100%;
-      background: linear-gradient(to right, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 100%);
-      backdrop-filter: blur(15px);
-      -webkit-backdrop-filter: blur(15px);
+      background: linear-gradient(90deg, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.6) 100%);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
       z-index: 10;
       display: flex;
       flex-direction: column;
-      padding: 40px 20px;
-      transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
       border-right: 1px solid rgba(255,255,255,0.1);
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    #sideBar.hidden {
-      transform: translateX(-110%);
+    #sideMenu.hidden {
+      transform: translateX(-100%);
     }
 
-    .brand {
-      font-size: 32px;
-      font-weight: 800;
-      margin-bottom: 40px;
-      color: var(--accent);
-      padding-left: 15px;
+    .header {
+      padding: 40px 30px;
+      font-size: 36px;
+      font-weight: 700;
       letter-spacing: -1px;
+      color: var(--accent);
+      text-shadow: 0 0 20px rgba(255, 61, 0, 0.4);
     }
 
-    /* Kanal Listesi Konteynırı */
+    /* Kaydırılabilir Kanal Listesi */
     #channelList {
       flex: 1;
       overflow-y: auto;
-      scrollbar-width: none; /* Firefox */
-      padding-bottom: 100px;
+      padding: 0 20px 100px 20px;
+      scrollbar-width: none;
     }
 
     #channelList::-webkit-scrollbar { display: none; }
 
-    /* Kanal Öğesi */
+    /* Kanal Satırı */
     .channel {
       position: relative;
-      padding: 18px 20px;
-      margin-bottom: 12px;
-      border-radius: 12px;
+      padding: 20px 25px;
+      margin-bottom: 10px;
+      border-radius: 15px;
       background: rgba(255, 255, 255, 0.03);
-      color: #aaa;
-      font-size: 18px;
-      font-weight: 600;
-      transition: all 0.3s ease;
-      cursor: pointer;
-      border: 1px solid transparent;
+      font-size: 20px;
+      font-weight: 500;
+      color: #999;
+      transition: all 0.25s ease;
       display: flex;
       align-items: center;
+      border-left: 0px solid var(--accent);
     }
 
-    /* Kumanda Odaklanması */
+    /* Fokus (Kumanda ile Üstünde Olma) */
     .channel.focused {
-      background: rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.12);
       color: #fff;
-      transform: translateX(15px);
-      border-color: var(--accent);
-      box-shadow: -10px 0 20px rgba(0, 210, 255, 0.2);
+      transform: scale(1.02);
+      padding-left: 35px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     }
 
-    /* Aktif Çalan Kanal */
+    /* Aktif Oynayan Kanal */
     .channel.active {
-      background: linear-gradient(90deg, rgba(0, 210, 255, 0.2), transparent);
       color: var(--accent);
+      background: rgba(255, 61, 0, 0.08);
+      border-left: 6px solid var(--accent);
     }
 
-    .channel.active::before {
-      content: "";
-      position: absolute;
-      left: 0;
-      width: 4px;
-      height: 60%;
-      background: var(--accent);
-      border-radius: 0 4px 4px 0;
-    }
-
-    /* Bilgi Paneli (Üst Sağ) */
-    #infoPanel {
+    /* Sağ Üst Bilgi */
+    #statusOverlay {
       position: fixed;
       top: 40px;
       right: 40px;
       background: var(--glass);
-      padding: 20px 40px;
-      border-radius: 20px;
+      padding: 15px 30px;
+      border-radius: 50px;
       z-index: 5;
+      font-weight: 600;
       opacity: 0;
-      transform: translateY(-20px);
-      transition: all 0.5s ease;
+      transform: translateX(30px);
+      transition: all 0.4s ease;
       border: 1px solid rgba(255,255,255,0.1);
     }
 
-    #infoPanel.show {
+    #statusOverlay.show {
       opacity: 1;
-      transform: translateY(0);
+      transform: translateX(0);
     }
 
-    #infoPanel h2 {
-      font-size: 28px;
-      margin: 0;
-      font-weight: 700;
-    }
-
-    /* Modern Loader */
+    /* Minimal Loader */
     #loader {
       position: fixed;
       inset: 0;
@@ -159,163 +143,145 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      transition: opacity 0.6s ease;
+      transition: opacity 0.5s ease;
     }
 
-    .loading-bar {
-      width: 150px;
-      height: 4px;
-      background: rgba(255,255,255,0.1);
-      position: relative;
-      overflow: hidden;
-      border-radius: 2px;
-    }
-
-    .loading-bar::after {
-      content: "";
-      position: absolute;
-      left: -100%;
-      width: 100%;
-      height: 100%;
+    .pulse {
+      width: 80px;
+      height: 80px;
       background: var(--accent);
-      animation: loading 1.5s infinite;
+      border-radius: 50%;
+      animation: pulseAnim 1.2s infinite ease-in-out;
+      opacity: 0.7;
     }
 
-    @keyframes loading {
-      0% { left: -100%; }
-      50% { left: 0; }
-      100% { left: 100%; }
+    @keyframes pulseAnim {
+      0% { transform: scale(0); opacity: 0.8; }
+      100% { transform: scale(1.5); opacity: 0; }
     }
   </style>
 </head>
 <body>
 
 <div id="loader">
-  <div class="loading-bar"></div>
+  <div class="pulse"></div>
 </div>
 
 <div id="videoContainer">
   <video id="video" autoplay playsinline></video>
 </div>
 
-<div id="infoPanel">
-  <h2 id="currentChannelLabel">-</h2>
-</div>
+<div id="statusOverlay">Yükleniyor...</div>
 
-<div id="sideBar">
-  <div class="brand">TVX PRO</div>
+<div id="sideMenu">
+  <div class="header">TVX</div>
   <div id="channelList">
-    <div class="channel" data-src="https://halktv-live.daioncdn.net/halktv/halktv_1080p.m3u8">HALK TV</div>
+    <div class="channel" data-src="https://halktv-live.daioncdn.net/halktv/halktv_1080p.m3u8">Halk TV</div>
     <div class="channel" data-src="https://saran-live.ercdn.net/fx/index.m3u8">FX TR</div>
-    <div class="channel" data-src="https://ekoltv-live.ercdn.net/ekoltv/ekoltv.m3u8">EKOL TV</div>
-    <div class="channel" data-src="https://saran-live.ercdn.net/natgeohd/index.m3u8">NAT GEO TR</div>
-    <div class="channel" data-src="https://saran-live.ercdn.net/natgeowild/index.m3u8">NAT GEO WILD TR</div>
-    <div class="channel" data-src="https://tv-trtbelgesel.medya.trt.com.tr/master.m3u8">TRT BELGESEL</div>
-    <div class="channel" data-src="https://tv-trtspor1.medya.trt.com.tr/master.m3u8">TRT SPOR</div>
+    <div class="channel" data-src="https://ekoltv-live.ercdn.net/ekoltv/ekoltv.m3u8">Ekol TV</div>
+    <div class="channel" data-src="https://saran-live.ercdn.net/natgeohd/index.m3u8">Nat Geo TR</div>
+    <div class="channel" data-src="https://saran-live.ercdn.net/natgeowild/index.m3u8">Nat Geo Wild</div>
+    <div class="channel" data-src="https://tv-trtbelgesel.medya.trt.com.tr/master.m3u8">TRT Belgesel</div>
+    <div class="channel" data-src="https://tv-trtspor1.medya.trt.com.tr/master.m3u8">TRT Spor</div>
     <div class="channel" data-src="https://tv-trt1.medya.trt.com.tr/master_1080.m3u8">TRT 1</div>
     <div class="channel" data-src="https://hnpsechtsc.turknet.ercdn.net/xpnvudnlsv/cnbc-e/cnbc-e_720p.m3u8">CNBC-E</div>
-    <div class="channel" data-src="https://vs-hls-push-ww-live.akamaized.net/x=4/i=urn:bbc:pips:service:bbc_news_channel_hd/t=3840/v=pv14/b=5070016/main.m3u8">BBC NEWS</div>
-    <div class="channel" data-src="https://amg00793-amg00793c6-xumo-us-2669.playouts.now.amagi.tv/BBCStudios-BBCEarthA-hls/playlist1080p.m3u8">BBC EARTH</div>
-    <div class="channel" data-src="https://aegis-cloudfront-1.tubi.video/6d6d0f24-8445-4b4c-bdf6-44f9e38beaa4/1080p-cc/index.m3u8">LOVE NATURE</div>
+    <div class="channel" data-src="https://vs-hls-push-ww-live.akamaized.net/x=4/i=urn:bbc:pips:service:bbc_news_channel_hd/t=3840/v=pv14/b=5070016/main.m3u8">BBC News</div>
+    <div class="channel" data-src="https://amg00793-amg00793c6-xumo-us-2669.playouts.now.amagi.tv/BBCStudios-BBCEarthA-hls/playlist1080p.m3u8">BBC Earth</div>
+    <div class="channel" data-src="https://aegis-cloudfront-1.tubi.video/6d6d0f24-8445-4b4c-bdf6-44f9e38beaa4/1080p-cc/index.m3u8">Love Nature</div>
   </div>
 </div>
 
 <script>
   const video = document.getElementById('video');
-  const sideBar = document.getElementById('sideBar');
-  const channelList = document.getElementById('channelList');
+  const sideMenu = document.getElementById('sideMenu');
   const channels = document.querySelectorAll('.channel');
-  const infoPanel = document.getElementById('infoPanel');
-  const label = document.getElementById('currentChannelLabel');
+  const statusOverlay = document.getElementById('statusOverlay');
   const loader = document.getElementById('loader');
 
-  let focusedIndex = 0;
+  let currentIndex = 0;
   let hls;
   let hideTimer;
 
-  // --- Oynatıcı Fonksiyonları ---
-  function playStream(url) {
+  function playStream(url, name) {
+    // Loader'ı göster
     loader.style.opacity = '1';
     loader.style.display = 'flex';
+    
+    // Sağ üst bilgi paneli
+    statusOverlay.innerText = name;
+    statusOverlay.classList.add('show');
+    setTimeout(() => statusOverlay.classList.remove('show'), 3000);
 
     if (hls) hls.destroy();
+    
     if (Hls.isSupported()) {
       hls = new Hls();
       hls.loadSource(url);
       hls.attachMedia(video);
       hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
-      video.onplaying = () => { loader.style.opacity = '0'; setTimeout(()=>loader.style.display='none', 600); };
-    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-      video.src = url;
-      video.onloadeddata = () => { video.play(); loader.style.opacity = '0'; };
+      
+      // Video oynamaya başladığında loader'ı gizle
+      video.onplaying = () => {
+        loader.style.opacity = '0';
+        setTimeout(() => loader.style.display = 'none', 500);
+      };
     }
   }
 
-  // --- Navigasyon ---
-  function updateFocus(index) {
+  function setFocus(index) {
     channels.forEach(c => c.classList.remove('focused'));
     const target = channels[index];
     target.classList.add('focused');
     
-    // Akıllı Kaydırma: Odaklanan kanalı ortala
+    // Dikey kaydırma: Seçili olanı ortala
     target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    resetHideTimer();
+    
+    showMenu();
   }
 
-  function activateChannel(index) {
+  function selectChannel(index) {
     channels.forEach(c => c.classList.remove('active'));
     channels[index].classList.add('active');
-    
-    const name = channels[index].innerText;
-    label.innerText = name;
-    infoPanel.classList.add('show');
-    
-    playStream(channels[index].dataset.src);
-
-    setTimeout(() => infoPanel.classList.remove('show'), 4000);
+    playStream(channels[index].dataset.src, channels[index].innerText);
+    startHideTimer();
   }
 
-  function resetHideTimer() {
-    sideBar.classList.remove('hidden');
+  function showMenu() {
+    sideMenu.classList.remove('hidden');
+    startHideTimer();
+  }
+
+  function startHideTimer() {
     clearTimeout(hideTimer);
     hideTimer = setTimeout(() => {
-      sideBar.classList.add('hidden');
-    }, 5000); // 5 saniye işlem yapılmazsa gizle
+      sideMenu.classList.add('hidden');
+    }, 5000); // 5 saniye boşta kalınca gizle
   }
 
-  // --- Klavye / Kumanda Olayları ---
+  // Kumanda Kontrolleri
   document.addEventListener('keydown', (e) => {
     switch(e.key) {
       case 'ArrowDown':
-        focusedIndex = (focusedIndex + 1) % channels.length;
-        updateFocus(focusedIndex);
+        currentIndex = (currentIndex + 1) % channels.length;
+        setFocus(currentIndex);
         break;
       case 'ArrowUp':
-        focusedIndex = (focusedIndex - 1 + channels.length) % channels.length;
-        updateFocus(focusedIndex);
+        currentIndex = (currentIndex - 1 + channels.length) % channels.length;
+        setFocus(currentIndex);
         break;
       case 'Enter':
-        activateChannel(focusedIndex);
+        selectChannel(currentIndex);
         break;
       case 'ArrowRight':
       case 'ArrowLeft':
-        resetHideTimer(); // Menüyü geri getir
+        showMenu();
         break;
     }
   });
 
-  // Tıklama desteği
-  channels.forEach((chan, idx) => {
-    chan.addEventListener('click', () => {
-      focusedIndex = idx;
-      updateFocus(idx);
-      activateChannel(idx);
-    });
-  });
-
-  // Başlangıç
-  updateFocus(0);
-  activateChannel(0);
+  // Başlat
+  setFocus(0);
+  selectChannel(0);
 </script>
 
 </body>
