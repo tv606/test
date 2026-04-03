@@ -186,6 +186,69 @@
       50% { left: 0; }
       100% { left: 100%; }
     }
+
+
+
+/*gNews bar*/
+
+.ticker-wrapper {
+            width: 100%;
+            background: #000; 
+            height: 140px; 
+            display: flex; 
+            align-items: center;
+            border-top: 4px solid #222;
+            position: absolute;
+            z-index: 999;
+            bottom:0px;
+        }
+
+        /* Türkiye Barı Üstte, Dünya Barı Altta Kalacak */
+        .label {
+            background: #000; 
+            color: #fff; 
+            padding: 0 40px;
+            height: 100%; 
+            display: flex; 
+            align-items: center;
+            font-size: 35px; 
+            font-weight: 900; 
+            z-index: 100;
+            border-right: 5px solid #333; 
+            text-transform: uppercase;
+            min-width: 220px;
+        }
+
+        /* Türkiye etiketi için hafif kırmızı vurgu (isteğe bağlı) */
+        .label-tr { border-right-color: #cc0000; color: #ff3333; }
+        /* Dünya etiketi için hafif mavi vurgu (isteğe bağlı) */
+        .label-world { border-right-color: #0055ff; color: #3388ff; }
+
+        .ticker-window { flex: 1; overflow: hidden; }
+
+        .ticker-text {
+            display: inline-block; 
+            white-space: nowrap;
+            padding-left: 100%;
+            font-size: 75px; 
+            font-weight: 900; 
+            color: #ffffff; 
+            line-height: 140px;
+            text-transform: uppercase;
+        }
+
+        /* Türkiye haberleri 80 saniyede, Dünya 100 saniyede aksın (Senkron bozulması için) */
+        .speed-tr { animation: marquee 80s linear infinite; }
+        .speed-world { animation: marquee 80s linear infinite; }
+
+        @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-100%); }
+        }
+
+        .sep { margin: 0 100px; color: #333; }
+
+
   </style>
 </head>
 <body>
@@ -258,6 +321,20 @@
 <div class="channel" data-id="x" data-type="hls" data-src="https://lotus.stingray.com/manifest/ose-142ads-montreal/samsungtvplus/f5102ca4-edd7-30ac-a357-877f60db023b/1790800/manifest.m3u8">STINGRAY 90's</div>
 <div class="channel" data-id="x" data-type="hls" data-src="https://wandering-pond-ff44.sadjj2390092.workers.dev/checklist/androstreamlivebs1.m3u8">BEIN S1 VPN</div>
   </div>
+</div>
+
+<div class="ticker-wrapper">
+    <div class="label label-tr">TÜRKİYE</div>
+    <div class="ticker-window">
+        <div class="ticker-text speed-tr" id="haber-tr">TÜRKİYE HABERLERİ YÜKLENİYOR...</div>
+    </div>
+</div>
+
+<div class="ticker-wrapper">
+    <div class="label label-world">DÜNYA</div>
+    <div class="ticker-window">
+        <div class="ticker-text speed-world" id="haber-world">DÜNYA HABERLERİ YÜKLENİYOR...</div>
+    </div>
 </div>
 
 <script>
@@ -356,6 +433,37 @@
   // Başlangıç
   updateFocus(0);
   activateChannel(0);
+</script>
+
+<script>
+    const kaynaklar = {
+        tr: "https://news.google.com/rss/topics/CAAqIggKIhxDQkFTRHdvSkwyMHZNREY2Ym1OZkVnSjBjaWdBUAE?hl=tr&gl=TR&ceid=TR%3Atr",
+        world: "https://news.google.com/rss/headlines/section/topic/WORLD?hl=tr&gl=TR&ceid=TR:tr"
+    };
+
+    async function haberGetir(url, targetId) {
+        const api = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}`;
+        try {
+            const res = await fetch(api);
+            const data = await res.json();
+            if (data.status === 'ok') {
+                const basliklar = data.items.slice(0, 50).map(item => item.title.split(' - ')[0].toUpperCase());
+                document.getElementById(targetId).innerHTML = basliklar.join(' <span class="sep">•</span> ');
+            }
+        } catch (e) {
+            document.getElementById(targetId).innerHTML = "VERİ BAĞLANTISI KESİLDİ...";
+        }
+    }
+
+    // İlk yükleme
+    haberGetir(kaynaklar.tr, 'haber-tr');
+    haberGetir(kaynaklar.world, 'haber-world');
+
+    // Her 10 dakikada bir güncelle
+    setInterval(() => {
+        haberGetir(kaynaklar.tr, 'haber-tr');
+        haberGetir(kaynaklar.world, 'haber-world');
+    }, 900000);
 </script>
 
 </body>
