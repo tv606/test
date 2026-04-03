@@ -1,300 +1,362 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>IPTV Pro - TV Edition</title>
-<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-<style>
-  /* MEVCUT TASARIMINIZI KORUYORUZ */
-  :root {
-    --bg: #0a0c10; --surface: #12151c; --surface2: #1a1e29; --border: #232838;
-    --accent: #e63946; --accent2: #ff6b6b; --snap-color: #4cc9f0;
-    --zap-color: #ff9f1c; --rec-color: #ff0000; --text: #e8eaf0;
-    --muted: #6b7280; --active: #1e2535;
-  }
-  * { margin: 0; padding: 0; box-sizing: border-box; outline: none; }
-  body { font-family: 'Rajdhani', sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TV</title>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --side-width: 350px;
+      --accent: #00d2ff; /* Modern Cyber Blue */
+      --glass: rgba(15, 15, 20, 0.85);
+      --font-main: 'Inter', sans-serif;
+    }
 
-  .topbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 10px 20px; display: flex; align-items: center; gap: 12px; z-index: 10; }
-  .topbar .logo { font-size: 18px; font-weight: 700; letter-spacing: 3px; color: var(--accent); text-transform: uppercase; }
-  .topbar .time { font-family: 'Share Tech Mono', monospace; font-size: 12px; color: var(--muted); margin-left: auto; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
-  .main { display: flex; flex: 1; width: 100%; overflow: hidden; }
+    body, html {
+      background: #000;
+      font-family: var(--font-main);
+      color: white;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+    }
 
-  .sidebar { width: 280px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
-  .sidebar-header { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
-  .sidebar-header h2 { font-size: 11px; font-weight: 700; letter-spacing: 3px; color: var(--muted); text-transform: uppercase; }
+    /* Tam Ekran Video */
+    #videoContainer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
 
-  .channel-list { overflow-y: auto; flex: 1; scroll-behavior: smooth; }
-  .channel-item { padding: 12px 16px; border-bottom: 1px solid rgba(35,40,56,0.4); display: flex; align-items: center; gap: 10px; transition: 0.2s; }
-  
-  /* KUMANDA İÇİN KRİTİK: FOCUS STİLLERİ */
-  .channel-item.focused { background: var(--active); border-left: 5px solid var(--accent2); transform: scale(1.02); }
-  .channel-item.active { background: var(--active); border-left: 5px solid var(--accent); }
-  .channel-item.active .ch-name { color: var(--accent); }
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
 
-  .player-area { flex: 1; background: #000; display: flex; flex-direction: column; position: relative; }
-  .video-wrap { flex: 1; display: flex; align-items: center; justify-content: center; background: #000; }
-  video { width: 100%; height: 100%; object-fit: contain; }
+    /* Sol Dikey Kanal Barı */
+    #sideBar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: var(--side-width);
+      height: 100%;
+      background: linear-gradient(to right, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 100%);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      padding: 40px 20px;
+      transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      border-right: 1px solid rgba(255,255,255,0.1);
+    }
 
-  .hud-status { position: absolute; top: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; align-items: flex-end; z-index: 10; }
-  .badge { padding: 6px 15px; font-family: 'Share Tech Mono', monospace; font-weight: bold; font-size: 12px; display: none; }
-  #zapIndicator { background: var(--zap-color); color: #000; }
-  #recIndicator { background: var(--rec-color); color: #fff; animation: blink 1s infinite; }
+    #sideBar.hidden {
+      transform: translateX(-110%);
+    }
 
-  .video-info { position: absolute; top: 20px; left: 20px; background: rgba(0,0,0,0.8); padding: 10px 20px; border-left: 4px solid var(--accent); display: none; z-index: 10; }
-  .video-info.show { display: block; animation: fadeIn 0.5s; }
+    .brand {
+      font-size: 32px;
+      font-weight: 800;
+      margin-bottom: 40px;
+      color: var(--accent);
+      padding-left: 15px;
+      letter-spacing: -1px;
+    }
 
-  .controls { background: var(--surface); border-top: 1px solid var(--border); padding: 15px 30px; display: flex; align-items: center; gap: 15px; }
-  .ctrl-btn { background: var(--surface2); border: 1px solid var(--border); color: var(--text); min-width: 60px; height: 40px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; }
-  
-  /* BUTON FOCUS STİLİ */
-  .ctrl-btn.focused { background: var(--accent); border-color: white; transform: scale(1.1); box-shadow: 0 0 15px var(--accent); }
-  
-  .zap-active { background: var(--zap-color) !important; color: #000 !important; }
-  .rec-active { background: var(--rec-color) !important; color: #fff !important; }
+    /* Kanal Listesi Konteynırı */
+    #channelList {
+      flex: 1;
+      overflow-y: auto;
+      scrollbar-width: none; /* Firefox */
+      padding-bottom: 100px;
+    }
 
-  .now-playing { flex: 1; text-align: center; }
-  .np-name { font-weight: 700; color: var(--accent); font-size: 18px; }
-  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-</style>
+    #channelList::-webkit-scrollbar { display: none; }
+
+    /* Kanal Öğesi */
+    .channel {
+      position: relative;
+      padding: 18px 20px;
+      margin-bottom: 12px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      color: #aaa;
+      font-size: 18px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      border: 1px solid transparent;
+      display: flex;
+      align-items: center;
+    }
+
+    /* Kumanda Odaklanması */
+    .channel.focused {
+      background: rgba(255, 255, 255, 0.15);
+      color: #fff;
+      transform: translateX(15px);
+      border-color: var(--accent);
+      box-shadow: -10px 0 20px rgba(0, 210, 255, 0.2);
+    }
+
+    /* Aktif Çalan Kanal */
+    .channel.active {
+      background: linear-gradient(90deg, rgba(0, 210, 255, 0.2), transparent);
+      color: var(--accent);
+    }
+
+    .channel.active::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      width: 4px;
+      height: 60%;
+      background: var(--accent);
+      border-radius: 0 4px 4px 0;
+    }
+
+    /* Bilgi Paneli (Üst Sağ) */
+    #infoPanel {
+      position: fixed;
+      top: 40px;
+      right: 40px;
+      background: var(--glass);
+      padding: 20px 40px;
+      border-radius: 20px;
+      z-index: 5;
+      opacity: 0;
+      transform: translateY(-20px);
+      transition: all 0.5s ease;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    #infoPanel.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    #infoPanel h2 {
+      font-size: 28px;
+      margin: 0;
+      font-weight: 700;
+    }
+
+    /* Modern Loader */
+    #loader {
+      position: fixed;
+      inset: 0;
+      background: #000;
+      z-index: 999;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: opacity 0.6s ease;
+    }
+
+    .loading-bar {
+      width: 150px;
+      height: 4px;
+      background: rgba(255,255,255,0.1);
+      position: relative;
+      overflow: hidden;
+      border-radius: 2px;
+    }
+
+    .loading-bar::after {
+      content: "";
+      position: absolute;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: var(--accent);
+      animation: loading 1.5s infinite;
+    }
+
+    @keyframes loading {
+      0% { left: -100%; }
+      50% { left: 0; }
+      100% { left: 100%; }
+    }
+  </style>
 </head>
 <body>
 
-<div class="topbar">
-  <div class="logo">IPTV<span>·</span>STREAM</div>
-  <div class="time" id="clock">00:00:00</div>
+<div id="loader">
+  <div class="loading-bar"></div>
 </div>
 
-<div class="main">
-  <div class="sidebar">
-    <div class="sidebar-header">
-      <h2>CHANNELS</h2>
-      <span id="chCount" style="color:var(--accent)">0</span>
-    </div>
-    <div class="channel-list" id="channelList"></div>
-  </div>
+<div id="videoContainer">
+  <video id="video" autoplay playsinline></video>
+</div>
 
-  <div class="player-area">
-    <div class="hud-status">
-      <div class="badge" id="zapIndicator">ZAPPING ACTIVE [5.5s]</div>
-      <div class="badge" id="recIndicator">● RECORDING</div>
-    </div>
-    
-    <div class="video-info" id="videoInfo">
-      <div id="infoNum" style="color:var(--muted); font-size:12px;">CH 01</div>
-      <div id="infoName" style="font-size:20px; font-weight:700;">KANAL ADI</div>
-    </div>
+<div id="infoPanel">
+  <h2 id="currentChannelLabel">-</h2>
+</div>
 
-    <div class="video-wrap">
-      <video id="videoPlayer" crossorigin="anonymous" playsinline></video>
-    </div>
-
-    <div class="controls" id="controlsRow">
-      <button class="ctrl-btn nav-item" onclick="prevChannel()">◀</button>
-      <button class="ctrl-btn nav-item" id="playPauseBtn" onclick="togglePlay()">▶</button>
-      <button class="ctrl-btn nav-item" onclick="nextChannel()">▶</button>
-      <button class="ctrl-btn nav-item" id="zapBtn" onclick="toggleZapping()">ZAP</button>
-      <button class="ctrl-btn nav-item" id="recBtn" onclick="toggleRecording()">REC</button>
-      <button class="ctrl-btn nav-item snap-btn" onclick="takeScreenshot()">SNAP</button>
-
-      <div class="now-playing">
-        <div class="np-name" id="nowPlayingName">KANAL SEÇİN</div>
-      </div>
-    </div>
+<div id="sideBar">
+  <div class="brand">Kanal Listesi</div>
+  <div id="channelList">
+<div class="channel" data-id="x" data-type="hls" data-src="https://halktv-live.daioncdn.net/halktv/halktv_1080p.m3u8">HALK TV</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://saran-live.ercdn.net/fx/index.m3u8">FX TR</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://ekoltv-live.ercdn.net/ekoltv/ekoltv.m3u8">EKOL TV</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://live.artidijitalmedya.com/artidijital_denizpostasi/denizpostasi/playlist.m3u8">DENİZ POSTASI</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://saran-live.ercdn.net/natgeohd/index.m3u8">NAT GEO TR</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://saran-live.ercdn.net/natgeowild/index.m3u8">NAT GEO WILD TR</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://tv-trtbelgesel.medya.trt.com.tr/master.m3u8">TRT BELGESEL</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://tv-trtspor1.medya.trt.com.tr/master.m3u8">TRT SPOR</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://tv-trt1.medya.trt.com.tr/master_1080.m3u8">TRT1</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://tv.ensonhaber.com/haberglobal/haberglobal_720p.m3u8">HABER GLOBAL</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://tv.ensonhaber.com/haberturk/haberturk_720p.m3u8">HABER TÜRK</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://tv100-live.daioncdn.net/tv100/tv100.m3u8">TV 100</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://tv.ensonhaber.com/bloomberght/bloomberght_720p.m3u8">BLOOMBERG HT</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://hnpsechtsc.turknet.ercdn.net/xpnvudnlsv/cnbc-e/cnbc-e_720p.m3u8">CNBC-E</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://tv-trt2.medya.trt.com.tr/master_720.m3u8">TRT 2</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://d3bp6dwmpbdajl.cloudfront.net/v1/manifest/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-ury0meh5m4nzm/2a65a3b9-8cf2-4c6a-b4c8-69b41f958f52/0.m3u8">CNN INT</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://live.france24.com/hls/live/2037218-b/F24_EN_HI_HLS/master_5000.m3u8">FRANCE 24</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://vs-hls-push-ww-live.akamaized.net/x=4/i=urn:bbc:pips:service:bbc_news_channel_hd/t=3840/v=pv14/b=5070016/main.m3u8">BBC NEWS</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://dash4.antik.sk/live/test_arte_avc_25p/playlist.m3u8">ARTE HD</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://dwamdstream102.akamaized.net/hls/live/2015525/dwstream102/stream05/streamPlaylist.m3u8">DW ENG</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://dash4.antik.sk/live/test_pro_sieben_tizen/playlist.m3u8">PRO 7</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://dash4.antik.sk/live/test_sat_eins_gold_tizen/playlist.m3u8">SAT 1 GOLD</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://streamer.nexyl.uk/69ef899e-8ca9-4537-9f1a-fe8b4216afbb_output_0.m3u8?session=8aPdqrefTg4Ru8rBKj3RyK">BBC TWO</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://amg00793-amg00793c6-xumo-us-2669.playouts.now.amagi.tv/BBCStudios-BBCEarthA-hls/playlist1080p.m3u8">BBC EARTH</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://amg00793-bbcstudios-amg00793c3-lg-us-2528.playouts.now.amagi.tv/playlist/amg00793-bbcstudios-bbcearta-lgus/playlist.m3u8">BBC Earth (US)</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://amg00793-amg00793c35-lg-us-6412.playouts.now.amagi.tv/playlist.m3u8">BBC Dinos 24x7 (US)</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://tyt-samsungus.amagi.tv/playlist720p.m3u8">TYT</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://aegis-cloudfront-1.tubi.video/6d6d0f24-8445-4b4c-bdf6-44f9e38beaa4/1080p-cc/index.m3u8">LOVE NATURE</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://lotus.stingray.com/manifest/naturescape-a003-montreal/samsungtvplus/f7ed86a4-b8ac-38e0-a745-710077a95be6/3291200/manifest.m3u8">NATURESCAPE</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://autentic-adventure-earth-1-gb.lg.wurl.tv/playlist.m3u8">Adventure Earth (GB)</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://wingspan-airandspace-1-gb.lg.wurl.tv/playlist.m3u8">Air and Space (GB)</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://amg01515-amg01515c13-xiaomi-international-4618.playouts.now.amagi.tv/playlist.m3u8">NATURE TIME</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://cdn-ue1-prod.tsv2.amagi.tv/linear/amg01546-ftv-fashiontv-xiaomi/playlist.m3u8">FASHION TV</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://lagenceducourtmetrage-brefcinema-01-eu.xiaomi.wurl.tv/playlist.m3u8">Bref Cinema</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://lightning-now90s-xiaomi.amagi.tv/playlist.m3u8">Now 90s</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://travelxp-travelxp-1-gb.lg.wurl.tv/playlist.m3u8">Travel XP (GB)</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg01290-wildearthmediap-wildearth-lgkr/playlist.m3u8">Wild Earth (KR)</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://lighthousehomeentertainment-alleskino-1-de.lg.wurl.tv/playlist.m3u8">Alleskino (DE)</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://autentic-autentichistory-1-gb.lg.wurl.tv/playlist.m3u8">Autentic History (GB)</div>
+<div class="channel" data-id="x" data-type="hls" data-src="http://stream.mediawork.cz/retrotv//retrotvHQ1/playlist.m3u8">RETRO TV</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg00426-littledotstudio-historyhit-lgfi/playlist.m3u8">History Hit (FI)</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg00090-blueantllc-historytime-lgca/playlist.m3u8">History Time (CA)</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://wdr-media-group-himmlischeskino-1-de.lg.wurl.tv/playlist.m3u8">Himmlischeskino (DE)</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://iconfilmsdistribution-iconfilmchannelclassics-1-gb.lg.wurl.tv/playlist.m3u8">Icon Film Classics (GB)</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg00861-terninternation-lifestyle-lggb/playlist.m3u8">Infast (GB)</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://wtfn-lifedownunder-2-gb.lg.wurl.tv/playlist.m3u8">Life Downunder (GB)</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://signatureentertainment-popflix-1-gb.lg.wurl.tv/playlist.m3u8">Pop Flix (GB)</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://candlelightmedia-sparklemovies-1-au.lg.wurl.tv/playlist.m3u8">Sparkle Movies (AU)</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg00721-inverleigh-unbeatengb-lggb/playlist.m3u8">Unbeaten (GB)</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://stream.rtl.lu/data/live/tele/rtlgold/1080p.m3u8">RTL GOLD</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://lotus.stingray.com/manifest/ose-142ads-montreal/samsungtvplus/f5102ca4-edd7-30ac-a357-877f60db023b/1790800/manifest.m3u8">STINGRAY 90's</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://wandering-pond-ff44.sadjj2390092.workers.dev/checklist/androstreamlivebs1.m3u8">BEIN S1 VPN</div>
   </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.4.10/hls.min.js"></script>
 <script>
-let channels = [
-  { name: "CNN INT", url: "https://d3bp6dwmpbdajl.cloudfront.net/v1/manifest/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-ury0meh5m4nzm/2a65a3b9-8cf2-4c6a-b4c8-69b41f958f52/0.m3u8" },
-  { name: "FRANCE 24", url: "https://live.france24.com/hls/live/2037218-b/F24_EN_HI_HLS/master_5000.m3u8" },
-  { name: "BBC NEWS", url: "https://vs-hls-push-ww-live.akamaized.net/x=4/i=urn:bbc:pips:service:bbc_news_channel_hd/t=3840/v=pv14/b=5070016/main.m3u8" },
-  { name: "HALK TV", url: "https://halktv-live.daioncdn.net/halktv/halktv_1080p.m3u8" },
-  { name: "EKOL TV", url: "https://ekoltv-live.ercdn.net/ekoltv/ekoltv.m3u8" },
-  { name: "CNBC-E", url: "https://hnpsechtsc.turknet.ercdn.net/xpnvudnlsv/cnbc-e/cnbc-e_720p.m3u8" },
-  { name: "TRT BELGESEL", url: "https://tv-trtbelgesel.medya.trt.com.tr/master.m3u8" },
-  { name: "LOVE NATURE", url: "https://aegis-cloudfront-1.tubi.video/6d6d0f24-8445-4b4c-bdf6-44f9e38beaa4/1080p-cc/index.m3u8" }
-];
+  const video = document.getElementById('video');
+  const sideBar = document.getElementById('sideBar');
+  const channelList = document.getElementById('channelList');
+  const channels = document.querySelectorAll('.channel');
+  const infoPanel = document.getElementById('infoPanel');
+  const label = document.getElementById('currentChannelLabel');
+  const loader = document.getElementById('loader');
 
-let currentIndex = 0; // Aktif oynayan kanal
-let focusIndex = 0;   // Kumanda ile üzerinde olduğumuz öğe
-let currentSection = 'sidebar'; // 'sidebar' veya 'controls'
-let hls = null;
-let zapInterval = null;
-let mediaRecorder = null;
-let recordedChunks = [];
+  let focusedIndex = 0;
+  let hls;
+  let hideTimer;
 
-function init() {
-  renderChannels();
-  updateFocus();
-  setInterval(() => { document.getElementById('clock').textContent = new Date().toLocaleTimeString(); }, 1000);
-}
+  // --- Oynatıcı Fonksiyonları ---
+  function playStream(url) {
+    loader.style.opacity = '1';
+    loader.style.display = 'flex';
 
-function renderChannels() {
-  const list = document.getElementById('channelList');
-  document.getElementById('chCount').textContent = channels.length;
-  list.innerHTML = '';
-  channels.forEach((ch, i) => {
-    const item = document.createElement('div');
-    item.className = 'channel-item nav-item' + (i === currentIndex ? ' active' : '');
-    item.id = 'ch-' + i;
-    item.innerHTML = `<strong>${i+1}</strong> <span class="ch-name">${ch.name}</span>`;
-    list.appendChild(item);
+    if (hls) hls.destroy();
+    if (Hls.isSupported()) {
+      hls = new Hls();
+      hls.loadSource(url);
+      hls.attachMedia(video);
+      hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+      video.onplaying = () => { loader.style.opacity = '0'; setTimeout(()=>loader.style.display='none', 600); };
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      video.src = url;
+      video.onloadeddata = () => { video.play(); loader.style.opacity = '0'; };
+    }
+  }
+
+  // --- Navigasyon ---
+  function updateFocus(index) {
+    channels.forEach(c => c.classList.remove('focused'));
+    const target = channels[index];
+    target.classList.add('focused');
+    
+    // Akıllı Kaydırma: Odaklanan kanalı ortala
+    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    resetHideTimer();
+  }
+
+  function activateChannel(index) {
+    channels.forEach(c => c.classList.remove('active'));
+    channels[index].classList.add('active');
+    
+    const name = channels[index].innerText;
+    label.innerText = name;
+    infoPanel.classList.add('show');
+    
+    playStream(channels[index].dataset.src);
+
+    setTimeout(() => infoPanel.classList.remove('show'), 4000);
+  }
+
+  function resetHideTimer() {
+    sideBar.classList.remove('hidden');
+    clearTimeout(hideTimer);
+    hideTimer = setTimeout(() => {
+      sideBar.classList.add('hidden');
+    }, 5000); // 5 saniye işlem yapılmazsa gizle
+  }
+
+  // --- Klavye / Kumanda Olayları ---
+  document.addEventListener('keydown', (e) => {
+    switch(e.key) {
+      case 'ArrowDown':
+        focusedIndex = (focusedIndex + 1) % channels.length;
+        updateFocus(focusedIndex);
+        break;
+      case 'ArrowUp':
+        focusedIndex = (focusedIndex - 1 + channels.length) % channels.length;
+        updateFocus(focusedIndex);
+        break;
+      case 'Enter':
+        activateChannel(focusedIndex);
+        break;
+      case 'ArrowRight':
+      case 'ArrowLeft':
+        resetHideTimer(); // Menüyü geri getir
+        break;
+    }
   });
-}
 
-// KUMANDA NAVİGASYON MANTIĞI
-function updateFocus() {
-  // Tüm odakları temizle
-  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('focused'));
+  // Tıklama desteği
+  channels.forEach((chan, idx) => {
+    chan.addEventListener('click', () => {
+      focusedIndex = idx;
+      updateFocus(idx);
+      activateChannel(idx);
+    });
+  });
 
-  if (currentSection === 'sidebar') {
-    const el = document.getElementById('ch-' + focusIndex);
-    if (el) {
-      el.classList.add('focused');
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  } else if (currentSection === 'controls') {
-    const btns = document.querySelectorAll('#controlsRow .ctrl-btn');
-    if (btns[focusIndex]) {
-      btns[focusIndex].classList.add('focused');
-    }
-  }
-}
-
-document.addEventListener('keydown', (e) => {
-  switch(e.key) {
-    case 'ArrowDown':
-      if (currentSection === 'sidebar') {
-        focusIndex = (focusIndex + 1) % channels.length;
-      } else {
-        // Kontrollerdeyken aşağı basılırsa bir şey yapma veya listeye dön
-      }
-      break;
-    case 'ArrowUp':
-      if (currentSection === 'sidebar') {
-        focusIndex = (focusIndex - 1 + channels.length) % channels.length;
-      } else {
-        currentSection = 'sidebar';
-        focusIndex = currentIndex;
-      }
-      break;
-    case 'ArrowRight':
-      if (currentSection === 'sidebar') {
-        currentSection = 'controls';
-        focusIndex = 0;
-      } else {
-        const btns = document.querySelectorAll('#controlsRow .ctrl-btn');
-        focusIndex = (focusIndex + 1) % btns.length;
-      }
-      break;
-    case 'ArrowLeft':
-      if (currentSection === 'controls') {
-        if (focusIndex === 0) {
-          currentSection = 'sidebar';
-          focusIndex = currentIndex;
-        } else {
-          focusIndex--;
-        }
-      }
-      break;
-    case 'Enter':
-      if (currentSection === 'sidebar') {
-        selectChannel(focusIndex);
-      } else {
-        document.querySelectorAll('#controlsRow .ctrl-btn')[focusIndex].click();
-      }
-      break;
-  }
-  updateFocus();
-});
-
-// MOTOR KISMI (ORİJİNAL MANTIK)
-function selectChannel(index) {
-  currentIndex = index;
-  const ch = channels[index];
-  renderChannels();
-  
-  const video = document.getElementById('videoPlayer');
-  if (hls) hls.destroy();
-
-  if (Hls.isSupported()) {
-    hls = new Hls();
-    hls.loadSource(ch.url);
-    hls.attachMedia(video);
-    hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
-  }
-
-  document.getElementById('nowPlayingName').textContent = ch.name;
-  showInfo(ch.name, index + 1);
-}
-
-function showInfo(name, num) {
-  const info = document.getElementById('videoInfo');
-  document.getElementById('infoName').textContent = name;
-  document.getElementById('infoNum').textContent = 'CH ' + num;
-  info.classList.add('show');
-  setTimeout(() => info.classList.remove('show'), 3000);
-}
-
-// Diğer Fonksiyonlar (Aynen Korundu)
-function togglePlay() {
-  const v = document.getElementById('videoPlayer');
-  if (v.paused) v.play(); else v.pause();
-  document.getElementById('playPauseBtn').textContent = v.paused ? '▶' : '⏸';
-}
-
-function nextChannel() { selectChannel((currentIndex + 1) % channels.length); }
-function prevChannel() { selectChannel((currentIndex - 1 + channels.length) % channels.length); }
-
-function toggleZapping() {
-  const btn = document.getElementById('zapBtn');
-  const ind = document.getElementById('zapIndicator');
-  if (zapInterval) {
-    clearInterval(zapInterval); zapInterval = null;
-    btn.classList.remove('zap-active'); ind.style.display = 'none';
-  } else {
-    btn.classList.add('zap-active'); ind.style.display = 'block';
-    zapInterval = setInterval(() => { nextChannel(); }, 5500);
-  }
-}
-
-function toggleRecording() {
-  const video = document.getElementById('videoPlayer');
-  const recBtn = document.getElementById('recBtn');
-  const recInd = document.getElementById('recIndicator');
-  if (mediaRecorder && mediaRecorder.state === "recording") {
-    mediaRecorder.stop();
-    recBtn.classList.remove('rec-active'); recInd.style.display = 'none';
-  } else {
-    recordedChunks = [];
-    const stream = video.captureStream();
-    mediaRecorder = new MediaRecorder(stream);
-    mediaRecorder.ondataavailable = e => recordedChunks.push(e.data);
-    mediaRecorder.onstop = () => {
-      const blob = new Blob(recordedChunks, { type: 'video/webm' });
-      const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-      a.download = `rec-${Date.now()}.webm`; a.click();
-    };
-    mediaRecorder.start();
-    recBtn.classList.add('rec-active'); recInd.style.display = 'block';
-  }
-}
-
-function takeScreenshot() {
-  const video = document.getElementById('videoPlayer');
-  const canvas = document.createElement('canvas');
-  canvas.width = video.videoWidth; canvas.height = video.videoHeight;
-  canvas.getContext('2d').drawImage(video, 0, 0);
-  const a = document.createElement('a'); a.href = canvas.toDataURL("image/png");
-  a.download = `snap-${Date.now()}.png`; a.click();
-}
-
-init();
-selectChannel(0);
+  // Başlangıç
+  updateFocus(0);
+  activateChannel(0);
 </script>
+
 </body>
 </html>
