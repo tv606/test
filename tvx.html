@@ -3,32 +3,24 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>TVX - Modern Edition</title>
+  <title>TVX - Modern</title>
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-  
   <style>
-    /* --- TASARIM DEĞİŞİKLİKLERİ --- */
-    :root {
-      --primary-color: #00BFFF;
-      --bg-dark: rgba(20, 20, 25, 0.9);
-      --border-color: rgba(255, 255, 255, 0.1);
+    /* ÇALIŞAN MOTORUN CSS İSKELETİ */
+    * {
+      box-sizing: border-box;
     }
 
-    * { box-sizing: border-box; }
-
-    /* Çalışan dosyadaki gibi saf siyah arka plan */
     html, body {
       margin: 0;
       padding: 0;
-      background: black;
-      font-family: 'Inter', sans-serif;
+      background: black; /* Videonun görünmesi için kritik */
+      font-family: sans-serif;
       overflow: hidden;
       width: 100vw;
       height: 100vh;
     }
 
-    /* Görüntünün gelmesi için çalışan dosyadaki video ayarları */
     video {
       width: 100%;
       height: 100%;
@@ -39,7 +31,7 @@
       z-index: 0;
     }
 
-    /* Modern Loader */
+    /* Modern Loader - İlk dosyadaki mantıkla */
     #loader {
       position: fixed;
       top: 0;
@@ -55,47 +47,45 @@
     }
 
     .spinner {
-      width: 60px;
-      height: 60px;
-      border: 5px solid rgba(255, 255, 255, 0.1);
-      border-left-color: var(--primary-color);
+      width: 50px;
+      height: 50px;
+      border: 5px solid #333;
+      border-left-color: #00BFFF;
       border-radius: 50%;
       animation: spin 1s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* Modern Alt Kanal Barı */
+    /* Modern Kanal Barı - Konumu ve Yapısı Korundu */
     #channelBar {
       position: fixed;
-      bottom: 30px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 95%;
-      padding: 15px;
+      bottom: 20px; /* Aşağıya alındı */
+      left: 0;
+      width: 100%;
+      padding: 10px 20px;
       display: flex;
       overflow-x: auto;
-      gap: 12px;
-      background: var(--bg-dark);
-      border: 1px solid var(--border-color);
-      border-radius: 20px;
+      gap: 10px;
+      background: rgba(0, 0, 0, 0.8); /* Şeffaflık azaltıldı, render garantilendi */
       z-index: 998;
       scrollbar-width: none;
-      transition: opacity 0.4s ease, transform 0.4s ease;
+      transition: opacity 0.4s ease;
       opacity: 1;
     }
 
     #channelBar.hidden {
       opacity: 0;
-      transform: translate(-50%, 20px);
       pointer-events: none;
     }
 
-    #channelBar::-webkit-scrollbar { display: none; }
+    #channelBar::-webkit-scrollbar {
+      display: none;
+    }
 
     .channel {
-      min-width: 150px;
-      background: rgba(255, 255, 255, 0.05);
-      color: #aaa;
+      min-width: 140px;
+      background: #222;
+      color: #777;
       padding: 15px;
       border-radius: 12px;
       text-align: center;
@@ -103,25 +93,26 @@
       font-size: 16px;
       font-weight: 600;
       transition: all 0.3s ease;
-      border: 1px solid transparent;
+      border: 1px solid #333;
     }
 
-    /* Çalışan dosyadaki odaklanma mantığı */
+    /* Odaklanma Efekti - İlk dosyadaki gibi çalışır */
     .channel:focus,
     .channel.focused {
-      background: rgba(255, 255, 255, 0.15);
+      background: #00BFFF;
       outline: none;
       color: #fff;
+      border-color: #fff;
       transform: scale(1.05);
-      border-color: var(--primary-color);
     }
 
     .channel.active {
-      color: var(--primary-color);
       font-weight: bold;
+      color: #fff;
+      border-bottom: 3px solid #00BFFF;
     }
 
-    /* Modern Kanal İsmi Overlay */
+    /* Kanal İsmi Overlay */
     #channelNameOverlay {
       position: fixed;
       top: 40px;
@@ -129,16 +120,18 @@
       color: white;
       background: rgba(0, 0, 0, 0.7);
       padding: 15px 30px;
-      border-radius: 10px;
-      font-size: 40px;
+      border-radius: 8px;
+      font-size: 35px;
       z-index: 1000;
       opacity: 0;
       transition: opacity 0.5s ease;
       pointer-events: none;
-      font-weight: 800;
+      font-weight: bold;
     }
 
-    video::-webkit-media-controls { display: none !important; }
+    video::-webkit-media-controls {
+      display: none !important;
+    }
   </style>
 </head>
 <body>
@@ -152,18 +145,18 @@
 <div id="channelNameOverlay"></div>
 
 <div id="channelBar">
-  <div class="channel" data-id="x" data-type="hls" data-src="https://halktv-live.daioncdn.net/halktv/halktv_1080p.m3u8">HALK TV</div>
-  <div class="channel" data-id="x" data-type="hls" data-src="https://saran-live.ercdn.net/fx/index.m3u8">FX TR</div>
-  <div class="channel" data-id="x" data-type="hls" data-src="https://ekoltv-live.ercdn.net/ekoltv/ekoltv.m3u8">EKOL TV</div>
-  <div class="channel" data-id="x" data-type="hls" data-src="https://live.artidijitalmedya.com/artidijital_denizpostasi/denizpostasi/playlist.m3u8">DENİZ POSTASI</div>
-  <div class="channel" data-id="x" data-type="hls" data-src="https://saran-live.ercdn.net/natgeohd/index.m3u8">NAT GEO TR</div>
-  <div class="channel" data-id="x" data-type="hls" data-src="https://saran-live.ercdn.net/natgeowild/index.m3u8">NAT GEO WILD TR</div>
-  <div class="channel" data-id="x" data-type="hls" data-src="https://tv-trtbelgesel.medya.trt.com.tr/master.m3u8">TRT BELGESEL</div>
-  <div class="channel" data-id="x" data-type="hls" data-src="https://tv-trtspor1.medya.trt.com.tr/master.m3u8">TRT SPOR</div>
+  <div class="channel" data-src="https://halktv-live.daioncdn.net/halktv/halktv_1080p.m3u8">HALK TV</div>
+  <div class="channel" data-src="https://saran-live.ercdn.net/fx/index.m3u8">FX TR</div>
+  <div class="channel" data-src="https://ekoltv-live.ercdn.net/ekoltv/ekoltv.m3u8">EKOL TV</div>
+  <div class="channel" data-src="https://live.artidijitalmedya.com/artidijital_denizpostasi/denizpostasi/playlist.m3u8">DENİZ POSTASI</div>
+  <div class="channel" data-src="https://saran-live.ercdn.net/natgeohd/index.m3u8">NAT GEO TR</div>
+  <div class="channel" data-src="https://saran-live.ercdn.net/natgeowild/index.m3u8">NAT GEO WILD TR</div>
+  <div class="channel" data-src="https://tv-trtbelgesel.medya.trt.com.tr/master.m3u8">TRT BELGESEL</div>
+  <div class="channel" data-src="https://tv-trtspor1.medya.trt.com.tr/master.m3u8">TRT SPOR</div>
 </div>
 
 <script>
-  /* --- ÇALIŞAN İLK DOSYANIN SCRİPT MOTORU (DOKUNULMADI) --- */
+  /* ÇALIŞAN İLK DOSYANIN SCRİPTİ (BİREBİR) */
   const video = document.getElementById('video');
   const channels = document.querySelectorAll('.channel');
   const channelBar = document.getElementById('channelBar');
@@ -185,22 +178,19 @@
 
   function playStream(url) {
     showLoader();
-
     if (hls) hls.destroy();
     if (Hls.isSupported()) {
       hls = new Hls();
       hls.loadSource(url);
       hls.attachMedia(video);
-
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        video.play().catch(err => console.error('Oynatma hatası:', err));
+        video.play().catch(err => console.error('Hata:', err));
       });
-
       video.addEventListener('playing', hideLoader, { once: true });
     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
       video.src = url;
       video.addEventListener('loadeddata', () => {
-        video.play().catch(err => console.error('Oynatma hatası:', err));
+        video.play().catch(err => console.error('Hata:', err));
         hideLoader();
       }, { once: true });
     }
@@ -211,7 +201,7 @@
 
   function showChannelName(name) {
     overlay.textContent = name;
-    overlay.style.opacity = 1; // opacity üzerinden kontrol
+    overlay.style.opacity = 1;
     clearTimeout(overlay._timeout);
     overlay._timeout = setTimeout(() => {
       overlay.style.opacity = 0;
