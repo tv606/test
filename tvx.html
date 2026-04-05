@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
-  <title>TV</title>
+  <title>TVX - Modern</title>
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
   
@@ -42,10 +42,10 @@
       object-fit: cover;
     }
 
-    /* MODERN YATAY ALT MENÜ (DOCK) */
+    /* YATAY KANAL MENÜSÜ (DOCK) */
     #channelBar {
       position: fixed;
-      bottom: 40px;
+      top: -5px;
       left: 50%;
       transform: translateX(-50%);
       width: 95%;
@@ -56,7 +56,7 @@
       gap: 12px;
       background: var(--bg-glass);
       border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 24px;
+      border-radius: 0px 0px 24px 24px;
       z-index: 100; /* Videonun üstünde kalması için */
       scrollbar-width: none;
       transition: all 0.5s ease;
@@ -65,7 +65,7 @@
 
     #channelBar.hidden {
       opacity: 0;
-      transform: translate(-50%, 40px);
+      transform: translate(-50%, -50px);
       pointer-events: none;
     }
 
@@ -100,18 +100,18 @@
       border-color: var(--primary);
     }
 
-    /* KANAL BİLGİ PANELİ (Üst Sol) */
+    /* KANAL BİLGİ PANELİ (Üst Alt) */
     #infoPanel {
       position: fixed;
-      top: 40px;
-      left: 40px;
+      bottom: 20px;
+      left: 20px;
       background: var(--bg-glass);
       padding: 15px 30px;
       border-radius: 1px;
       z-index: 50;
       opacity: 0;
       transform: translateY(-20px);
-      transition: all 0.4s ease;
+      transition: all 1s ease;
       border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
@@ -224,7 +224,7 @@
 <div class="channel" data-id="x" data-type="hls" data-src="https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg00721-inverleigh-unbeatengb-lggb/playlist.m3u8">Unbeaten (GB)</div>
 <div class="channel" data-id="x" data-type="hls" data-src="https://stream.rtl.lu/data/live/tele/rtlgold/1080p.m3u8">RTL GOLD</div>
 <div class="channel" data-id="x" data-type="hls" data-src="https://lotus.stingray.com/manifest/ose-142ads-montreal/samsungtvplus/f5102ca4-edd7-30ac-a357-877f60db023b/1790800/manifest.m3u8">STINGRAY 90's</div>
-<div class="channel" data-id="x" data-type="hls" data-src="https://wandering-pond-ff44.sadjj2390092.workers.dev/checklist/androstreamlivebs1.m3u8">BES1 VPN</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://wandering-pond-ff44.sadjj2390092.workers.dev/checklist/androstreamlivebs1.m3u8">BEIN S1 VPN</div>
 </div>
 
 <script>
