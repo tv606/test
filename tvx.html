@@ -2,166 +2,198 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
-  <title>TVX - Modern</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TV</title>
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-  
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --primary: #ffffff;
-      --bg-glass: rgba(10, 10, 15, 0.7);
+      --side-width: 320px;
+      /* Stremio Renk Paleti */
+      --stremio-purple: #fff; 
+      --stremio-bg: #000;
+      --stremio-sidebar: rgba(2, 20, 34, 0.95);
+      --stremio-item-hover: rgba(29, 52, 175, 0.2);
       --font-main: 'Inter', sans-serif;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
-    /* ÇALIŞAN VERSİYONUN KRİTİK BODY AYARI */
     body, html {
       background: #000;
       font-family: var(--font-main);
-      color: white;
+      color: #eeecf2;
       height: 100vh;
       width: 100vw;
       overflow: hidden;
     }
 
-    /* ÇALIŞAN VERSİYONUN CONTAINER YAPISI */
+    /* Video Alanı */
     #videoContainer {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      z-index: 1; /* Video en alt katmanda */
+      z-index: 1;
+      background: #000;
     }
 
     video {
       width: 100%;
       height: 100%;
-      object-fit: cover;
+      object-fit: contain; /* Stremio genelde en boy oranını korur */
     }
 
-    /* YATAY KANAL MENÜSÜ (DOCK) */
-    #channelBar {
+    /* Stremio Tarzı Sidebar */
+    #sideBar {
       position: fixed;
-      top: -5px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 95%;
-      max-width: 1200px;
-      padding: 16px 20px;
+      top: 0;
+      left: 0;
+      width: var(--side-width);
+      height: 100%;
+      background: var(--stremio-sidebar);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      z-index: 100;
       display: flex;
-      overflow-x: auto;
-      gap: 12px;
-      background: var(--bg-glass);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 0px 0px 24px 24px;
-      z-index: 100; /* Videonun üstünde kalması için */
-      scrollbar-width: none;
-      transition: all 0.5s ease;
-      opacity: 1;
+      flex-direction: column;
+      padding: 30px 15px;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      border-right: 1px solid rgba(255,255,255,0.05);
+      box-shadow: 10px 0 30px rgba(0,0,0,0.5);
+      opacity: 0.9;
     }
 
-    #channelBar.hidden {
+    #sideBar.hidden {
+      transform: translateX(-100%);
       opacity: 0;
-      transform: translate(-50%, -50px);
-      pointer-events: none;
     }
 
-    #channelBar::-webkit-scrollbar { display: none; }
+    .brand {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 30px;
+      color: #fff;
+      padding-left: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
 
+    /* Stremio Logo Noktası */
+    .brand::before {
+      content: '';
+      width: 12px;
+      height: 12px;
+      background: var(--stremio-purple);
+      box-shadow: 0 0 12px var(--stremio-purple);
+    }
+
+    #channelList {
+      flex: 1;
+      overflow-y: auto;
+      padding-right: 5px;
+    }
+
+    /* Scrollbar tasarımı */
+    #channelList::-webkit-scrollbar { width: 4px; }
+    #channelList::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1);}
+
+    /* Kanal Öğeleri */
     .channel {
-      min-width: 150px;
-      background: rgba(255, 255, 255, 0.05);
-      color: #777;
-      padding: 16px;
-      border-radius: 16px;
-      text-align: center;
-      flex-shrink: 0;
-      font-size: 16px;
-      font-weight: 600;
+      position: relative;
+      padding: 14px 16px;
+      margin-bottom: 6px;
+
+      background: transparent;
+      color: #b3b2b7;
+      font-size: 15px;
+      font-weight: 500;
       transition: all 0.2s ease;
       cursor: pointer;
-      border: 1px solid transparent;
+      display: flex;
+      align-items: center;
+      border-left: 3px solid transparent;
     }
 
-    /* ODAKLANMA EFEKTİ */
+    /* Kumanda Odaklanması (Stremio Hover Efekti) */
     .channel.focused {
-      background: rgba(255, 255, 255, 0.2);
+      background: rgba(222, 222, 222, 0.2);
       color: #fff;
-      transform: scale(1.05);
-      border-color: var(--primary);
+      border-left: 3px solid var(--stremio-purple);
+      transform: scale(1.02);
+      font-weight: 700;
+      font-size: 20px;
     }
 
+    /* Aktif Kanal */
     .channel.active {
-      color: #000;
-      background: rgba(255, 255, 255, 0.8);
-      border-color: var(--primary);
+      background: rgba(2, 20, 34, 0.7);
+      color: #fff;
+      font-size: 20px;
+      font-weight: 700;
+      filter: invert(1); /* Her şeyi tam tersine çevirir */
     }
 
-    /* KANAL BİLGİ PANELİ (Üst Alt) */
+    /* Bilgi Paneli (Stremio Overlay) */
     #infoPanel {
       position: fixed;
-      bottom: 20px;
-      left: 20px;
-      background: var(--bg-glass);
-      padding: 15px 30px;
-      border-radius: 1px;
-      z-index: 50;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(15, 13, 25, 0.9);
+      padding: 12px 30px;
+
+      z-index: 5;
       opacity: 0;
-      transform: translateY(-20px);
-      transition: all 1s ease;
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: all 0.4s ease;
+      border: 1px solid rgba(129, 52, 175, 0.3);
+      backdrop-filter: blur(10px);
     }
 
     #infoPanel.show {
       opacity: 1;
-      transform: translateY(0);
+      transform: translateX(-50%) translateY(0);
     }
 
-    /* MODERN LOADER */
+    #infoPanel h2 {
+      font-size: 18px;
+      letter-spacing: 0.5px;
+      color: #fff;
+    }
+
+    /* Stremio Tarzı Loader */
     #loader {
       position: fixed;
       inset: 0;
-      background: black;
+      background: var(--stremio-bg);
       z-index: 99;
       display: flex;
       justify-content: center;
       align-items: center;
-      transition: opacity 0.5s ease;
     }
 
-    .loading-bar {
-      width: 150px;
-      height: 4px;
-      background: rgba(255, 255, 255, 0.1);
-      position: relative;
-      overflow: hidden;
-      border-radius: 2px;
+    .stremio-spinner {
+      width: 70px;
+      height: 70px;
+      border: 3px solid rgba(182, 173, 165, 0.2);
+      border-top: 3px solid var(--stremio-purple);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+
     }
 
-    .loading-bar::after {
-      content: "";
-      position: absolute;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: var(--primary);
-      animation: loading 1.5s infinite;
-    }
-
-    @keyframes loading {
-      0% { left: -100%; }
-      50% { left: 0; }
-      100% { left: 100%; }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
   </style>
 </head>
 <body>
 
 <div id="loader">
-  <div class="loading-bar"></div>
+  <div class="stremio-spinner"></div>
 </div>
 
 <div id="videoContainer">
@@ -169,10 +201,12 @@
 </div>
 
 <div id="infoPanel">
-  <h2 id="currentLabel">-</h2>
+  <h2 id="currentChannelLabel">-</h2>
 </div>
 
-<div id="channelBar">
+<div id="sideBar">
+  <div class="brand">TV</div>
+  <div id="channelList">
 <div class="channel" data-id="x" data-type="hls" data-src="https://halktv-live.daioncdn.net/halktv/halktv_1080p.m3u8">HALK TV</div>
 <div class="channel" data-id="x" data-type="hls" data-src="https://saran-live.ercdn.net/fx/index.m3u8">FX TR</div>
 <div class="channel" data-id="x" data-type="hls" data-src="https://ekoltv-live.ercdn.net/ekoltv/ekoltv.m3u8">EKOL TV</div>
@@ -223,26 +257,53 @@
 <div class="channel" data-id="x" data-type="hls" data-src="https://candlelightmedia-sparklemovies-1-au.lg.wurl.tv/playlist.m3u8">Sparkle Movies (AU)</div>
 <div class="channel" data-id="x" data-type="hls" data-src="https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg00721-inverleigh-unbeatengb-lggb/playlist.m3u8">Unbeaten (GB)</div>
 <div class="channel" data-id="x" data-type="hls" data-src="https://stream.rtl.lu/data/live/tele/rtlgold/1080p.m3u8">RTL GOLD</div>
-<div class="channel" data-id="x" data-type="hls" data-src="https://lotus.stingray.com/manifest/ose-142ads-montreal/samsungtvplus/f5102ca4-edd7-30ac-a357-877f60db023b/1790800/manifest.m3u8">STINGRAY 90's</div>
-<div class="channel" data-id="x" data-type="hls" data-src="https://wandering-pond-ff44.sadjj2390092.workers.dev/checklist/androstreamlivebs1.m3u8">BEIN S1 VPN</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://lotus.stingray.com/manifest/ose-142ads-montreal/samsungtvplus/f5102ca4-edd7-30ac-a357-877f60db023b/1790800/manifest.m3u8">Nothin' But 90s</div>
+
+<div class="channel" data-id="x" data-type="hls" data-src="https://lotus.stingray.com/manifest/ose-101ads-montreal/samsungtvplus/master.m3u8">Classic Rock</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://lotus.stingray.com/manifest/classica-cla008-montreal/samsungtvplus/master.m3u8">Classica</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://lotus.stingray.com/manifest/cmusic-cme004-montreal/samsungtvplus/master.m3u8">CMusic</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://lotus.stingray.com/manifest/djazz-djaads-montreal/samsungtvplus/master.m3u8">DJAZZ</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://lotus.stingray.com/manifest/ose-137ads-montreal/samsungtvplus/master.m3u8">Easy Listening</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://lotus.stingray.com/manifest/ose-214ads-montreal/samsungtvplus/master.m3u8">Euro Hits </div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://lotus.stingray.com/manifest/ose-115ads-montreal/samsungtvplus/master.m3u8">Flashback 70s</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://lotus.stingray.com/manifest/ose-155ads-montreal/samsungtvplus/master.m3u8">Greatest Hits</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://lotus.stingray.com/manifest/ose-107ads-montreal/samsungtvplus/master.m3u8">Hit List</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://lotus.stingray.com/manifest/ose-108ads-montreal/samsungtvplus/master.m3u8">Hot Country</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://lotus.stingray.com/manifest/ose-021ads-montreal/samsungtvplus/master.m3u8">Jukebox Oldies</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://lotus.stingray.com/manifest/karaoke-kar000-montreal/samsungtvplus/master.m3u8">Karaoke</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://lotus.stingray.com/manifest/ose-104ads-montreal/samsungtvplus/master.m3u8">Pop Adult </div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://lotus.stingray.com/manifest/ose-128ads-montreal/samsungtvplus/master.m3u8">Remember the 80s</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://lotus.stingray.com/manifest/ose-102ads-montreal/samsungtvplus/master.m3u8">Rock Alternative </div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://lotus.stingray.com/manifest/ose-202ads-montreal/samsungtvplus/master.m3u8">Romance Latino </div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://lotus.stingray.com/manifest/ose-140ads-montreal/samsungtvplus/master.m3u8">Smooth Jazz</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://lotus.stingray.com/manifest/ose-134ads-montreal/samsungtvplus/master.m3u8">Soul Storm</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://lotus.stingray.com/manifest/ose-122ads-montreal/samsungtvplus/master.m3u8">The Spa </div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://lotus.stingray.com/manifest/ose-317ads-montreal/samsungtvplus/master.m3u8">Today's KPOP</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://lotus.stingray.com/manifest/ose-190ads-montreal/samsungtvplus/master.m3u8">Today's Latin Pop</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://lotus.stingray.com/manifest/ose-133ads-montreal/samsungtvplus/master.m3u8">Urban Beat </div>
+
+
+<div class="channel" data-id="x" data-type="hls" data-src="https://wandering-pond-ff44.sadjj2390092.workers.dev/checklist/androstreamlivebs1.m3u8">1VPN</div>
+    </div>
 </div>
 
 <script>
+  // Motor Kısmı: Dokunulmadı, sadece görsel geri bildirimler (loader vb.) yeni sınıflara bağlandı.
   const video = document.getElementById('video');
-  const channelBar = document.getElementById('channelBar');
+  const sideBar = document.getElementById('sideBar');
+  const channelList = document.getElementById('channelList');
   const channels = document.querySelectorAll('.channel');
   const infoPanel = document.getElementById('infoPanel');
-  const label = document.getElementById('currentLabel');
+  const label = document.getElementById('currentChannelLabel');
   const loader = document.getElementById('loader');
 
   let focusedIndex = 0;
   let hls;
   let hideTimer;
 
-  // --- ÇALIŞAN OYNATICI MOTORU ---
   function playStream(url) {
-    loader.style.opacity = '1';
     loader.style.display = 'flex';
+    loader.style.opacity = '1';
 
     if (hls) hls.destroy();
     if (Hls.isSupported()) {
@@ -252,23 +313,23 @@
       hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
       video.onplaying = () => { 
         loader.style.opacity = '0'; 
-        setTimeout(() => loader.style.display = 'none', 500); 
+        setTimeout(()=>loader.style.display='none', 400); 
       };
     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
       video.src = url;
       video.onloadeddata = () => { 
         video.play(); 
         loader.style.opacity = '0'; 
+        setTimeout(()=>loader.style.display='none', 400);
       };
     }
   }
 
-  // --- NAVİGASYON ---
   function updateFocus(index) {
     channels.forEach(c => c.classList.remove('focused'));
     const target = channels[index];
     target.classList.add('focused');
-    target.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
     resetHideTimer();
   }
 
@@ -276,7 +337,8 @@
     channels.forEach(c => c.classList.remove('active'));
     channels[index].classList.add('active');
     
-    label.innerText = channels[index].innerText;
+    const name = channels[index].innerText;
+    label.innerText = name;
     infoPanel.classList.add('show');
     
     playStream(channels[index].dataset.src);
@@ -284,35 +346,33 @@
   }
 
   function resetHideTimer() {
-    channelBar.classList.remove('hidden');
+    sideBar.classList.remove('hidden');
     clearTimeout(hideTimer);
     hideTimer = setTimeout(() => {
-      channelBar.classList.add('hidden');
-    }, 4000);
+      sideBar.classList.add('hidden');
+    }, 5000);
   }
 
-  // --- KUMANDA OLAYLARI ---
   document.addEventListener('keydown', (e) => {
     switch(e.key) {
-      case 'ArrowRight':
+      case 'ArrowDown':
         focusedIndex = (focusedIndex + 1) % channels.length;
         updateFocus(focusedIndex);
         break;
-      case 'ArrowLeft':
+      case 'ArrowUp':
         focusedIndex = (focusedIndex - 1 + channels.length) % channels.length;
         updateFocus(focusedIndex);
         break;
       case 'Enter':
         activateChannel(focusedIndex);
         break;
-      case 'ArrowUp':
-      case 'ArrowDown':
+      case 'ArrowRight':
+      case 'ArrowLeft':
         resetHideTimer();
         break;
     }
   });
 
-  // Tıklama / Dokunma
   channels.forEach((chan, idx) => {
     chan.addEventListener('click', () => {
       focusedIndex = idx;
@@ -321,7 +381,6 @@
     });
   });
 
-  // BAŞLAT
   updateFocus(0);
   activateChannel(0);
 </script>
