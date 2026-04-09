@@ -42,6 +42,12 @@
         { name: "NTV Canlı", id: "QnJ0Qy-tH9g" }
     ];
 
+    // ... önceki fetch kodunun içine ...
+   const modifiedRequest = new Request(event.request, {
+        mode: 'no-cors', // CORS engeline takılmamak için
+        referrer: 'https://www.youtube.com/' // YouTube'un kendisinden geliyormuş gibi göster
+   });
+
     const listElement = document.getElementById('channels');
     const player = document.getElementById('videoFrame');
 
