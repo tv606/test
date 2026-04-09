@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Test IPTV Player</title>
+    <style>
+        body { margin: 0; background: #000; color: white; font-family: sans-serif; }
+        .container { display: flex; flex-direction: column; height: 100vh; }
+        #player-container { flex: 1; position: relative; }
+        iframe { width: 100%; height: 100%; border: none; }
+        .controls { padding: 10px; background: #222; text-align: center; }
+        button { padding: 10px 20px; cursor: pointer; background: red; color: white; border: none; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="player-container">
+            <iframe id="mainFrame" src=""></iframe>
+        </div>
+        <div class="controls">
+            <button onclick="loadChannel('6N8_r2uwLEc')">CNN Türk Test Et</button>
+        </div>
+    </div>
+
+    <script>
+        function loadChannel(videoId) {
+            const frame = document.getElementById('mainFrame');
+            
+            /* YÖNTEM: YouTube'un 'SameOrigin' engelini aşmak için 
+               bazı açık proxy servislerini deneyeceğiz. 
+               Eğer doğrudan embed çalışmazsa (CNN Türk'teki gibi), 
+               içeriği bir "CORS-Anywhere" benzeri yapıdan geçirmemiz gerekir.
+            */
+            
+            // Önce standart yolu deneyelim
+            frame.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&origin=https://youtube.com.test`;
+        }
+    </script>
+</body>
+</html>
