@@ -2,39 +2,74 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Test IPTV Player</title>
+    <title>Test IPTV - v1.0</title>
     <style>
-        body { margin: 0; background: #000; color: white; font-family: sans-serif; }
-        .container { display: flex; flex-direction: column; height: 100vh; }
-        #player-container { flex: 1; position: relative; }
+        body { margin: 0; background: #1a1a1a; color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
+        .app-container { display: flex; height: 100vh; }
+        
+        /* Yan Menü */
+        .sidebar { width: 300px; background: #252525; border-right: 1px solid #333; display: flex; flex-direction: column; }
+        .sidebar h2 { padding: 20px; margin: 0; background: #ff0000; font-size: 1.2rem; }
+        .channel-list { flex: 1; overflow-y: auto; list-style: none; padding: 0; margin: 0; }
+        .channel-item { padding: 15px 20px; border-bottom: 1px solid #333; cursor: pointer; transition: 0.2s; }
+        .channel-item:hover { background: #333; }
+        .channel-item.active { background: #444; border-left: 5px solid #ff0000; }
+
+        /* Video Alanı */
+        .main-player { flex: 1; background: #000; display: flex; align-items: center; justify-content: center; }
         iframe { width: 100%; height: 100%; border: none; }
-        .controls { padding: 10px; background: #222; text-align: center; }
-        button { padding: 10px 20px; cursor: pointer; background: red; color: white; border: none; border-radius: 5px; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div id="player-container">
-            <iframe id="mainFrame" src=""></iframe>
-        </div>
-        <div class="controls">
-            <button onclick="loadChannel('6N8_r2uwLEc')">CNN Türk Test Et</button>
-        </div>
-    </div>
 
-    <script>
-        function loadChannel(videoId) {
-            const frame = document.getElementById('mainFrame');
-            
-            /* YÖNTEM: YouTube'un 'SameOrigin' engelini aşmak için 
-               bazı açık proxy servislerini deneyeceğiz. 
-               Eğer doğrudan embed çalışmazsa (CNN Türk'teki gibi), 
-               içeriği bir "CORS-Anywhere" benzeri yapıdan geçirmemiz gerekir.
-            */
-            
-            // Önce standart yolu deneyelim
-            frame.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&origin=https://youtube.com.test`;
-        }
-    </script>
+<div class="app-container">
+    <div class="sidebar">
+        <h2>Live IPTV Test</h2>
+        <ul class="channel-list" id="channels">
+            </ul>
+    </div>
+    <div class="main-player">
+        <iframe id="videoFrame" allow="autoplay; fullscreen" src=""></iframe>
+    </div>
+</div>
+
+<script>
+    // Test amaçlı kanal listesi
+    const channelData = [
+        { name: "CNN Türk", id: "6N8_r2uwLEc" },
+        { name: "Haber Global", id: "FvT2mB5G2xQ" },
+        { name: "TRT Haber", id: "mR7mIqLwYmI" },
+        { name: "NTV Canlı", id: "QnJ0Qy-tH9g" }
+    ];
+
+    const listElement = document.getElementById('channels');
+    const player = document.getElementById('videoFrame');
+
+    function loadChannel(videoId, element) {
+        // Embed linkini Service Worker'ın yakalayacağı formatta oluşturuyoruz
+        player.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0&rel=0`;
+        
+        // Aktif kanal stilini güncelle
+        document.querySelectorAll('.channel-item').forEach(el => el.classList.remove('active'));
+        element.classList.add('active');
+    }
+
+    // Listeyi oluştur
+    channelData.forEach((ch, index) => {
+        const li = document.createElement('li');
+        li.className = 'channel-item';
+        li.innerText = ch.name;
+        li.onclick = () => loadChannel(ch.id, li);
+        listElement.appendChild(li);
+        
+        // İlk kanalı otomatik aç
+        if(index === 0) loadChannel(ch.id, li);
+    });
+
+    // Service Worker Kaydı
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js');
+    }
+</script>
 </body>
 </html>
