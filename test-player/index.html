@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Web IPTV Player</title>
+    <style>
+        body { margin: 0; background: #0f0f0f; color: white; font-family: 'Segoe UI', Arial, sans-serif; overflow: hidden; }
+        .app-container { display: flex; height: 100vh; }
+        
+        /* Sidebar Tasarımı */
+        .sidebar { width: 320px; background: #1a1a1a; display: flex; flex-direction: column; border-right: 1px solid #333; }
+        .sidebar-header { padding: 25px; background: #cc0000; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+        .channel-list { flex: 1; overflow-y: auto; list-style: none; padding: 0; margin: 0; }
+        .channel-item { 
+            padding: 18px 25px; 
+            border-bottom: 1px solid #2a2a2a; 
+            cursor: pointer; 
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+        }
+        .channel-item:hover { background: #333; }
+        .channel-item.active { background: #333; border-left: 6px solid #ff0000; padding-left: 19px; }
+
+        /* Video Alanı */
+        .main-player { flex: 1; background: #000; position: relative; }
+        iframe { width: 100%; height: 100%; border: none; }
+        
+        /* Yükleniyor Uyarısı */
+        #loading {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            color: #666; font-size: 0.9rem; z-index: -1;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div class="sidebar">
+        <div class="sidebar-header">📡 Canlı Test TV</div>
+        <ul class="channel-list" id="channels"></ul>
+    </div>
+    <div class="main-player">
+        <div id="loading">Kanal yükleniyor...</div>
+        <iframe id="videoFrame" allow="autoplay; fullscreen; picture-in-picture" src=""></iframe>
+    </div>
+</div>
+
+<script>
+    // Kanal Listesi
+    const channels = [
+        { name: "CNN Türk", id: "6N8_r2uwLEc" },
+        { name: "Haber Global", id: "NtQZEWsorAE" },
+        { name: "Sözcü", id: "rEWUykEgKrQ" },
+        { name: "NTV Canlı", id: "pqq5c6k70kk" }
+    ];
+
+    const frame = document.getElementById('videoFrame');
+    const listElement = document.getElementById('channels');
+
+    function playChannel(id, el) {
+        // Aktif kanal görselini güncelle
+        document.querySelectorAll('.channel-item').forEach(item => item.classList.remove('active'));
+        el.classList.add('active');
+        
+        // YouTube Player'ı yükle
+        // rel=0: ilgili videoları kapatır, origin: güvenliği artırır
+        frame.src = `https://www.youtube.com/embed/${id}?autoplay=1&rel=0&modestbranding=1`;
+    }
+
+    // Listeyi oluşturma
+    channels.forEach((ch, index) => {
+        const li = document.createElement('li');
+        li.className = 'channel-item';
+        li.innerHTML = `<span>●</span> &nbsp; ${ch.name}`;
+        li.onclick = () => playChannel(ch.id, li);
+        listElement.appendChild(li);
+        
+        // İlk kanalı başlat
+        if (index === 0) playChannel(ch.id, li);
+    });
+
+    // SERVICE WORKER KAYDI (KRİTİK)
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js')
+                .then(reg => console.log('Sistem Aktif:', reg.scope))
+                .catch(err => console.log('Sistem Hatası:', err));
+        });
+    }
+</script>
+</body>
+</html>
