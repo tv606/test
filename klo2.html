@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Kalori Takip</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-white min-h-screen p-4 flex justify-center">
+
+    <div class="max-w-md w-full space-y-6">
+        <div class="bg-slate-800 rounded-3xl p-8 text-center border border-slate-700 shadow-2xl">
+            <h2 class="text-slate-400 text-xs font-medium mb-1 tracking-widest uppercase">Kalan Kalori</h2>
+            <div id="remaining" class="text-6xl font-black text-emerald-400">1350</div>
+            <div class="mt-4 text-[10px] text-slate-500 tracking-tighter uppercase">Günlük Hedef: 1350 kcal</div>
+        </div>
+
+        <div class="bg-slate-800 p-6 rounded-3xl border border-slate-700">
+            <textarea id="userInput" rows="2" 
+                class="w-full bg-slate-900 border-none rounded-2xl p-4 text-white placeholder-slate-600 outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
+                placeholder="Örn: 2 dilim pizza ve ayran"></textarea>
+            
+            <button onclick="processAI()" id="btn"
+                class="w-full mt-4 bg-emerald-500 hover:bg-emerald-600 text-slate-900 font-bold py-4 rounded-2xl transition-all active:scale-95">
+                Öğünü Ekle
+            </button>
+
+            <div class="flex justify-between mt-6 px-2">
+                <button onclick="resetCalories()" class="text-[10px] text-red-400 underline uppercase tracking-tight">Verileri Sıfırla</button>
+                <button onclick="updateApiKey()" class="text-[10px] text-slate-500 underline uppercase tracking-tight">API Key Güncelle</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const DAILY_GOAL = 1350;
+
+        // Sayfa yüklendiğinde kontrolleri yap
+        window.onload = () => {
+            checkAndResetDaily();
+            updateUI();
+        };
+
+        // API Key'i hafızadan al, yoksa sor
+        function getApiKey() {
+            let key = localStorage.getItem('my_gemini_key');
+            if (!key) {
+                key = prompt("Gemini API Anahtarınızı girin (Sadece bir kez sorulur ve tarayıcıda saklanır):");
+                if (key) {
+                    localStorage.setItem('my_gemini_key', key);
+                }
+            }
+            return key;
+        }
+
+        // Anahtarı manuel güncellemek için
+        function updateApiKey() {
+            const newKey = prompt("Yeni API Anahtarını girin:");
+            if (newKey) {
+                localStorage.setItem('my_gemini_key', newKey);
+                alert("Anahtar güncellendi.");
+            }
+        }
+
+        // Gece yarısı kontrolü
+        function checkAndResetDaily() {
+            const today = new Date().toDateString();
+            if (localStorage.getItem('lastEntryDate') !== today) {
+                localStorage.setItem('usedCalories', '0');
+                localStorage.setItem('lastEntryDate', today);
+            }
+        }
+
+        // Kalorileri manuel sıfırla
+        function resetCalories() {
+            if(confirm("Tüm günlük veriler silinsin mi?")) {
+                localStorage.setItem('usedCalories', '0');
+                updateUI();
+            }
+        }
+
+        async function processAI() {
+            const key = getApiKey();
+            if (!key) return alert("API Key olmadan çalışmaz.");
+
+            const input = document.getElementById('userInput').value;
+            const btn = document.getElementById('btn');
+            if (!input.trim()) return;
+
+            btn.disabled = true;
+            btn.innerText = "Hesaplanıyor...";
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: `Kullanıcı girdisi: "${input}". Bu besinlerin toplam kalorisini tahmin et. Sadece sayı olarak dön (Örn: 450). Metin yazma.` }] }]
+                    })
+                });
+
+                const data = await response.json();
+                if (data.error) throw new Error(data.error.message);
+
+                const aiResponse = data.candidates[0].content.parts[0].text;
+                const calories = parseInt(aiResponse.replace(/\D/g, '')) || 0;
+
+                let currentUsed = parseInt(localStorage.getItem('usedCalories') || '0');
+                localStorage.setItem('usedCalories', currentUsed + calories);
+
+                document.getElementById('userInput').value = "";
+                updateUI();
+            } catch (err) {
+                alert("Hata: " + err.message);
+                console.error(err);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Öğünü Ekle";
+            }
+        }
+
+        function updateUI() {
+            const used = parseInt(localStorage.getItem('usedCalories') || '0');
+            const remaining = DAILY_GOAL - used;
+            const display = document.getElementById('remaining');
+            
+            display.innerText = remaining;
+            display.className = `text-6xl font-black transition-all ${remaining < 0 ? 'text-red-500' : 'text-emerald-400'}`;
+        }
+    </script>
+</body>
+</html>
