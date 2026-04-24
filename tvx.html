@@ -14,40 +14,43 @@
             padding: 0;
         }
 
-        /* Android WebView Optimizasyonu: html ve body saf siyah */
+        /* * KRİTİK DÜZELTME: WebView'de videonun siyah ekran vermemesi için
+         * body ve html kesinlikle transparent olmalıdır.
+         */
         body, html {
             width: 100%;
             height: 100%;
-            background-color: #000; 
+            background-color: transparent !important; 
             font-family: 'Outfit', sans-serif;
             overflow: hidden; 
         }
 
-        /* Android WebView Optimizasyonu: Video Container */
+        /* Video Container en alt katmanda (z-index: 0) */
         #videoContainer {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: 1; /* Video katmanı altta */
+            z-index: 0; 
+            background-color: #000; /* Sadece video yüklenene kadar siyah dursun */
         }
 
         video {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            background-color: #000;
+            background-color: transparent;
         }
 
-        /* Android WebView Optimizasyonu: Arayüz Katmanı Z-Index 100 */
+        /* Arayüz Katmanı */
         #ui-layer {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: 100; /* Net katman boşluğu */
+            z-index: 10; 
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -59,49 +62,49 @@
             pointer-events: none;
         }
 
-        /* Android WebView Optimizasyonu: Sadece RGBA şeffaflığı, backdrop-filter YOK */
+        /* Üst Bilgi (Küçültüldü) */
         #top-info {
-            margin: 50px;
-            padding: 25px 40px;
-            background: rgba(15, 15, 20, 0.85); /* Okunabilirliği korumak için opaklık artırıldı */
+            margin: 30px;
+            padding: 15px 25px;
+            background: rgba(15, 15, 20, 0.85); 
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
+            border-radius: 16px;
             align-self: flex-start;
             color: white;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
             transform: translateY(0);
             transition: transform 0.5s ease;
         }
 
         #ui-layer.hidden #top-info {
-            transform: translateY(-50px);
+            transform: translateY(-30px);
         }
 
         #channel-number {
-            font-size: 1.2rem;
+            font-size: 0.9rem;
             color: #00ffcc;
-            letter-spacing: 3px;
+            letter-spacing: 2px;
             text-transform: uppercase;
-            margin-bottom: 5px;
+            margin-bottom: 3px;
             display: block;
         }
 
         #channel-name {
-            font-size: 3.5rem;
-            font-weight: 300;
+            font-size: 2rem; /* 3.5rem'den 2rem'e düşürüldü */
+            font-weight: 400;
             margin: 0;
-            text-shadow: 0 0 20px rgba(0, 255, 204, 0.3);
+            text-shadow: 0 0 15px rgba(0, 255, 204, 0.3);
         }
 
-        /* Alt Kanal Menüsü (Yatay Scroll) */
+        /* Alt Kanal Menüsü (Küçültüldü) */
         #bottom-bar {
-            margin: 0 40px 40px 40px;
-            padding: 20px;
-            background: rgba(10, 10, 15, 0.85); /* Sadece RGBA */
-            border-radius: 30px;
+            margin: 0 30px 30px 30px;
+            padding: 15px;
+            background: rgba(10, 10, 15, 0.85); 
+            border-radius: 20px;
             border: 1px solid rgba(255, 255, 255, 0.05);
             display: flex;
-            gap: 20px;
+            gap: 15px;
             overflow-x: hidden;
             scroll-behavior: smooth;
             transform: translateY(0);
@@ -109,15 +112,16 @@
         }
 
         #ui-layer.hidden #bottom-bar {
-            transform: translateY(100px);
+            transform: translateY(80px);
         }
 
+        /* Kanal Kartları (Küçültüldü) */
         .channel-card {
-            flex: 0 0 180px;
-            height: 100px;
-            background: rgba(255, 255, 255, 0.05); /* Linear-gradient yerine stabil performans için rgba */
+            flex: 0 0 140px; /* 180px'den 140px'e düşürüldü */
+            height: 75px;    /* 100px'den 75px'e düşürüldü */
+            background: rgba(255, 255, 255, 0.05); 
             border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 20px;
+            border-radius: 12px;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -128,53 +132,55 @@
         }
 
         .channel-card .ch-num {
-            font-size: 0.9rem;
-            margin-bottom: 5px;
+            font-size: 0.8rem;
+            margin-bottom: 2px;
         }
 
         .channel-card .ch-title {
-            font-size: 1.2rem;
+            font-size: 0.95rem; /* 1.2rem'den 0.95rem'e düşürüldü */
             font-weight: 700;
             text-align: center;
-            padding: 0 10px;
+            padding: 0 8px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
         }
 
-        /* Kumanda ile Odaklanılan (Focus) Kanal */
         .channel-card.focused {
             background: rgba(0, 255, 204, 0.15);
             border-color: #00ffcc;
             color: white;
-            transform: scale(1.1) translateY(-10px);
-            box-shadow: 0 15px 30px rgba(0, 255, 204, 0.2);
-            z-index: 105;
+            transform: scale(1.08) translateY(-5px); /* Büyüme efekti yumuşatıldı */
+            box-shadow: 0 10px 20px rgba(0, 255, 204, 0.2);
+            z-index: 15;
         }
 
-        /* Aktif Olarak Oynayan Kanal */
         .channel-card.playing::after {
             content: '';
             position: absolute;
-            bottom: -2px;
+            bottom: -1px;
             left: 20%;
             width: 60%;
-            height: 4px;
+            height: 3px;
             background: #ff0055;
             border-radius: 10px;
-            box-shadow: 0 0 10px #ff0055;
+            box-shadow: 0 0 8px #ff0055;
         }
 
-        /* Yükleniyor Animasyonu Z-Index 110 */
+        /* Yükleniyor Animasyonu */
         #loader {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 50px;
-            height: 50px;
+            width: 40px;
+            height: 40px;
             border: 3px solid rgba(0, 255, 204, 0.3);
             border-top-color: #00ffcc;
             border-radius: 50%;
             animation: spin 1s infinite linear;
-            z-index: 110; 
+            z-index: 20; 
             display: none;
         }
 
@@ -200,13 +206,12 @@
     </div>
 
     <script>
-        // Kendi kanal listenizi bu array'in içine aynı formatta ekleyebilirsiniz.
         const channels = [
                 { id: 1, name: "WELCOME", url: "https://lotus.stingray.com/manifest/ose-122ads-montreal/samsungtvplus/master.m3u8", icon: "📺" },
                 { id: 2, name: "BBC America", url: "https://bcovlive-a.akamaihd.net/7f5ec16d102f4b5d92e8e27bc95ff424/us-east-1/6240731308001/profile_1/chunklist.m3u8", icon: "📺" },
                 { id: 3, name: "FRANCE 24", url: "https://live.france24.com/hls/live/2037218-b/F24_EN_HI_HLS/master_5000.m3u8", icon: "📺" },
                 { id: 4, name: "BBC NEWS", url: "https://vs-hls-push-ww-live.akamaized.net/x=4/i=urn:bbc:pips:service:bbc_news_channel_hd/t=3840/v=pv14/b=5070016/main.m3u8", icon: "📺" },
-                { id: 5, name: "SKY NEWS", url: "https://linear417-gb-hls1-prd-ak.cdn.skycdp.com/100e/Content/HLS_001_720_30/Live/channel(skynews)/index_720-30.m3u8", icon: "📺" },
+                { id: 5, name: "SKY NEWS", url: "https://linear417-gb-hls1-prd-ak.cdn.skycdp.com/100e/Content/HLS_001_1080_30/Live/channel(skynews)/index_1080-30.m3u8", icon: "📺" },
                 { id: 6, name: "CBS NEWS", url: "https://cbsn-us.cbsnstream.cbsnews.com/out/v1/55a8648e8f134e82a470f83d562deeca/master_24.m3u8", icon: "📺" },
                 { id: 7, name: "DW ENG", url: "https://dwamdstream102.akamaized.net/hls/live/2015525/dwstream102/stream05/streamPlaylist.m3u8", icon: "📺" },
                 { id: 8, name: "HALK TV", url: "https://halktv-live.daioncdn.net/halktv/halktv_1080p.m3u8", icon: "📺" },
@@ -218,7 +223,7 @@
                 { id: 14, name: "CNBC-E", url: "https://hnpsechtsc.turknet.ercdn.net/xpnvudnlsv/cnbc-e/cnbc-e_720p.m3u8", icon: "📺" },
                 { id: 15, name: "DENİZ POSTASI", url: "https://live.artidijitalmedya.com/artidijital_denizpostasi/denizpostasi/playlist.m3u8", icon: "📺" },
                 { id: 16, name: "GZT TV", url: "https://mn-nl.mncdn.com/gzttv/gzttv/playlist.m3u8", icon: "📺" },
-                { id: 17, name: "TRT 2", url: "https://tv-trt2.medya.trt.com.tr/master_720.m3u8", icon: "📺" },
+                { id: 17, name: "TRT 2", url: "https://tv-trt2.medya.trt.com.tr/master_1080.m3u8", icon: "📺" },
                 { id: 18, name: "TRT BELGESEL", url: "https://tv-trtbelgesel.medya.trt.com.tr/master.m3u8", icon: "📺" },
                 { id: 19, name: "TRT SPOR", url: "https://tv-trtspor1.medya.trt.com.tr/master.m3u8", icon: "📺" },
                 { id: 20, name: "TRT1", url: "https://tv-trt1.medya.trt.com.tr/master_1080.m3u8", icon: "📺" },
@@ -236,7 +241,6 @@
                 { id: 32, name: "CLUBBING TV FR", url: "https://d1j2csarxnwazk.cloudfront.net/v1/manifest/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-uze1m6xh4fiyr-ssai-prd/2a1b9b3e-55c6-41e8-8323-6c34cc0fda46/3.m3u8", icon: "📺" },
         ];
 
-        // Listeyi 30'a tamamlamak için test verisi çoğaltıcı (Gerçek kullanımda burayı silebilirsiniz)
         for (let i = 6; i <= 30; i++) {
             channels.push({ id: i, name: `Kanal ${i}`, url: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8" });
         }
