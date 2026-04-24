@@ -1,332 +1,386 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>TVX</title>
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-  <style>
-    * {
-      box-sizing: border-box;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern IPTV Oyantıcı</title>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;700&display=swap');
 
-    html, body {
-      margin: 0;
-      padding: 0;
-      background: black;
-      font-family: sans-serif;
-      overflow: hidden;
-    }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-    video{
-      width: 100%;
-      height: auto;
-      object-fit: cover;
-      position: absolute;
-      top: 0px;
-      left: 0;
-      z-index: 0;
-    }
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #050505;
+            font-family: 'Outfit', sans-serif;
+            overflow: hidden; /* Kaydırma çubuklarını gizle */
+        }
 
+        /* Arka Plan Video */
+        #video-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
 
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background: #000;
+        }
 
+        /* Arayüz Katmanı (HUD) */
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
 
+        #ui-layer.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
 
+        /* Üst Bilgi Paneli */
+        #top-info {
+            margin: 50px;
+            padding: 25px 40px;
+            background: rgba(20, 20, 25, 0.4);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            align-self: flex-start;
+            color: white;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            transform: translateY(0);
+            transition: transform 0.5s ease;
+        }
 
-    /* Siyah loader ekran */
-   #loader {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: black; /* Arka plan siyah kalıyor */
-      z-index: 997;
-      display: none;
-      opacity: 1;
-      transition: opacity 0.4s ease;
+        #ui-layer.hidden #top-info {
+            transform: translateY(-50px);
+        }
 
-      display: flex;               /* Ortalamak için */
-      align-items: center;         /* Dikey merkezleme */
-      justify-content: center;     /* Yatay merkezleme */
-    }
+        #channel-number {
+            font-size: 1.2rem;
+            color: #00ffcc;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+            display: block;
+        }
 
-   
-    #loader img {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      width: min(220px, 30vmin);
-      width: 300px;
-      height: auto;
-    }
+        #channel-name {
+            font-size: 3.5rem;
+            font-weight: 300;
+            margin: 0;
+            text-shadow: 0 0 20px rgba(0, 255, 204, 0.3);
+        }
 
+        /* Alt Kanal Menüsü (Yatay Scroll) */
+        #bottom-bar {
+            margin: 0 40px 40px 40px;
+            padding: 20px;
+            background: rgba(10, 10, 15, 0.5);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            gap: 20px;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+            transform: translateY(0);
+            transition: transform 0.5s ease;
+        }
 
+        #ui-layer.hidden #bottom-bar {
+            transform: translateY(100px);
+        }
 
-    #channelBar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      padding: 0px;
-      display: flex;
-      overflow-x: auto;
-      gap: 10px;
-      background: rgba(0, 0, 0, 0);
-      z-index: 998;
-      scrollbar-width: none;
-      transition: opacity 0.4s ease;
-      opacity: 1;
-    }
+        .channel-card {
+            flex: 0 0 180px;
+            height: 100px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: rgba(255,255,255,0.5);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
 
-    #channelBar.hidden {
-      opacity: 0;
-      pointer-events: none;
-    }
+        .channel-card .ch-num {
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
 
-    #channelBar::-webkit-scrollbar {
-      display: none;
-    }
+        .channel-card .ch-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
 
-    .channel {
-      min-width: 160px;
-      background: #333;
-      color: #fff;
-      padding: 5px;
-      border-radius: 0 0 16px 16px;
-      text-align: center;
-      flex-shrink: 0;
-      font-size: 25px;
-      transition: all 0.3s ease;
-      opacity: 35%;
-      max-height:40px;
-    }
+        /* Kumanda ile Odaklanılan (Focus) Kanal */
+        .channel-card.focused {
+            background: rgba(0, 255, 204, 0.15);
+            border-color: #00ffcc;
+            color: white;
+            transform: scale(1.1) translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 255, 204, 0.2);
+            z-index: 10;
+        }
 
-    .channel:focus,
-    .channel.focused {
-      background: #3f3f3f;
-      outline: none;
-      color: #fff;
-      opacity: 100%;
-      padding: 10px;
-      font-weight: bold;
-      margin-top:0px;
-      max-height:50px;
-    }
+        /* Aktif Olarak Oynayan Kanal */
+        .channel-card.playing::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 20%;
+            width: 60%;
+            height: 4px;
+            background: #ff0055;
+            border-radius: 10px;
+            box-shadow: 0 0 10px #ff0055;
+        }
 
-    .channel.active {
-      font-weight: bold;
-      color:#F3B200;
-    }
+        /* Yükleniyor Animasyonu */
+        #loader {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(0, 255, 204, 0.3);
+            border-top-color: #00ffcc;
+            border-radius: 50%;
+            animation: spin 1s infinite linear;
+            z-index: 3;
+            display: none;
+        }
 
-    @media (max-width: 768px) {
-      .channel {
-        min-width: 120px;
-        font-size: 20px;
-      }
-    }
-
-    #channelNameOverlay {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      color: white;
-      background: rgba(0, 0, 0, 0.5);
-      padding: 12px 24px;
-      border-radius: 16px;
-      font-size: 50px;
-      z-index: 1000;
-      opacity: 0;
-      transition: opacity 0.7s ease;
-      pointer-events: none;
-      font-weight: bold;
-      text-align: center;
-      margin: 0 auto;
-    }
-
-    .opaq {
-      opacity: 40%;
-    }
-
-    video::-webkit-media-controls {
-      display: none !important;
-      -webkit-appearance: none;
-    }
-  </style>
+        @keyframes spin { 100% { transform: translate(-50%, -50%) rotate(360deg); } }
+    </style>
 </head>
 <body>
 
-<video id="video" autoplay playsinline></video>
+    <div id="video-container">
+        <video id="tv-video" autoplay crossorigin playsinline></video>
+    </div>
 
+    <div id="loader"></div>
 
-<!-- Siyah ekran loader -->
-<div id="loader">
-  <img src="https://tv606.github.io/test/lo.gif" alt="Loading...">
-</div>
+    <div id="ui-layer">
+        <div id="top-info">
+            <span id="channel-number">CH 01</span>
+            <h1 id="channel-name">Yükleniyor...</h1>
+        </div>
 
+        <div id="bottom-bar">
+            </div>
+    </div>
 
-<div class="opaq"><div id="channelNameOverlay"></div></div>
+    <script>
+        const channels = [
+                { id: 1, name: "WELCOME", url: "https://lotus.stingray.com/manifest/ose-122ads-montreal/samsungtvplus/master.m3u8", icon: "📺" },
+                { id: 2, name: "BBC America", url: "https://bcovlive-a.akamaihd.net/7f5ec16d102f4b5d92e8e27bc95ff424/us-east-1/6240731308001/profile_1/chunklist.m3u8", icon: "📺" },
+                { id: 3, name: "FRANCE 24", url: "https://live.france24.com/hls/live/2037218-b/F24_EN_HI_HLS/master_5000.m3u8", icon: "📺" },
+                { id: 4, name: "BBC NEWS", url: "https://vs-hls-push-ww-live.akamaized.net/x=4/i=urn:bbc:pips:service:bbc_news_channel_hd/t=3840/v=pv14/b=5070016/main.m3u8", icon: "📺" },
+                { id: 5, name: "SKY NEWS", url: "https://linear417-gb-hls1-prd-ak.cdn.skycdp.com/100e/Content/HLS_001_720_30/Live/channel(skynews)/index_720-30.m3u8", icon: "📺" },
+                { id: 6, name: "CBS NEWS", url: "https://cbsn-us.cbsnstream.cbsnews.com/out/v1/55a8648e8f134e82a470f83d562deeca/master_24.m3u8", icon: "📺" },
+                { id: 7, name: "DW ENG", url: "https://dwamdstream102.akamaized.net/hls/live/2015525/dwstream102/stream05/streamPlaylist.m3u8", icon: "📺" },
+                { id: 8, name: "HALK TV", url: "https://halktv-live.daioncdn.net/halktv/halktv_1080p.m3u8", icon: "📺" },
+                { id: 9, name: "EKOL TV", url: "https://ekoltv-live.ercdn.net/ekoltv/ekoltv.m3u8", icon: "📺" },
+                { id: 10, name: "FX TR", url: "https://saran-live.ercdn.net/fx/index.m3u8", icon: "📺" },
+                { id: 11, name: "NAT GEO TR", url: "https://saran-live.ercdn.net/natgeohd/index.m3u8", icon: "📺" },
+                { id: 12, name: "NAT GEO WILD TR", url: "https://saran-live.ercdn.net/natgeowild/index.m3u8", icon: "📺" },
+                { id: 13, name: "TV 100", url: "https://tv100-live.daioncdn.net/tv100/tv100.m3u8", icon: "📺" },
+                { id: 14, name: "CNBC-E", url: "https://hnpsechtsc.turknet.ercdn.net/xpnvudnlsv/cnbc-e/cnbc-e_720p.m3u8", icon: "📺" },
+                { id: 15, name: "DENİZ POSTASI", url: "https://live.artidijitalmedya.com/artidijital_denizpostasi/denizpostasi/playlist.m3u8", icon: "📺" },
+                { id: 16, name: "GZT TV", url: "https://mn-nl.mncdn.com/gzttv/gzttv/playlist.m3u8", icon: "📺" },
+                { id: 17, name: "TRT 2", url: "https://tv-trt2.medya.trt.com.tr/master_720.m3u8", icon: "📺" },
+                { id: 18, name: "TRT BELGESEL", url: "https://tv-trtbelgesel.medya.trt.com.tr/master.m3u8", icon: "📺" },
+                { id: 19, name: "TRT SPOR", url: "https://tv-trtspor1.medya.trt.com.tr/master.m3u8", icon: "📺" },
+                { id: 20, name: "TRT1", url: "https://tv-trt1.medya.trt.com.tr/master_1080.m3u8", icon: "📺" },
+                { id: 21, name: "ARTE HD", url: "https://dash4.antik.sk/live/test_arte_avc_25p/playlist.m3u8", icon: "📺" },
+                { id: 22, name: "PRO 7", url: "https://dash4.antik.sk/live/test_pro_sieben_tizen/playlist.m3u8", icon: "📺" },
+                { id: 23, name: "SAT 1 GOLD", url: "https://dash4.antik.sk/live/test_sat_eins_gold_tizen/playlist.m3u8", icon: "📺" },
+                { id: 24, name: "BBC TWO", url: "https://streamer.nexyl.uk/69ef899e-8ca9-4537-9f1a-fe8b4216afbb_output_0.m3u8?session=8aPdqrefTg4Ru8rBKj3RyK", icon: "📺" },
+                { id: 25, name: "BBC EARTH", url: "https://amg00793-amg00793c6-xumo-us-2669.playouts.now.amagi.tv/BBCStudios-BBCEarthA-hls/playlist1080p.m3u8", icon: "📺" },
+                { id: 26, name: "LOVE NATURE", url: "https://aegis-cloudfront-1.tubi.video/6d6d0f24-8445-4b4c-bdf6-44f9e38beaa4/1080p-cc/index.m3u8", icon: "📺" },
+                { id: 27, name: "NATURESCAPE", url: "https://lotus.stingray.com/manifest/naturescape-a003-montreal/samsungtvplus/f7ed86a4-b8ac-38e0-a745-710077a95be6/3291200/manifest.m3u8", icon: "📺" },
+                { id: 28, name: "Adventure Earth (GB)", url: "https://autentic-adventure-earth-1-gb.lg.wurl.tv/playlist.m3u8", icon: "📺" },
+                { id: 29, name: "NATURE TIME", url: "https://amg01515-amg01515c13-xiaomi-international-4618.playouts.now.amagi.tv/playlist.m3u8", icon: "📺" },
+                { id: 30, name: "FASHION TV", url: "https://cdn-ue1-prod.tsv2.amagi.tv/linear/amg01546-ftv-fashiontv-xiaomi/playlist.m3u8", icon: "📺" },
+                { id: 31, name: "CHARGE", url: "https://fast-channels.sinclairstoryline.com/CHARGE/index_3.m3u8", icon: "📺" },
+                { id: 32, name: "CLUBBING TV FR", url: "https://d1j2csarxnwazk.cloudfront.net/v1/manifest/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-uze1m6xh4fiyr-ssai-prd/2a1b9b3e-55c6-41e8-8323-6c34cc0fda46/3.m3u8", icon: "📺" },
+            // Bu formattaki blokları çoğaltarak istediğiniz kadar kanala tamamlayabilirsiniz.
+            // Sadece her kanal bloğunun arasına virgül (,) koymayı unutmayın. En son kanalın sonuna virgül koymanıza gerek yoktur.
+        ];
 
+        let currentChannelIndex = 0; // Şu an oynayan
+        let focusedChannelIndex = 0; // Menüde seçili olan (kumanda ile)
+        
+        const videoElement = document.getElementById('tv-video');
+        const bottomBar = document.getElementById('bottom-bar');
+        const uiLayer = document.getElementById('ui-layer');
+        const channelNameEl = document.getElementById('channel-name');
+        const channelNumEl = document.getElementById('channel-number');
+        const loader = document.getElementById('loader');
+        
+        let hls = null;
+        let uiTimeout;
 
+        // Arayüzü Başlat
+        function initUI() {
+            channels.forEach((ch, index) => {
+                const card = document.createElement('div');
+                card.className = 'channel-card';
+                card.id = `card-${index}`;
+                card.innerHTML = `
+                    <div class="ch-num">CH ${ch.id.toString().padStart(2, '0')}</div>
+                    <div class="ch-title">${ch.name}</div>
+                `;
+                bottomBar.appendChild(card);
+            });
+            updateFocus();
+            playChannel(0);
+        }
 
+        // Kanal Oynatma Fonksiyonu (M3U8 / HLS.js)
+        function playChannel(index) {
+            if(index < 0 || index >= channels.length) return;
+            
+            currentChannelIndex = index;
+            focusedChannelIndex = index;
+            const channel = channels[index];
 
+            // Arayüz Güncelleme
+            channelNumEl.innerText = `CH ${channel.id.toString().padStart(2, '0')}`;
+            channelNameEl.innerText = channel.name;
+            updateFocus();
+            updatePlayingState();
+            showUI();
 
+            loader.style.display = 'block';
 
+            if (Hls.isSupported()) {
+                if(hls) hls.destroy();
+                hls = new Hls();
+                hls.loadSource(channel.url);
+                hls.attachMedia(videoElement);
+                hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                    videoElement.play().catch(() => console.log("Otomatik oynatma engellendi"));
+                    loader.style.display = 'none';
+                });
+            } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
+                // Safari ve yerleşik destekli cihazlar için
+                videoElement.src = channel.url;
+                videoElement.addEventListener('loadedmetadata', () => {
+                    videoElement.play();
+                    loader.style.display = 'none';
+                });
+            }
+        }
 
+        // Kumanda Odaklanmasını Güncelle
+        function updateFocus() {
+            document.querySelectorAll('.channel-card').forEach(el => el.classList.remove('focused'));
+            const focusedCard = document.getElementById(`card-${focusedChannelIndex}`);
+            if(focusedCard) {
+                focusedCard.classList.add('focused');
+                // Kartı yatay menüde görünür alana kaydır
+                focusedCard.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            }
+        }
 
+        // Oynayan Kanal Çizgisini Güncelle
+        function updatePlayingState() {
+            document.querySelectorAll('.channel-card').forEach(el => el.classList.remove('playing'));
+            const playingCard = document.getElementById(`card-${currentChannelIndex}`);
+            if(playingCard) playingCard.classList.add('playing');
+        }
 
+        // Arayüzü Göster / Gizle Zamanlayıcısı (Smart TV Hissi)
+        function showUI() {
+            uiLayer.classList.remove('hidden');
+            clearTimeout(uiTimeout);
+            uiTimeout = setTimeout(() => {
+                uiLayer.classList.add('hidden');
+            }, 5000); // 5 saniye işlem yapılmazsa arayüz gizlenir
+        }
 
-<div id="channelBar">
+        // TV Kumandası (Klavye) Olayları
+        document.addEventListener('keydown', (e) => {
+            showUI(); // Herhangi bir tuşa basıldığında menüyü göster
 
+            switch(e.key) {
+                case 'ArrowRight':
+                    // Sağ tuş: Menüde sağa git
+                    if(focusedChannelIndex < channels.length - 1) {
+                        focusedChannelIndex++;
+                        updateFocus();
+                    }
+                    break;
+                case 'ArrowLeft':
+                    // Sol tuş: Menüde sola git
+                    if(focusedChannelIndex > 0) {
+                        focusedChannelIndex--;
+                        updateFocus();
+                    }
+                    break;
+                case 'ArrowUp':
+                    // Üst tuş: Bir sonraki kanala doğrudan geç (Zapping)
+                    let nextCh = currentChannelIndex + 1;
+                    if(nextCh >= channels.length) nextCh = 0; // Başa dön
+                    playChannel(nextCh);
+                    break;
+                case 'ArrowDown':
+                    // Alt tuş: Bir önceki kanala doğrudan geç (Zapping)
+                    let prevCh = currentChannelIndex - 1;
+                    if(prevCh < 0) prevCh = channels.length - 1; // Sona git
+                    playChannel(prevCh);
+                    break;
+                case 'Enter':
+                    // OK/Enter tuşu: Menüde seçili olan kanalı aç
+                    if(currentChannelIndex !== focusedChannelIndex) {
+                        playChannel(focusedChannelIndex);
+                    }
+                    break;
+            }
+        });
 
-          <div class="channel" data-id="x" data-type="hls" data-src="https://lotus.stingray.com/manifest/ose-122ads-montreal/samsungtvplus/master.m3u8">Welcome</div>
-          <div class="channel" data-id="x" data-type="hls" data-src="https://saran-live.ercdn.net/fx/index.m3u8">FX TR</div>
-          <div class="channel" data-id="x" data-type="hls" data-src="https://saran-live.ercdn.net/natgeohd/index.m3u8">NAT GEO TR</div>
-          <div class="channel" data-id="x" data-type="hls" data-src="https://saran-live.ercdn.net/natgeowild/index.m3u8">NAT GEO WILD TR</div>
+        // Mouse ile tıklama desteği (Fare kullananlar için)
+        bottomBar.addEventListener('click', (e) => {
+            const card = e.target.closest('.channel-card');
+            if(card) {
+                const index = parseInt(card.id.split('-')[1]);
+                playChannel(index);
+            }
+        });
 
-
-    
-         <!--yabancı kanallar-->
-          <div class="channel" data-id="x" data-type="hls" data-src="https://live.artidijitalmedya.com/artidijital_denizpostasi/denizpostasi/playlist.m3u8">FILM</div>
-          <div class="channel" data-id="x" data-type="hls" data-src="https://live.france24.com/hls/live/2037218-b/F24_EN_HI_HLS/master_5000.m3u8">FR 24</div>
-          <div class="channel" data-id="x" data-type="hls" data-src="https://vs-hls-push-ww-live.akamaized.net/x=4/i=urn:bbc:pips:service:bbc_news_channel_hd/t=3840/v=pv14/b=5070016/main.m3u8">BBC</div>
-          <div class="channel" data-id="x" data-type="hls" data-src="https://linear417-gb-hls1-prd-ak.cdn.skycdp.com/100e/Content/HLS_001_720_30/Live/channel(skynews)/index_720-30.m3u8">SKY</div>
-          <div class="channel" data-id="x" data-type="hls" data-src="https://cbsn-us.cbsnstream.cbsnews.com/out/v1/55a8648e8f134e82a470f83d562deeca/master_24.m3u8">CBS</div>
-          <div class="channel" data-id="x" data-type="hls" data-src="https://live.playstop.me/LS-63503-4/chunklist_b1196000.m3u8">IRAN</div> 
-          <div class="channel" data-id="x" data-type="hls" data-src="https://live.kwikmotion.com/redtvlive/redtv.smil/redtvpublish/redtv_source/chunks.m3u8">LEBANON</div>
-          <div class="channel" data-id="x" data-type="hls" data-src="https://jmc-live.ercdn.net/altaghier/altaghier_1080p.m3u8">JORDAN</div>
-          <div class="channel" data-id="x" data-type="hls" data-src="https://nhk.lls.pbs.org/index_720p.m3u8">NHK</div>
-          <div class="channel" data-id="x" data-type="hls" data-src="https://dwamdstream102.akamaized.net/hls/live/2015525/dwstream102/stream05/streamPlaylist.m3u8">DW</div>
-          <div class="channel" data-id="x" data-type="hls" data-src="https://dash4.antik.sk/live/test_arte_avc_25p/playlist.m3u8">ARTE</div>
-          <div class="channel" data-id="x" data-type="hls" data-src="https://dash4.antik.sk/live/test_pro_sieben_tizen/playlist.m3u8">PRO7</div>
-          <div class="channel" data-id="x" data-type="hls" data-src="https://dash4.antik.sk/live/test_sat_eins_gold_tizen/playlist.m3u8">SAT1</div>
-          <div class="channel" data-id="x" data-type="hls" data-src="https://streamer.nexyl.uk/69ef899e-8ca9-4537-9f1a-fe8b4216afbb_output_0.m3u8?session=8aPdqrefTg4Ru8rBKj3RyK">BBC2</div>
-          <div class="channel" data-id="x" data-type="hls" data-src="https://amg00793-amg00793c6-xumo-us-2669.playouts.now.amagi.tv/BBCStudios-BBCEarthA-hls/playlist720p.m3u8">BBC EARTH</div>
-          <div class="channel" data-id="x" data-type="hls" data-src="https://aegis-cloudfront-1.tubi.video/6d6d0f24-8445-4b4c-bdf6-44f9e38beaa4/720p-cc/index.m3u8">LOVE NTR</div>
-          <div class="channel" data-id="x" data-type="hls" data-src="https://lotus.stingray.com/manifest/naturescape-a003-montreal/samsungtvplus/f7ed86a4-b8ac-38e0-a745-710077a95be6/3291200/manifest.m3u8">NTR ESC</div>
-          <div class="channel" data-id="x" data-type="hls" data-src="https://cdn-ue1-prod.tsv2.amagi.tv/linear/amg01546-ftv-fashiontv-xiaomi/playlist.m3u8">FASHION</div>
-         
-
-          
-          
-         
-
-
-</div>
-
-
-
-
-<script>
-  const video = document.getElementById('video');
-  const channels = document.querySelectorAll('.channel');
-  const channelBar = document.getElementById('channelBar');
-  const overlay = document.getElementById('channelNameOverlay');
-  const loader = document.getElementById('loader');
-  let focusedIndex = 0;
-  let hls;
-  let hideTimeout;
-
-  function showLoader() {
-    loader.style.display = 'block';
-    loader.style.opacity = 1;
-  }
-
-  function hideLoader() {
-    loader.style.opacity = 0;
-    setTimeout(() => loader.style.display = 'none', 400);
-  }
-
-  function playStream(url) {
-    showLoader();
-
-    if (hls) hls.destroy();
-    if (Hls.isSupported()) {
-      hls = new Hls();
-      hls.loadSource(url);
-      hls.attachMedia(video);
-
-      hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        video.play().catch(err => console.error('Oynatma hatası:', err));
-      });
-
-      video.addEventListener('playing', hideLoader, { once: true });
-    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-      video.src = url;
-      video.addEventListener('loadeddata', () => {
-        video.play().catch(err => console.error('Oynatma hatası:', err));
-        hideLoader();
-      }, { once: true });
-    }
-  }
-
-  video.removeAttribute("controls");
-  video.removeAttribute("poster");
-
-  function showChannelName(name) {
-    overlay.textContent = name;
-    overlay.style.opacity = 1;
-    clearTimeout(overlay._timeout);
-    overlay._timeout = setTimeout(() => {
-      overlay.style.opacity = 0;
-    }, 3000);
-  }
-
-  function updateFocus(index) {
-    channels.forEach(c => c.classList.remove('focused'));
-    channels[index].classList.add('focused');
-    channels[index].scrollIntoView({behavior: "smooth", inline: "center"});
-  }
-
-
-
-  function activateChannel(index) {
-    channels.forEach(c => c.classList.remove('active'));
-    channels[index].classList.add('active');
-    playStream(channels[index].dataset.src);
-    showChannelName(channels[index].innerText);
-    resetHideTimer();
-  }
-
-  document.addEventListener('keydown', e => {
-    if (e.key === 'ArrowRight') {
-      focusedIndex = (focusedIndex + 1) % channels.length;
-      updateFocus(focusedIndex);
-      resetHideTimer();
-    } else if (e.key === 'ArrowLeft') {
-      focusedIndex = (focusedIndex - 1 + channels.length) % channels.length;
-      updateFocus(focusedIndex);
-      resetHideTimer();
-    } else if (e.key === 'Enter') {
-      activateChannel(focusedIndex);
-    }
-  });
-
-  channels.forEach((channel, index) => {
-    channel.addEventListener('click', () => {
-      focusedIndex = index;
-      updateFocus(index);
-      activateChannel(index);
-    });
-  });
-
-  function resetHideTimer() {
-    channelBar.classList.remove('hidden');
-    clearTimeout(hideTimeout);
-    hideTimeout = setTimeout(() => {
-      channelBar.classList.add('hidden');
-    }, 3000);
-  }
-
-  ['mousemove', 'keydown', 'touchstart'].forEach(event => {
-    document.addEventListener(event, resetHideTimer);
-  });
-
-  updateFocus(focusedIndex);
-  activateChannel(focusedIndex);
-</script>
-
+        // Uygulamayı Başlat
+        window.onload = initUI;
+    </script>
 </body>
 </html>
