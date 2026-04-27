@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Android TV IPTV Pro</title>
+    <title>Android TV IPTV - Final Fix</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
         * { box-sizing: border-box; }
@@ -12,8 +12,8 @@
             width: 100%; height: 100%;
             background-color: #000;
             overflow: hidden;
-            color: white;
             font-family: sans-serif;
+            color: white;
         }
 
         #videoContainer {
@@ -23,127 +23,146 @@
 
         video { width: 100%; height: 100%; object-fit: cover; }
 
-        /* DEBUG EKRANI - Tuşları görmek için */
-        #debug {
-            position: absolute; bottom: 20px; right: 20px;
-            background: rgba(255, 0, 0, 0.7); padding: 10px;
-            z-index: 1000; font-size: 14px; border-radius: 5px;
-        }
-
         #ui {
-            position: absolute; top: 10%; left: 5%;
+            position: absolute; top: 8%; left: 5%;
             z-index: 100;
         }
 
-        .channel-info {
-            background: rgba(0, 0, 0, 0.8);
+        .channel-badge {
+            background: rgba(20, 20, 20, 0.9);
             padding: 20px 40px;
-            font-size: 3rem;
-            border-left: 15px solid #e50914;
+            font-size: 2.5rem;
+            border-left: 12px solid #e50914;
             display: none;
-            animation: slideIn 0.3s ease-out;
+            box-shadow: 10px 10px 20px rgba(0,0,0,0.5);
         }
-
-        @keyframes slideIn { from { opacity:0; transform:translateX(-50px); } to { opacity:1; transform:translateX(0); } }
 
         #loader {
             position: absolute; inset: 0;
-            display: flex; align-items: center; justify-content: center;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
             background: #000; z-index: 50;
         }
 
         .spinner {
-            width: 60px; height: 60px;
-            border: 5px solid rgba(255,255,255,0.1);
-            border-top: 5px solid #e50914;
+            width: 70px; height: 70px;
+            border: 6px solid rgba(255,255,255,0.1);
+            border-top: 6px solid #e50914;
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
+
+        #errorMsg {
+            margin-top: 20px; color: #ff4444; font-size: 1.2rem; display: none;
+        }
+
         @keyframes spin { 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body tabindex="0"> <div id="debug">Kumanda Testi: Bekleniyor...</div>
+<body tabindex="0">
 
 <div id="videoContainer">
     <video id="mainVideo" autoplay muted playsinline></video>
 </div>
 
-<div id="loader"><div class="spinner"></div></div>
+<div id="loader">
+    <div class="spinner"></div>
+    <div id="errorMsg">Yayın Yüklenemedi (CORS veya Bağlantı Hatası)</div>
+</div>
 
 <div id="ui">
-    <div id="channelName" class="channel-info"></div>
+    <div id="channelBadge" class="channel-badge"></div>
 </div>
 
 <script>
     const channels = [
-        { name: "KANAL 1", url: "https://test-streams.mux.dev/x36xhzz/main.m3u8" },
-        { name: "KANAL 2", url: "https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8" },
-        { name: "KANAL 3", url: "https://playertest.longtailvideo.com/adaptive/oceans_aes/oceans_aes.m3u8" }
+        // Bu linkler test amaçlıdır, bazen coğrafi kısıtlamaya takılabilir
+        { name: "TEST KANAL 1", url: "https://test-streams.mux.dev/x36xhzz/main.m3u8" },
+        { name: "TEST KANAL 2", url: "https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8" },
+        { name: "TEST KANAL 3", url: "https://playertest.longtailvideo.com/adaptive/oceans_aes/oceans_aes.m3u8" }
     ];
 
     let currentIndex = 0;
     let hls = null;
+    let loadTimeout = null;
     const video = document.getElementById('mainVideo');
-    const debug = document.getElementById('debug');
+    const loader = document.getElementById('loader');
+    const errorMsg = document.getElementById('errorMsg');
+    const badge = document.getElementById('channelBadge');
 
-    function playStream(index) {
-        const item = channels[index];
-        document.getElementById('loader').style.display = 'flex';
-        const nameLabel = document.getElementById('channelName');
+    function playChannel(index) {
+        // Temizlik
+        if (hls) {
+            hls.destroy();
+        }
+        clearTimeout(loadTimeout);
+        errorMsg.style.display = 'none';
+        loader.style.display = 'flex';
         
-        nameLabel.innerText = item.name;
-        nameLabel.style.display = 'block';
-        setTimeout(() => { nameLabel.style.display = 'none'; }, 4000);
+        // Kanal İsmi Gösterimi
+        badge.innerText = channels[index].name;
+        badge.style.display = 'block';
+        setTimeout(() => { badge.style.display = 'none'; }, 3500);
 
-        if (hls) hls.destroy();
+        const url = channels[index].url;
 
         if (Hls.isSupported()) {
-            hls = new Hls();
-            hls.loadSource(item.url);
+            hls = new Hls({
+                // WebView için en agresif yükleme ayarları
+                xhrSetup: function (xhr, url) {
+                    xhr.withCredentials = false; // CORS için bazen false olması gerekir
+                }
+            });
+            hls.loadSource(url);
             hls.attachMedia(video);
-            hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
-        } else {
-            video.src = item.url;
-            video.play();
+            
+            hls.on(Hls.Events.ERROR, function (event, data) {
+                if (data.fatal) {
+                    console.error("HLS Fatal Error:", data.type);
+                    showError();
+                }
+            });
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            video.src = url;
         }
+
+        // 12 saniye içinde görüntü gelmezse hata ver
+        loadTimeout = setTimeout(() => {
+            if (video.paused || video.currentTime === 0) {
+                showError();
+            }
+        }, 12000);
+    }
+
+    function showError() {
+        errorMsg.style.display = 'block';
+        // Hata durumunda 5 saniye sonra loader'ı kapat ki kumanda çalışmaya devam etsin
+        setTimeout(() => { loader.style.display = 'none'; }, 5000);
     }
 
     video.onplaying = () => {
-        document.getElementById('loader').style.display = 'none';
-        video.muted = false; // Video başlayınca sesi aç
+        clearTimeout(loadTimeout);
+        loader.style.display = 'none';
+        video.muted = false; // Görüntü başladığı an sesi aç
     };
 
-    // TUŞ KONTROLÜ - Çift katmanlı koruma
-    function handleKey(code) {
-        debug.innerText = "Basılan KeyCode: " + code;
-        
-        // 19-38 (Yukarı), 20-40 (Aşağı)
-        if (code == 38 || code == 19) { 
-            currentIndex = (currentIndex > 0) ? currentIndex - 1 : channels.length - 1;
-            playStream(currentIndex);
-        } 
-        else if (code == 40 || code == 20) { 
-            currentIndex = (currentIndex < channels.length - 1) ? currentIndex + 1 : 0;
-            playStream(currentIndex);
-        }
+    function switchChannel(dir) {
+        if (dir === 'next') currentIndex = (currentIndex + 1) % channels.length;
+        else currentIndex = (currentIndex - 1 + channels.length) % channels.length;
+        playChannel(currentIndex);
     }
 
-    // Android WebView için hem window hem document dinlenmeli
-    window.addEventListener('keydown', (e) => handleKey(e.keyCode));
-    document.addEventListener('keydown', (e) => handleKey(e.keyCode));
+    // Tuş Takımı (Hem standart hem Android TV kodları)
+    document.addEventListener('keydown', (e) => {
+        const key = e.keyCode;
+        if (key === 38 || key === 19) switchChannel('prev'); // Yukarı
+        if (key === 40 || key === 20) switchChannel('next'); // Aşağı
+        if (key === 13) video.muted = !video.muted; // OK Tuşu
+    });
 
-    // ODAK ÇIKMAZINI ÇÖZME
     window.onload = () => {
-        window.focus();
         document.body.focus();
-        playStream(0);
-        
-        // Her 2 saniyede bir odağı zorla sayfaya getir (Kumanda kopmaması için)
-        setInterval(() => {
-            if (document.activeElement !== document.body) {
-                document.body.focus();
-            }
-        }, 2000);
+        playChannel(0);
     };
 </script>
 </body>
