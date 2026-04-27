@@ -3,112 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Android TV IPTV Player</title>
+    <title>Android TV IPTV Fix</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
         * { box-sizing: border-box; }
         html, body {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
+            margin: 0; padding: 0;
+            width: 100%; height: 100%;
             background-color: #000;
             overflow: hidden;
-            font-family: sans-serif;
         }
 
-        #mainSlider {
-            width: 100%;
-            height: 100%;
-            transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
-        }
-
-        .video-container {
-            position: relative;
-            width: 100vw;
-            height: 100vh;
+        /* WebView render motoru için container zorunlu */
+        #videoContainer {
+            position: absolute;
+            width: 100%; height: 100%;
             background: #000;
             z-index: 1;
         }
 
         video {
-            width: 100%;
-            height: 100%;
+            width: 100%; height: 100%;
             object-fit: cover;
-            display: block;
+            background: #000;
         }
 
-        /* UI Katmanı */
-        .ui-overlay {
+        /* UI Elemanları - backdrop-filter YOK */
+        #overlay {
             position: absolute;
-            top: 40px;
-            left: 40px;
+            top: 5%; left: 5%;
             z-index: 100;
+            color: white;
+            font-family: sans-serif;
         }
 
-        .channel-badge {
-            background: rgba(20, 20, 20, 0.85);
-            color: #fff;
+        .badge {
+            background: rgba(0, 0, 0, 0.8);
             padding: 15px 30px;
-            border-radius: 4px;
-            font-size: 32px;
-            font-weight: bold;
-            border-left: 8px solid #e50914; /* Modern bir kırmızı vurgu */
-            opacity: 0;
-            transform: translateY(-20px);
-            transition: all 0.5s ease;
+            font-size: 2.5rem;
+            border-left: 10px solid red;
+            display: none; /* Sadece değişimde görünecek */
         }
 
-        .active .channel-badge {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        /* --- LOADER TASARIMI --- */
-        .loader-wrapper {
+        #loader {
             position: absolute;
             inset: 0;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            background: #000; /* Video açılana kadar tam siyah zemin */
+            background: #000;
             z-index: 50;
-            transition: opacity 0.4s ease;
         }
 
         .spinner {
-            width: 70px;
-            height: 70px;
-            border: 6px solid rgba(255, 255, 255, 0.1);
-            border-top: 6px solid #e50914;
+            width: 80px; height: 80px;
+            border: 8px solid rgba(255,255,255,0.1);
+            border-top: 8px solid #ff0000;
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin-bottom: 20px;
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .loading-text {
-            color: #fff;
-            font-size: 18px;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
-
-        /* Video oynamaya başladığında loader'ı gizle */
-        .video-playing .loader-wrapper {
-            opacity: 0;
-            pointer-events: none;
-        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body>
+<body tabindex="1"> <div id="videoContainer">
+    <video id="mainVideo" autoplay muted playsinline></video>
+</div>
 
-<div id="mainSlider"></div>
+<div id="loader"><div class="spinner"></div></div>
+
+<div id="overlay">
+    <div id="channelName" class="badge"></div>
+</div>
 
 <script>
     const channels = [
@@ -170,81 +136,69 @@
 
     let currentIndex = 0;
     let hls = null;
-    const mainSlider = document.getElementById('mainSlider');
+    const video = document.getElementById('mainVideo');
+    const loader = document.getElementById('loader');
+    const badge = document.getElementById('channelName');
 
-    function setupApp() {
-        channels.forEach((ch, index) => {
-            const section = document.createElement('div');
-            section.className = `video-container ${index === 0 ? 'active' : ''}`;
-            section.id = `container-${index}`;
-            section.innerHTML = `
-                <div class="loader-wrapper">
-                    <div class="spinner"></div>
-                    <div class="loading-text">Yükleniyor...</div>
-                </div>
-                <div class="ui-overlay">
-                    <div class="channel-badge">${ch.name}</div>
-                </div>
-                <video id="video-${index}" playsinline></video>
-            `;
-            mainSlider.appendChild(section);
-        });
-        playChannel(0);
-    }
+    function loadSource(url) {
+        loader.style.display = 'flex';
+        badge.style.display = 'block';
+        badge.innerText = channels[currentIndex].name;
 
-    function playChannel(index) {
-        if (hls) hls.destroy();
+        // Bilgi ekranını 3 saniye sonra gizle
+        setTimeout(() => { badge.style.display = 'none'; }, 3000);
 
-        const container = document.getElementById(`container-${index}`);
-        const video = document.getElementById(`video-${index}`);
-        const url = channels[index].url;
-
-        // Yeni kanal için loader'ı göster (class temizliği)
-        container.classList.remove('video-playing');
+        if (hls) {
+            hls.destroy();
+        }
 
         if (Hls.isSupported()) {
-            hls = new Hls();
+            hls = new Hls({
+                // WebView için performans ayarları
+                enableWorker: true,
+                lowLatencyMode: true,
+                backBufferLength: 60
+            });
             hls.loadSource(url);
             hls.attachMedia(video);
             hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                video.play();
+                video.play().catch(e => console.log("Autoplay hatası:", e));
             });
         } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
             video.src = url;
             video.play();
         }
-
-        // Video gerçekten oynamaya başladığında (ilk kare düştüğünde) loader'ı kaldır
-        video.onplaying = () => {
-            container.classList.add('video-playing');
-        };
     }
 
-    function switchChannel(direction) {
-        const oldIndex = currentIndex;
-        if (direction === 'down' && currentIndex < channels.length - 1) currentIndex++;
-        else if (direction === 'up' && currentIndex > 0) currentIndex--;
-        else return;
-
-        // Eski videoyu durdur
-        const oldVideo = document.getElementById(`video-${oldIndex}`);
-        oldVideo.pause();
-        oldVideo.src = "";
-
-        mainSlider.style.transform = `translateY(-${currentIndex * 100}vh)`;
-        
-        document.querySelectorAll('.video-container').forEach(el => el.classList.remove('active'));
-        document.getElementById(`container-${currentIndex}`).classList.add('active');
-
-        playChannel(currentIndex);
-    }
-
-    document.addEventListener('keydown', (e) => {
-        if (e.keyCode === 38) switchChannel('up');
-        if (e.keyCode === 40) switchChannel('down');
+    // Video oynamaya başlayınca loader'ı gizle
+    video.addEventListener('playing', () => {
+        loader.style.display = 'none';
+        // Video oynadıktan sonra sesi açmayı dene (Android kısıtlaması için)
+        video.muted = false; 
     });
 
-    setupApp();
+    function changeChannel(dir) {
+        if (dir === 'up') currentIndex = (currentIndex > 0) ? currentIndex - 1 : channels.length - 1;
+        else currentIndex = (currentIndex < channels.length - 1) ? currentIndex + 1 : 0;
+        
+        loadSource(channels[currentIndex].url);
+    }
+
+    // Kumanda Dinleyici
+    document.addEventListener('keydown', (e) => {
+        // Log alarak kumandanın tuş kodunu kontrol edebilirsin
+        console.log("Basılan Tuş:", e.keyCode);
+        
+        if (e.keyCode === 38) changeChannel('up');   // Yukarı
+        if (e.keyCode === 40) changeChannel('down'); // Aşağı
+        if (e.keyCode === 13) video.muted = !video.muted; // OK tuşu sessize al/aç
+    });
+
+    // İlk kanal
+    window.onload = () => {
+        document.body.focus(); // Kumanda için odağı al
+        loadSource(channels[currentIndex].url);
+    };
 </script>
 
 </body>
