@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Android TV IPTV Fix</title>
+    <title>Android TV IPTV Pro</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
         * { box-sizing: border-box; }
@@ -12,194 +12,139 @@
             width: 100%; height: 100%;
             background-color: #000;
             overflow: hidden;
-        }
-
-        /* WebView render motoru için container zorunlu */
-        #videoContainer {
-            position: absolute;
-            width: 100%; height: 100%;
-            background: #000;
-            z-index: 1;
-        }
-
-        video {
-            width: 100%; height: 100%;
-            object-fit: cover;
-            background: #000;
-        }
-
-        /* UI Elemanları - backdrop-filter YOK */
-        #overlay {
-            position: absolute;
-            top: 5%; left: 5%;
-            z-index: 100;
             color: white;
             font-family: sans-serif;
         }
 
-        .badge {
-            background: rgba(0, 0, 0, 0.8);
-            padding: 15px 30px;
-            font-size: 2.5rem;
-            border-left: 10px solid red;
-            display: none; /* Sadece değişimde görünecek */
+        #videoContainer {
+            position: absolute; width: 100%; height: 100%;
+            z-index: 1; background: #000;
         }
 
+        video { width: 100%; height: 100%; object-fit: cover; }
+
+        /* DEBUG EKRANI - Tuşları görmek için */
+        #debug {
+            position: absolute; bottom: 20px; right: 20px;
+            background: rgba(255, 0, 0, 0.7); padding: 10px;
+            z-index: 1000; font-size: 14px; border-radius: 5px;
+        }
+
+        #ui {
+            position: absolute; top: 10%; left: 5%;
+            z-index: 100;
+        }
+
+        .channel-info {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px 40px;
+            font-size: 3rem;
+            border-left: 15px solid #e50914;
+            display: none;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn { from { opacity:0; transform:translateX(-50px); } to { opacity:1; transform:translateX(0); } }
+
         #loader {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #000;
-            z-index: 50;
+            position: absolute; inset: 0;
+            display: flex; align-items: center; justify-content: center;
+            background: #000; z-index: 50;
         }
 
         .spinner {
-            width: 80px; height: 80px;
-            border: 8px solid rgba(255,255,255,0.1);
-            border-top: 8px solid #ff0000;
+            width: 60px; height: 60px;
+            border: 5px solid rgba(255,255,255,0.1);
+            border-top: 5px solid #e50914;
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
-
         @keyframes spin { 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body tabindex="1"> <div id="videoContainer">
+<body tabindex="0"> <div id="debug">Kumanda Testi: Bekleniyor...</div>
+
+<div id="videoContainer">
     <video id="mainVideo" autoplay muted playsinline></video>
 </div>
 
 <div id="loader"><div class="spinner"></div></div>
 
-<div id="overlay">
-    <div id="channelName" class="badge"></div>
+<div id="ui">
+    <div id="channelName" class="channel-info"></div>
 </div>
 
 <script>
     const channels = [
-  { name: "FRANCE 24", url: "https://live.france24.com/hls/live/2037218-b/F24_EN_HI_HLS/master_5000.m3u8", icon: "📺" },
-  { name: "BBC NEWS", url: "https://vs-hls-push-ww-live.akamaized.net/x=4/i=urn:bbc:pips:service:bbc_news_channel_hd/t=3840/v=pv14/b=5070016/main.m3u8", icon: "📺" },
-  { name: "SKY NEWS", url: "https://linear417-gb-hls1-prd-ak.cdn.skycdp.com/100e/Content/HLS_001_720_30/Live/channel(skynews)/index_720-30.m3u8", icon: "📺" },
-  { name: "CBS NEWS", url: "https://cbsn-us.cbsnstream.cbsnews.com/out/v1/55a8648e8f134e82a470f83d562deeca/master_24.m3u8", icon: "📺" },
-  { name: "IRAN TV", url: "https://live.playstop.me/LS-63503-4/chunklist_b1196000.m3u8", icon: "📺" },
-  { name: "LEBANON TV", url: "https://live.kwikmotion.com/redtvlive/redtv.smil/redtvpublish/redtv_source/chunks.m3u8", icon: "📺" },
-  { name: "JORDAN TV", url: "https://jmc-live.ercdn.net/altaghier/altaghier_1080p.m3u8", icon: "📺" },
-  { name: "DW ENG", url: "https://dwamdstream102.akamaized.net/hls/live/2015525/dwstream102/stream05/streamPlaylist.m3u8", icon: "📺" },
-  { name: "TYT", url: "https://tyt-samsungus.amagi.tv/playlist720p.m3u8", icon: "📺" },
-  { name: "HALK TV", url: "https://halktv-live.daioncdn.net/halktv/halktv_1080p.m3u8", icon: "📺" },
-  { name: "EKOL TV", url: "https://ekoltv-live.ercdn.net/ekoltv/ekoltv.m3u8", icon: "📺" },
-  { name: "FX TR", url: "https://saran-live.ercdn.net/fx/index.m3u8", icon: "📺" },
-  { name: "NAT GEO TR", url: "https://saran-live.ercdn.net/natgeohd/index.m3u8", icon: "📺" },
-  { name: "NAT GEO WILD TR", url: "https://saran-live.ercdn.net/natgeowild/index.m3u8", icon: "📺" },
-  { name: "TV 100", url: "https://tv100-live.daioncdn.net/tv100/tv100.m3u8", icon: "📺" },
-  { name: "CNBC-E", url: "https://hnpsechtsc.turknet.ercdn.net/xpnvudnlsv/cnbc-e/cnbc-e_720p.m3u8", icon: "📺" },
-  { name: "DENİZ POSTASI", url: "https://live.artidijitalmedya.com/artidijital_denizpostasi/denizpostasi/playlist.m3u8", icon: "📺" },
-  { name: "GZT TV", url: "https://mn-nl.mncdn.com/gzttv/gzttv/playlist.m3u8", icon: "📺" },
-  { name: "TRT 2", url: "https://tv-trt2.medya.trt.com.tr/master_720.m3u8", icon: "📺" },
-  { name: "TRT BELGESEL", url: "https://tv-trtbelgesel.medya.trt.com.tr/master.m3u8", icon: "📺" },
-  { name: "TRT SPOR", url: "https://tv-trtspor1.medya.trt.com.tr/master.m3u8", icon: "📺" },
-  { name: "TRT1", url: "https://tv-trt1.medya.trt.com.tr/master_1080.m3u8", icon: "📺" },
-  { name: "ARTE HD", url: "https://dash4.antik.sk/live/test_arte_avc_25p/playlist.m3u8", icon: "📺" },
-  { name: "PRO 7", url: "https://dash4.antik.sk/live/test_pro_sieben_tizen/playlist.m3u8", icon: "📺" },
-  { name: "SAT 1 GOLD", url: "https://dash4.antik.sk/live/test_sat_eins_gold_tizen/playlist.m3u8", icon: "📺" },
-  { name: "BBC TWO", url: "https://streamer.nexyl.uk/69ef899e-8ca9-4537-9f1a-fe8b4216afbb_output_0.m3u8?session=8aPdqrefTg4Ru8rBKj3RyK", icon: "📺" },
-  { name: "BBC EARTH", url: "https://amg00793-amg00793c6-xumo-us-2669.playouts.now.amagi.tv/BBCStudios-BBCEarthA-hls/playlist1080p.m3u8", icon: "📺" },
-  { name: "BBC Earth (US)", url: "https://amg00793-bbcstudios-amg00793c3-lg-us-2528.playouts.now.amagi.tv/playlist/amg00793-bbcstudios-bbcearta-lgus/playlist.m3u8", icon: "📺" },
-  { name: "BBC Dinos 24x7 (US)", url: "https://amg00793-amg00793c35-lg-us-6412.playouts.now.amagi.tv/playlist.m3u8", icon: "📺" },
-  { name: "LOVE NATURE", url: "https://aegis-cloudfront-1.tubi.video/6d6d0f24-8445-4b4c-bdf6-44f9e38beaa4/1080p-cc/index.m3u8", icon: "📺" },
-  { name: "NATURESCAPE", url: "https://lotus.stingray.com/manifest/naturescape-a003-montreal/samsungtvplus/f7ed86a4-b8ac-38e0-a745-710077a95be6/3291200/manifest.m3u8", icon: "📺" },
-  { name: "Adventure Earth (GB)", url: "https://autentic-adventure-earth-1-gb.lg.wurl.tv/playlist.m3u8", icon: "📺" },
-  { name: "Air and Space (GB)", url: "https://wingspan-airandspace-1-gb.lg.wurl.tv/playlist.m3u8", icon: "📺" },
-  { name: "NATURE TIME", url: "https://amg01515-amg01515c13-xiaomi-international-4618.playouts.now.amagi.tv/playlist.m3u8", icon: "📺" },
-  { name: "FASHION TV", url: "https://cdn-ue1-prod.tsv2.amagi.tv/linear/amg01546-ftv-fashiontv-xiaomi/playlist.m3u8", icon: "📺" },
-  { name: "Bref Cinema ", url: "https://lagenceducourtmetrage-brefcinema-01-eu.xiaomi.wurl.tv/playlist.m3u8", icon: "📺" },
-  { name: "Now 90s", url: "https://lightning-now90s-xiaomi.amagi.tv/playlist.m3u8", icon: "📺" },
-  { name: "Travel XP (GB)", url: "https://travelxp-travelxp-1-gb.lg.wurl.tv/playlist.m3u8", icon: "📺" },
-  { name: "Wild Earth (KR)", url: "https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg01290-wildearthmediap-wildearth-lgkr/playlist.m3u8", icon: "📺" },
-  { name: "Alles Kino (DE)", url: "https://lighthousehomeentertainment-alleskino-1-de.lg.wurl.tv/playlist.m3u8", icon: "📺" },
-  { name: "Autentic History (GB)", url: "https://autentic-autentichistory-1-gb.lg.wurl.tv/playlist.m3u8", icon: "📺" },
-  { name: "RETRO TV", url: "http://stream.mediawork.cz/retrotv//retrotvHQ1/playlist.m3u8", icon: "📺" },
-  { name: "History Hit (FI)", url: "https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg00426-littledotstudio-historyhit-lgfi/playlist.m3u8", icon: "📺" },
-  { name: "History Time (CA)", url: "https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg00090-blueantllc-historytime-lgca/playlist.m3u8", icon: "📺" },
-  { name: "Himmlisches Kino (DE)", url: "https://wdr-media-group-himmlischeskino-1-de.lg.wurl.tv/playlist.m3u8", icon: "📺" },
-  { name: "Icon Film Classics (GB)", url: "https://iconfilmsdistribution-iconfilmchannelclassics-1-gb.lg.wurl.tv/playlist.m3u8", icon: "📺" },
-  { name: "Infast (GB)", url: "https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg00861-terninternation-lifestyle-lggb/playlist.m3u8", icon: "📺" },
-  { name: "Life Downunder (GB)", url: "https://wtfn-lifedownunder-2-gb.lg.wurl.tv/playlist.m3u8", icon: "📺" },
-  { name: "Pop Flix (GB)", url: "https://signatureentertainment-popflix-1-gb.lg.wurl.tv/playlist.m3u8", icon: "📺" },
-  { name: "Sparkle Movies (AU)", url: "https://candlelightmedia-sparklemovies-1-au.lg.wurl.tv/playlist.m3u8", icon: "📺" },
-  { name: "Unbeaten (GB)", url: "https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg00721-inverleigh-unbeatengb-lggb/playlist.m3u8", icon: "📺" },
-  { name: "RTL GOLD", url: "https://stream.rtl.lu/data/live/tele/rtlgold/1080p.m3u8", icon: "📺" },
-  { name: "STINGRAY 90's", url: "https://lotus.stingray.com/manifest/ose-142ads-montreal/samsungtvplus/f5102ca4-edd7-30ac-a357-877f60db023b/1790800/manifest.m3u8", icon: "📺" },
-  { name: "BXS1 (VPN)", url: "https://wandering-pond-ff44.sadjj2390092.workers.dev/checklist/androstreamlivebs1.m3u8", icon: "📺" },
+        { name: "KANAL 1", url: "https://test-streams.mux.dev/x36xhzz/main.m3u8" },
+        { name: "KANAL 2", url: "https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8" },
+        { name: "KANAL 3", url: "https://playertest.longtailvideo.com/adaptive/oceans_aes/oceans_aes.m3u8" }
     ];
 
     let currentIndex = 0;
     let hls = null;
     const video = document.getElementById('mainVideo');
-    const loader = document.getElementById('loader');
-    const badge = document.getElementById('channelName');
+    const debug = document.getElementById('debug');
 
-    function loadSource(url) {
-        loader.style.display = 'flex';
-        badge.style.display = 'block';
-        badge.innerText = channels[currentIndex].name;
+    function playStream(index) {
+        const item = channels[index];
+        document.getElementById('loader').style.display = 'flex';
+        const nameLabel = document.getElementById('channelName');
+        
+        nameLabel.innerText = item.name;
+        nameLabel.style.display = 'block';
+        setTimeout(() => { nameLabel.style.display = 'none'; }, 4000);
 
-        // Bilgi ekranını 3 saniye sonra gizle
-        setTimeout(() => { badge.style.display = 'none'; }, 3000);
-
-        if (hls) {
-            hls.destroy();
-        }
+        if (hls) hls.destroy();
 
         if (Hls.isSupported()) {
-            hls = new Hls({
-                // WebView için performans ayarları
-                enableWorker: true,
-                lowLatencyMode: true,
-                backBufferLength: 60
-            });
-            hls.loadSource(url);
+            hls = new Hls();
+            hls.loadSource(item.url);
             hls.attachMedia(video);
-            hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                video.play().catch(e => console.log("Autoplay hatası:", e));
-            });
-        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-            video.src = url;
+            hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+        } else {
+            video.src = item.url;
             video.play();
         }
     }
 
-    // Video oynamaya başlayınca loader'ı gizle
-    video.addEventListener('playing', () => {
-        loader.style.display = 'none';
-        // Video oynadıktan sonra sesi açmayı dene (Android kısıtlaması için)
-        video.muted = false; 
-    });
+    video.onplaying = () => {
+        document.getElementById('loader').style.display = 'none';
+        video.muted = false; // Video başlayınca sesi aç
+    };
 
-    function changeChannel(dir) {
-        if (dir === 'up') currentIndex = (currentIndex > 0) ? currentIndex - 1 : channels.length - 1;
-        else currentIndex = (currentIndex < channels.length - 1) ? currentIndex + 1 : 0;
+    // TUŞ KONTROLÜ - Çift katmanlı koruma
+    function handleKey(code) {
+        debug.innerText = "Basılan KeyCode: " + code;
         
-        loadSource(channels[currentIndex].url);
+        // 19-38 (Yukarı), 20-40 (Aşağı)
+        if (code == 38 || code == 19) { 
+            currentIndex = (currentIndex > 0) ? currentIndex - 1 : channels.length - 1;
+            playStream(currentIndex);
+        } 
+        else if (code == 40 || code == 20) { 
+            currentIndex = (currentIndex < channels.length - 1) ? currentIndex + 1 : 0;
+            playStream(currentIndex);
+        }
     }
 
-    // Kumanda Dinleyici
-    document.addEventListener('keydown', (e) => {
-        // Log alarak kumandanın tuş kodunu kontrol edebilirsin
-        console.log("Basılan Tuş:", e.keyCode);
-        
-        if (e.keyCode === 38) changeChannel('up');   // Yukarı
-        if (e.keyCode === 40) changeChannel('down'); // Aşağı
-        if (e.keyCode === 13) video.muted = !video.muted; // OK tuşu sessize al/aç
-    });
+    // Android WebView için hem window hem document dinlenmeli
+    window.addEventListener('keydown', (e) => handleKey(e.keyCode));
+    document.addEventListener('keydown', (e) => handleKey(e.keyCode));
 
-    // İlk kanal
+    // ODAK ÇIKMAZINI ÇÖZME
     window.onload = () => {
-        document.body.focus(); // Kumanda için odağı al
-        loadSource(channels[currentIndex].url);
+        window.focus();
+        document.body.focus();
+        playStream(0);
+        
+        // Her 2 saniyede bir odağı zorla sayfaya getir (Kumanda kopmaması için)
+        setInterval(() => {
+            if (document.activeElement !== document.body) {
+                document.body.focus();
+            }
+        }, 2000);
     };
 </script>
-
 </body>
 </html>
