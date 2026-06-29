@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Winamp Mobile</title>
+    <style>
+        /* Mobil Reset ve Tam Ekran Uygulama Hissi */
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #000000;
+            color: #00ff00;
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        /* Ana Winamp Paneli - iPhone 13 Mini ve Mobil Odaklı */
+        .winamp-container {
+            background-color: #1a1a1a;
+            border: 3px solid #3d3d3d;
+            border-top-color: #5a5a5a;
+            border-left-color: #5a5a5a;
+            box-shadow: inset -2px -2px 0px #000, inset 2px 2px 0px #5a5a5a;
+            width: 100%;
+            max-width: 400px; /* iPhone 13 Mini için ideal sınır */
+            padding: 12px;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        /* Winamp Başlık Çubuğu */
+        .winamp-titlebar {
+            background: linear-gradient(90deg, #080884, #00ffff);
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            padding: 6px 8px;
+            text-align: left;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        /* Dosya Seçme Butonu (Dokunması Kolay) */
+        label {
+            display: block;
+            padding: 12px;
+            background-color: #2a2a2a;
+            color: #00ff00;
+            border: 2px solid #5a5a5a;
+            border-right-color: #000;
+            border-bottom-color: #000;
+            cursor: pointer;
+            font-size: 13px;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        label:hover {
+            background-color: #3a3a3a;
+        }
+
+        /* Kontrol Butonları - Mobil için Parmak Dostu Boyutlar */
+        .controls {
+            display: flex;
+            gap: 4px;
+        }
+
+        .controls button {
+            flex: 1;
+            padding: 15px 0; /* Dokunma alanını genişletmek için yüksekliği artırdık */
+            border: 2px solid #5a5a5a;
+            border-top-color: #8a8a8a;
+            border-left-color: #8a8a8a;
+            background-color: #3a3a3a;
+            color: #cccccc;
+            font-family: Arial, sans-serif;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            text-shadow: 1px 1px 0px #000;
+        }
+
+        .controls button:active, .controls button.active {
+            background-color: #222222;
+            border: 2px solid #000;
+            border-right-color: #5a5a5a;
+            border-bottom-color: #5a5a5a;
+            color: #ff9900;
+        }
+
+        /* Winamp Dijital Ekranı */
+        .winamp-display {
+            background-color: #000000;
+            border: 2px solid #3a3a3a;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 4px;
+        }
+
+        #trackNameDisplay {
+            font-size: 12px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
+            color: #00ff00;
+            text-align: left;
+            height: 16px;
+        }
+
+        /* Zaman Göstergesi */
+        #timeDisplay {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 26px;
+            font-weight: bold;
+            color: #ff9900;
+            text-shadow: 0 0 4px #ff3300;
+            letter-spacing: 1px;
+        }
+
+        /* Mobil İlerleme Çubuğu (Daha kalın ve kolay kaydırılabilir) */
+        #progressBar {
+            width: 100%;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 14px;
+            background: #111;
+            border: 1px solid #555;
+            outline: none;
+            margin: 6px 0;
+        }
+
+        #progressBar::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px; /* Mobilde parmakla tutabilmek için genişletildi */
+            height: 14px;
+            background: #5a5a5a;
+            border: 2px solid #aaa;
+            border-right-color: #222;
+            border-bottom-color: #222;
+            cursor: pointer;
+        }
+
+        /* Winamp Playlist (Şarkı Listesi) */
+        #playlist {
+            list-style: none;
+            padding: 5px;
+            background-color: #000000;
+            border: 2px solid #3d3d3d;
+            height: 180px; /* Listeyi mobilde daha rahat görmek için uzattık */
+            margin: 0;
+            overflow-y: auto;
+            text-align: left;
+            font-size: 13px;
+            color: #00ff00;
+        }
+
+        #playlist li {
+            padding: 8px 6px; /* Dokunmayı kolaylaştırmak için dikey boşluğu artırdık */
+            border-bottom: 1px solid #111;
+            cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        #playlist li.active {
+            color: #ffffff; 
+            background-color: #000084;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="winamp-container">
+        <div class="winamp-titlebar">WINAMP 2.81 - MOBILE</div>
+        
+        <input type="file" id="fileInput" accept=".mp3" multiple />
+        <label for="fileInput">Müzik Ekle</label>
+
+        <div class="winamp-display">
+            <div id="trackNameDisplay">*** DOSYA SEÇİNİZ ***</div>
+            <div id="timeDisplay">
+                <span id="currentTime">00:00</span>
+            </div>
+        </div>
+
+        <input type="range" id="progressBar" value="0" min="0" max="100">
+
+        <div class="controls">
+            <button id="prevTrack">|<<</button>
+            <button id="playPause">PLAY</button>
+            <button id="nextTrack">>></button>
+        </div>
+
+        <div class="controls">
+            <button id="repeatMode">REP</button>
+            <button id="shuffle">SHUF</button>
+        </div>
+
+        <ul id="playlist"></ul>
+    </div>
+
+    <audio id="audioPlayer"></audio>
+
+    <script>
+        // Orijinal JS işlevselliğin (Seçme, Oynatma, İlerleme Çubuğu, MediaSession) aynen korunmuştur.
+        const fileInput = document.getElementById('fileInput');
+        const audioPlayer = document.getElementById('audioPlayer');
+        const playPauseButton = document.getElementById('playPause');
+        const prevTrackButton = document.getElementById('prevTrack');
+        const nextTrackButton = document.getElementById('nextTrack');
+        const repeatButton = document.getElementById('repeatMode');
+        const shuffleButton = document.getElementById('shuffle');
+        const playlist = document.getElementById('playlist');
+        const progressBar = document.getElementById('progressBar');
+        const trackNameDisplay = document.getElementById('trackNameDisplay');
+
+        let tracks = [];
+        let currentTrackIndex = -1;
+        let repeatMode = 'all';
+        let isShuffle = false;
+        let isDragging = false;
+
+        fileInput.addEventListener('change', (event) => {
+            const files = Array.from(event.target.files);
+            files.forEach((file) => {
+                if (file.type === 'audio/mpeg' || file.name.endsWith('.mp3')) {
+                    const fileURL = URL.createObjectURL(file);
+                    tracks.push({ name: file.name, url: fileURL });
+                    const listItem = document.createElement('li');
+                    
+                    listItem.textContent = `${tracks.length}. ${file.name.replace('.mp3', '')}`;
+                    
+                    listItem.addEventListener('click', () => {
+                        const index = Array.from(playlist.children).indexOf(listItem);
+                        currentTrackIndex = index;
+                        playTrack(currentTrackIndex);
+                    });
+                    
+                    // Mobilde dblclick yerine normal tıklama listeyi yönettiği için dblclick bilgisayarda alternatif silme olarak kalabilir
+                    listItem.addEventListener('dblclick', () => {
+                        const index = Array.from(playlist.children).indexOf(listItem);
+                        tracks.splice(index, 1);
+                        listItem.remove();
+                        if (index === currentTrackIndex) {
+                            audioPlayer.pause();
+                            playPauseButton.textContent = 'PLAY';
+                            trackNameDisplay.textContent = "*** DURDURULDU ***";
+                            currentTrackIndex = -1;
+                        } else if (index < currentTrackIndex) {
+                            currentTrackIndex--;
+                        }
+                    });
+                    playlist.appendChild(listItem);
+                } else {
+                    alert('Lütfen sadece MP3 dosyaları seçin.');
+                }
+            });
+        });
+
+        audioPlayer.addEventListener('ended', () => { handleEnd(); });
+
+        playPauseButton.addEventListener('click', () => {
+            if (currentTrackIndex === -1 && tracks.length > 0) {
+                currentTrackIndex = 0;
+                playTrack(currentTrackIndex);
+            } else if (audioPlayer.paused && tracks.length > 0) {
+                audioPlayer.play();
+                playPauseButton.classList.add('active');
+                playPauseButton.textContent = 'PAUSE';
+            } else if (tracks.length > 0) {
+                audioPlayer.pause();
+                playPauseButton.classList.remove('active');
+                playPauseButton.textContent = 'PLAY';
+            }
+        });
+
+        prevTrackButton.addEventListener('click', () => {
+            if (currentTrackIndex > 0) {
+                currentTrackIndex--;
+                playTrack(currentTrackIndex);
+            } else if (repeatMode === 'all' && tracks.length > 0) {
+                currentTrackIndex = tracks.length - 1;
+                playTrack(currentTrackIndex);
+            }
+        });
+
+        nextTrackButton.addEventListener('click', () => { nextTrack(); });
+
+        repeatButton.addEventListener('click', () => {
+            switch (repeatMode) {
+                case 'all':
+                    repeatMode = 'one';
+                    repeatButton.classList.add('active');
+                    repeatButton.textContent = 'REP [1]';
+                    break;
+                case 'one':
+                    repeatMode = 'none';
+                    repeatButton.classList.remove('active');
+                    repeatButton.textContent = 'REP [X]';
+                    break;
+                default:
+                    repeatMode = 'all';
+                    repeatButton.classList.add('active');
+                    repeatButton.textContent = 'REP';
+            }
+        });
+
+        shuffleButton.addEventListener('click', () => {
+            isShuffle = !isShuffle;
+            if (isShuffle) { shuffleButton.classList.add('active'); } 
+            else { shuffleButton.classList.remove('active'); }
+        });
+
+        function playTrack(index) {
+            Array.from(playlist.children).forEach((item, i) => {
+                item.classList.remove('active');
+                if (i === index) item.classList.add('active');
+            });
+            audioPlayer.src = tracks[index].url;
+            audioPlayer.play();
+            playPauseButton.classList.add('active');
+            playPauseButton.textContent = 'PAUSE';
+            trackNameDisplay.textContent = `${index + 1}. ${tracks[index].name}`;
+        }
+
+        function nextTrack() {
+            if (tracks.length === 0) return;
+            if (isShuffle) {
+                currentTrackIndex = Math.floor(Math.random() * tracks.length);
+            } else if (currentTrackIndex < tracks.length - 1) {
+                currentTrackIndex++;
+            } else if (repeatMode === 'all') {
+                currentTrackIndex = 0;
+            } else {
+                return;
+            }
+            playTrack(currentTrackIndex);
+        }
+
+        function handleEnd() {
+            if (repeatMode === 'one') { playTrack(currentTrackIndex); } 
+            else { nextTrack(); }
+        }
+
+        const currentTimeDisplay = document.getElementById('currentTime');
+
+        audioPlayer.addEventListener('timeupdate', () => {
+            if (!isDragging && audioPlayer.duration) {
+                progressBar.value = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+            }
+            currentTimeDisplay.textContent = formatTime(audioPlayer.currentTime);
+        });
+
+        progressBar.addEventListener('input', () => { isDragging = true; });
+        progressBar.addEventListener('change', () => {
+            isDragging = false;
+            if (audioPlayer.duration) {
+                audioPlayer.currentTime = (progressBar.value / 100) * audioPlayer.duration;
+            }
+        });
+
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return "00:00";
+            const minutes = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        if ('mediaSession' in navigator) {
+            navigator.mediaSession.setActionHandler('play', () => { audioPlayer.play(); });
+            navigator.mediaSession.setActionHandler('pause', () => { audioPlayer.pause(); });
+            navigator.mediaSession.setActionHandler('previoustrack', () => { prevTrackButton.click(); });
+            navigator.mediaSession.setActionHandler('nexttrack', () => { nextTrackButton.click(); });
+        }
+    </script>
+</body>
+</html>
