@@ -257,56 +257,120 @@
         let isShuffle = false;
         let isDragging = false;
 
+        // Sayfa yüklendiğinde LocalStorage'dan listeyi çek
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedTracks = localStorage.getItem('winamp_playlist');
+            if (savedTracks) {
+                const trackNames = JSON.parse(savedTracks);
+                trackNames.forEach((name) => {
+                    // Dosyalar ilk başta null URL ile yüklenir (çünkü Blob URL'ler uçtu)
+                    tracks.push({ name: name, url: null });
+                    renderTrackInUI(name, tracks.length - 1, false); // Pasif olarak arayüze ekle
+                });
+                trackNameDisplay.textContent = "*** DOSYALARI TEKRAR SEÇEREK AKTİFLEŞTİRİN ***";
+            }
+        });
+
+        // LocalStorage'ı güncelleme fonksiyonu
+        function updateLocalStorage() {
+            const trackNames = tracks.map(t => t.name);
+            localStorage.setItem('winamp_playlist', JSON.stringify(trackNames));
+        }
+
+        // Arayüze şarkı ekleme fonksiyonu (Tekrarı önlemek için dışarı aldık)
+        function renderTrackInUI(fileName, index, isReady = true) {
+            const listItem = document.createElement('li');
+            const cleanName = fileName.replace(/\.(mp3|wav)$/i, '');
+            listItem.textContent = `${index + 1}. ${cleanName}`;
+            
+            // Eğer dosya hazır değilse (hafızadan geldiyse) rengini soluk yapalım
+            if (!isReady) {
+                listItem.style.opacity = "0.5";
+                listItem.title = "Oynatmak için bu dosyayı tekrar yükleyin";
+            }
+
+            listItem.addEventListener('click', () => {
+                const currentIndex = Array.from(playlist.children).indexOf(listItem);
+                if (!tracks[currentIndex].url) {
+                    alert("Bu şarkının oynatılabilmesi için müzik ekleme butonundan tekrar seçilmesi gerekiyor.");
+                    return;
+                }
+                currentTrackIndex = currentIndex;
+                playTrack(currentTrackIndex);
+            });
+            
+            listItem.addEventListener('dblclick', () => {
+                const currentIndex = Array.from(playlist.children).indexOf(listItem);
+                tracks.splice(currentIndex, 1);
+                listItem.remove();
+                
+                // Listeyi yeniden numaralandır
+                Array.from(playlist.children).forEach((li, i) => {
+                    const originalName = tracks[i].name;
+                    const cName = originalName.replace(/\.(mp3|wav)$/i, '');
+                    li.textContent = `${i + 1}. ${cName}`;
+                });
+
+                updateLocalStorage(); // Listeden silinince hafızayı güncelle
+
+                if (currentIndex === currentTrackIndex) {
+                    audioPlayer.pause();
+                    playPauseButton.textContent = 'PLAY';
+                    trackNameDisplay.textContent = "*** DURDURULDU ***";
+                    currentTrackIndex = -1;
+                } else if (currentIndex < currentTrackIndex) {
+                    currentTrackIndex--;
+                }
+            });
+
+            playlist.appendChild(listItem);
+        }
+
         fileInput.addEventListener('change', (event) => {
             const files = Array.from(event.target.files);
             files.forEach((file) => {
                 const fileNameLower = file.name.toLowerCase();
-                // MP3 veya WAV kontrolü (Hem MIME tipine hem de dosya uzantısına bakıyor)
                 const isMp3 = file.type === 'audio/mpeg' || fileNameLower.endsWith('.mp3');
                 const isWav = file.type === 'audio/wav' || file.type === 'audio/x-wav' || fileNameLower.endsWith('.wav');
 
                 if (isMp3 || isWav) {
                     const fileURL = URL.createObjectURL(file);
-                    tracks.push({ name: file.name, url: fileURL });
-                    const listItem = document.createElement('li');
                     
-                    // Uzantıyı temizleyip numaralandırma yapıyoruz
-                    const cleanName = file.name.replace(/\.(mp3|wav)$/i, '');
-                    listItem.textContent = `${tracks.length}. ${cleanName}`;
-                    
-                    listItem.addEventListener('click', () => {
-                        const index = Array.from(playlist.children).indexOf(listItem);
-                        currentTrackIndex = index;
-                        playTrack(currentTrackIndex);
-                    });
-                    
-                    listItem.addEventListener('dblclick', () => {
-                        const index = Array.from(playlist.children).indexOf(listItem);
-                        tracks.splice(index, 1);
-                        listItem.remove();
-                        if (index === currentTrackIndex) {
-                            audioPlayer.pause();
-                            playPauseButton.textContent = 'PLAY';
-                            trackNameDisplay.textContent = "*** DURDURULDU ***";
-                            currentTrackIndex = -1;
-                        } else if (index < currentTrackIndex) {
-                            currentTrackIndex--;
-                        }
-                    });
-                    playlist.appendChild(listItem);
+                    // Hafızada halihazırda bu isimde bir şarkı var mı kontrol et (Eşleştirme)
+                    const existingTrackIndex = tracks.findIndex(t => t.name === file.name && t.url === null);
+
+                    if (existingTrackIndex !== -1) {
+                        // Eğer varsa, URL'sini güncelle ve aktifleştir
+                        tracks[existingTrackIndex].url = fileURL;
+                        const listItem = playlist.children[existingTrackIndex];
+                        listItem.style.opacity = "1";
+                        listItem.title = "";
+                    } else {
+                        // Yeni şarkıysa listeye ve hafızaya ekle
+                        tracks.push({ name: file.name, url: fileURL });
+                        renderTrackInUI(file.name, tracks.length - 1, true);
+                        updateLocalStorage();
+                    }
                 } else {
                     alert('Lütfen sadece MP3 veya WAV dosyaları seçin.');
                 }
             });
+            trackNameDisplay.textContent = "*** LİSTE GÜNCELLENDİ ***";
         });
 
         audioPlayer.addEventListener('ended', () => { handleEnd(); });
 
         playPauseButton.addEventListener('click', () => {
             if (currentTrackIndex === -1 && tracks.length > 0) {
-                currentTrackIndex = 0;
-                playTrack(currentTrackIndex);
-            } else if (audioPlayer.paused && tracks.length > 0) {
+                // İlk aktif (URL'si olan) şarkıyı bulup oynatmayı dene
+                const firstValid = tracks.findIndex(t => t.url !== null);
+                if (firstValid !== -1) {
+                    currentTrackIndex = firstValid;
+                    playTrack(currentTrackIndex);
+                } else {
+                    alert("Lütfen önce dosyaları seçerek aktifleştirin.");
+                }
+            } else if (audioPlayer.paused && tracks.length > 0 && currentTrackIndex !== -1) {
                 audioPlayer.play();
                 playPauseButton.classList.add('active');
                 playPauseButton.textContent = 'PAUSE';
@@ -355,6 +419,7 @@
         });
 
         function playTrack(index) {
+            if (!tracks[index].url) return; // Güvenlik kontrolü
             Array.from(playlist.children).forEach((item, i) => {
                 item.classList.remove('active');
                 if (i === index) item.classList.add('active');
@@ -368,15 +433,25 @@
 
         function nextTrack() {
             if (tracks.length === 0) return;
+            let targetIndex = currentTrackIndex;
+
             if (isShuffle) {
-                currentTrackIndex = Math.floor(Math.random() * tracks.length);
+                targetIndex = Math.floor(Math.random() * tracks.length);
             } else if (currentTrackIndex < tracks.length - 1) {
-                currentTrackIndex++;
+                targetIndex++;
             } else if (repeatMode === 'all') {
-                currentTrackIndex = 0;
+                targetIndex = 0;
             } else {
                 return;
             }
+
+            // Eğer sonraki şarkı henüz aktifleştirilmemişse (URL null ise) bir sonrakine geçmeyi dene
+            if (!tracks[targetIndex].url) {
+                // Aktif bir şarkı bulana kadar dönebiliriz, yoksa durur.
+                console.log("Şarkı henüz aktif değil, atlanıyor...");
+            }
+
+            currentTrackIndex = targetIndex;
             playTrack(currentTrackIndex);
         }
 
