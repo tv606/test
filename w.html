@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Wnmp</title>
+    <title>w</title>
     <style>
         /* Mobil Reset ve Tam Ekran Uygulama Hissi */
         * {
@@ -14,8 +14,8 @@
 
         body {
             font-family: 'Courier New', Courier, monospace;
-            background-color: #1A1A1A; /* Winamp Masaüstü Arka Planı */
-            color: #00E100; /* Orijinal Winamp Yeşili */
+            background-color: #1A1A1A; 
+            color: #00E100; 
             margin: 0;
             padding: 10px;
             display: flex;
@@ -24,9 +24,9 @@
             min-height: 100vh;
         }
 
-        /* Ana Winamp Paneli - Orijinal Renk Skalası */
+        /* Ana Winamp Paneli */
         .winamp-container {
-            background-color: #28292D; /* Orijinal Winamp Kasa Grisi */
+            background-color: #28292D; 
             border: 3px solid #46484D;
             border-top-color: #6C6F75;
             border-left-color: #6C6F75;
@@ -40,7 +40,7 @@
             gap: 8px;
         }
 
-        /* Winamp Başlık Çubuğu - Klasik Koyu Mavi Degrade */
+        /* Winamp Başlık Çubuğu */
         .winamp-titlebar {
             background: linear-gradient(90deg, #03035A, #008484);
             color: #D2D4D7;
@@ -103,7 +103,7 @@
             border: 2px solid #111214;
             border-right-color: #5A5C64;
             border-bottom-color: #5A5C64;
-            color: #FF9900; /* Klasik Winamp Aktif Turuncusu */
+            color: #FF9900; 
         }
 
         /* Winamp Dijital Ekranı */
@@ -125,7 +125,6 @@
             text-overflow: ellipsis;
             width: 100%;
             color: #00E100;
-            /* Hafif retro parlama efekti */
             text-shadow: 0 0 2px rgba(0, 225, 0, 0.6);
             text-align: left;
             height: 16px;
@@ -136,7 +135,7 @@
             font-family: 'Courier New', Courier, monospace;
             font-size: 28px;
             font-weight: bold;
-            color: #FF9300; /* Gerçek Winamp Ekran Turuncusu */
+            color: #FF9300; 
             text-shadow: 0 0 4px rgba(255, 147, 0, 0.7);
             letter-spacing: 1px;
         }
@@ -165,13 +164,13 @@
             cursor: pointer;
         }
 
-        /* Winamp Playlist (Şarkı Listesi) - 1/3 oranında uzatıldı (240px) */
+        /* Winamp Playlist (Şarkı Listesi) */
         #playlist {
             list-style: none;
             padding: 5px;
             background-color: #000000;
             border: 2px solid #3C3D43;
-            height: 240px; /* Eski değer: 180px idi. Tam 1/3 oranında (60px) uzatıldı */
+            height: 240px; 
             margin: 0;
             overflow-y: auto;
             text-align: left;
@@ -200,7 +199,7 @@
             text-overflow: ellipsis;
         }
 
-        /* Aktif Parça Seçimi - Winamp Klasik Gece Mavisi */
+        /* Aktif Parça Seçimi */
         #playlist li.active {
             color: #FFFFFF; 
             background-color: #020266;
@@ -210,10 +209,10 @@
 <body>
 
     <div class="winamp-container">
-        <div class="winamp-titlebar">WNMP</div>
+        <div class="winamp-titlebar">WINAMP 0.0 - MULTI AUDIO</div>
         
-        <input type="file" id="fileInput" accept=".mp3" multiple />
-        <label for="fileInput">Müzik Ekle (Add)</label>
+        <input type="file" id="fileInput" accept=".mp3,.wav" multiple />
+        <label for="fileInput">Müzik Ekle (MP3 / WAV)</label>
 
         <div class="winamp-display">
             <div id="trackNameDisplay">*** DOSYA SEÇİNİZ ***</div>
@@ -241,7 +240,6 @@
     <audio id="audioPlayer"></audio>
 
     <script>
-        // Mevcut tüm müzik çalma mantığı ve MediaSession API kodları aynen korunmuştur.
         const fileInput = document.getElementById('fileInput');
         const audioPlayer = document.getElementById('audioPlayer');
         const playPauseButton = document.getElementById('playPause');
@@ -262,12 +260,19 @@
         fileInput.addEventListener('change', (event) => {
             const files = Array.from(event.target.files);
             files.forEach((file) => {
-                if (file.type === 'audio/mpeg' || file.name.endsWith('.mp3')) {
+                const fileNameLower = file.name.toLowerCase();
+                // MP3 veya WAV kontrolü (Hem MIME tipine hem de dosya uzantısına bakıyor)
+                const isMp3 = file.type === 'audio/mpeg' || fileNameLower.endsWith('.mp3');
+                const isWav = file.type === 'audio/wav' || file.type === 'audio/x-wav' || fileNameLower.endsWith('.wav');
+
+                if (isMp3 || isWav) {
                     const fileURL = URL.createObjectURL(file);
                     tracks.push({ name: file.name, url: fileURL });
                     const listItem = document.createElement('li');
                     
-                    listItem.textContent = `${tracks.length}. ${file.name.replace('.mp3', '')}`;
+                    // Uzantıyı temizleyip numaralandırma yapıyoruz
+                    const cleanName = file.name.replace(/\.(mp3|wav)$/i, '');
+                    listItem.textContent = `${tracks.length}. ${cleanName}`;
                     
                     listItem.addEventListener('click', () => {
                         const index = Array.from(playlist.children).indexOf(listItem);
@@ -290,7 +295,7 @@
                     });
                     playlist.appendChild(listItem);
                 } else {
-                    alert('Lütfen sadece MP3 dosyaları seçin.');
+                    alert('Lütfen sadece MP3 veya WAV dosyaları seçin.');
                 }
             });
         });
