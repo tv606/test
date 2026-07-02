@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" sizes="180x180" href="wcup-icon-180.png">
+    <title>RETRO TV</title>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <style>
+        body {
+            background-color: #151515;
+            background-image: radial-gradient(#222 15%, transparent 16%), radial-gradient(#222 15%, transparent 16%);
+            background-size: 60px 60px;
+            background-position: 0 0, 30px 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Courier New', Courier, monospace;
+            overflow: hidden;
+        }
+
+        /* Dev Ekran TV Kasası */
+        .tv-container {
+            position: relative;
+            width: 1250px;
+            height: 780px;
+            background: #422c1b; 
+            border: 25px solid #291b10;
+            border-radius: 55px;
+            box-shadow: inset 0 0 40px rgba(0,0,0,0.9), 0 40px 80px rgba(0,0,0,0.8);
+            display: flex;
+            padding: 35px;
+            box-sizing: border-box;
+        }
+
+        /* Tüplü Ekran Çerçevesi */
+        .screen-border {
+            flex: 5;
+            background: #111;
+            border-radius: 40px / 20px; /* 16:9 orana uygun kavis */
+            border: 20px solid #1a1a1a;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 60px rgba(0,0,0,1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 16:9 Oranı Koruyan Video Kutusu */
+        .video-wrapper {
+            width: 100%;
+            height: 0;
+            padding-bottom: 56.25%; /* Tam olarak 16:9 hassas oranı */
+            position: relative;
+            overflow: hidden;
+            border-radius: 15px;
+        }
+
+        video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain; /* En-boy oranını asla bozmaz */
+            filter: contrast(1.1) brightness(1.05);
+            transition: opacity 0.5s ease;
+            background: #000;
+        }
+
+        /* İnceltilmiş CRT Tarama Çizgileri (Scanlines) */
+        .screen-border::after {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.18) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 255, 0, 0.02));
+            z-index: 2;
+            background-size: 100% 2px, 4px 100%;
+            pointer-events: none;
+        }
+
+        /* TV Kontrol Paneli */
+        .control-panel {
+            flex: 1;
+            background: #291b10;
+            margin-left: 35px;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-around;
+            padding: 40px 0;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.7);
+        }
+
+        /* Düğmeler */
+        
+
+        .knob2 {
+            width: 80px;
+            height: 80px;
+            background: #111;
+            border-radius: 50%;
+            border: 4px dashed #333;
+            position: relative;
+            cursor: pointer;
+            box-shadow: 0 8px 8px rgba(0,0,0,0.6);
+        }
+
+        .knob2::after {
+            content: '';
+            position: absolute;
+            top: 24px;
+            left: 39%;
+            width: 32px;
+            height: 33px;
+            background: #422c1b;
+            transform: translateX(-20%);
+            border-radius: 31px;
+        }
+
+        
+        .speaker-grille {
+            width: 85%;
+            height: 65%;
+            background: linear-gradient(90deg, #111 50%, transparent 50%);
+            background-size: 10px 100%;
+            opacity: 0.85;
+        }
+
+        .power-btn {
+            width: 55px;
+            height: 55px;
+            background: #432;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #321;
+            transition: 0.1s;
+        }
+        .power-btn:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+
+        .brand {
+            color: #543;
+            font-size: 18px;
+            font-weight: bold;
+            letter-spacing: 4px;
+        }
+
+        .brand2 {
+            color: #543;
+            font-size: 14px;
+            font-weight: bold;
+            letter-spacing: 4px;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="tv-container">
+    <div class="screen-border">
+        <div class="video-wrapper">
+            <video id="video"  autoplay muted playsinline></video>
+        </div>
+    </div>
+    
+    <div class="control-panel">
+        <div class="brand">RETRO TV</div>
+      
+        <div class="knob2" onclick="toggleMute()"></div>
+        <div class="brand2">MUTE/UNMUTE</div>
+        <div class="speaker-grille"></div>
+    
+    </div>
+</div>
+
+<script>
+    const videoSrc = 'https://tv-trt1.medya.trt.com.tr/master_720.m3u8';
+    const video = document.getElementById('video');
+
+    // Gecikmeyi azaltmak için canlı yayın (Live Edge) ayarları
+    const hlsConfig = {
+        liveSyncDurationCount: 2, // Önbellekte tutulacak parça sayısı azaltıldı (Hızı artırır)
+        liveMaxLatencyDurationCount: 3,
+        maxBufferLength: 4,
+        enableWorker: true,
+        lowLatencyMode: true // Düşük gecikme modunu aktif et
+    };
+
+    if (Hls.isSupported()) {
+        const hls = new Hls(hlsConfig);
+        hls.loadSource(videoSrc);
+        hls.attachMedia(video);
+        
+        // Gecikme açılırsa canlı yayının en uç noktasına (live edge) sarmaya zorla
+        hls.on(Hls.Events.MANIFEST_PARSED, function() {
+            video.play();
+        });
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        video.src = videoSrc;
+        video.addEventListener('loadedmetadata', function() {
+            video.play();
+        });
+    }
+
+    function toggleMute() {
+        video.muted = !video.muted;
+    }
+
+    
+</script>
+
+</body>
+</html>
