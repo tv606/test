@@ -265,12 +265,14 @@
 
     <script>
         const channels = [
-            
+
+            { name: "Suspilne Kultura", logo: "iconukr.png", url: "https://cdn15.live-tv.cloud/ua_infinitas_tv/7tvod-abr/playlist.m3u8", type: "hls" },
+            { name: "Suspilne Pershyi", logo: "iconukr.png", url: "https://www.youtube.com/watch?v=uOntga5OQrs", type: "youtube" }, 
+            { name: "Suspline Kyiv", logo: "iconukr.png", url: "suspline.m3u8", type: "hls" },
             { name: "1+1 Int", logo: "iconukr.png", url: "https://dash2.antik.sk/live/test_one_plus_one_int_tizen/playlist.m3u8", type: "hls" },
             { name: "1+1 Marathon", logo: "iconukr.png", url: "https://dash2.antik.sk/live/1plus1_marathon/playlist.m3u8", type: "hls" },
             { name: "36.6 TV", logo: "iconukr.png", url: "https://dash2.antik.sk/live/test_tridsatsest_hd_atktv/playlist.m3u8", type: "hls" },
             { name: "Avers", logo: "iconukr.png", url: "https://avers.pp.ua/hls/efir.m3u8", type: "hls" },
-            { name: "Channel 7", logo: "iconukr.png", url: "https://cdn15.live-tv.cloud/ua_infinitas_tv/7tvod-abr/7tvod/7tvod720/chunks.m3u8?nimblesessionid=18864620", type: "hls" },
             { name: "Dacha", logo: "iconukr.png", url: "https://dash2.antik.sk/live/test_dacha_tv_atktv/playlist.m3u8", type: "hls" },
             { name: "DIM", logo: "iconukr.png", url: "https://dash2.antik.sk/live/telekanal_dim/playlist.m3u8", type: "hls" },
             { name: "Espreso TV", logo: "iconukr.png", url: "https://dash2.antik.sk/live/test_espresso/playlist.m3u8", type: "hls" },
@@ -279,30 +281,13 @@
             { name: "FilmUA Drama", logo: "iconukr.png", url: "https://dash2.antik.sk/live/test_film_drama_atktv/playlist.m3u8", type: "hls" },
             { name: "FREEDOM", logo: "iconukr.png", url: "https://dash2.antik.sk/live/test_uatv/playlist.m3u8", type: "hls" },
             { name: "Happy Radio TV", logo: "iconukr.png", url: "https://tv.mediacp.eu:8081/happyradio/tracks-v1a1/mono.ts.m3u8", type: "hls" },
-            { name: "Inter+", logo: "iconukr.png", url: "https://cdn15.live-tv.cloud/ua_infinitas_tv/inter-abr/inter/720/chunks.m3u8?nimblesessionid=18864703", type: "hls" },
-            { name: "ITV", logo: "iconukr.png", url: "https://cdn10.live-tv.cloud/itvrv/abr-lq/itvrv/480p/chunks.m3u8?nimblesessionid=484221", type: "hls" },
-            { name: "Izmail TV", logo: "iconukr.png", url: "https://cdn10.live-tv.cloud/izod/izod-abr-lq/izod/izod-sub/chunks.m3u8?nimblesessionid=484379", type: "hls" },
             { name: "Kus-Kus", logo: "iconukr.png", url: "https://dash2.antik.sk/live/test_kuskus_tv_atktv/playlist.m3u8", type: "hls" },
             { name: "Kvartal TV Int", logo: "iconukr.png", url: "https://dash2.antik.sk/live/kvartal_tv/playlist.m3u8", type: "hls" },
-            { name: "Muzvar", logo: "iconukr.png", url: "https://cdn15.live-tv.cloud/ua_infinitas_tv/muzvar-abr/muzvar/muzvar720/chunks.m3u8?nimblesessionid=18864746", type: "hls" },
-            { name: "NASHE Music", logo: "iconukr.png", url: "https://cdn15.live-tv.cloud/ua_infinitas_tv/nashemus-abr/nashemus/nashemus720/chunks.m3u8?nimblesessionid=18864748", type: "hls" },
             { name: "NKT TV", logo: "iconukr.png", url: "https://stream.ntktv.ua/s/ntk/ntk.m3u8", type: "hls" },
-            { name: "NTN", logo: "iconukr.png", url: "https://cdn15.live-tv.cloud/ua_infinitas_tv/ntn-abr/intermedia/ntn/chunks.m3u8?nimblesessionid=18864753", type: "hls" },
-            { name: "PTV", logo: "iconukr.png", url: "https://cdn15.live-tv.cloud/ua_infinitas_tv/hrpl-abr/hrpl/720p/chunks.m3u8?nimblesessionid=18864762", type: "hls" },
-            { name: "Rivne 1", logo: "iconukr.png", url: "https://cdn1.live-tv.cloud/rivne1/rivne1-abr/rivne1/rivne1/chunks.m3u8?nimblesessionid=485617", type: "hls" },
             { name: "Rybalka", logo: "iconukr.png", url: "https://dash2.antik.sk/live/test_rybalka_tv_atktv/playlist.m3u8", type: "hls" },
-            { name: "Sfera TV", logo: "iconukr.png", url: "https://cdn10.live-tv.cloud/sferarv/sferarv-abr/sferarv/360p/chunks.m3u8?nimblesessionid=485831", type: "hls" },
-            { name: "Simon", logo: "iconukr.png", url: "https://hls.simon.ua/live-HD/live/chunks.m3u8?nimblesessionid=377083", type: "hls" },
-            { name: "Suspilne Kultura", logo: "iconukr.png", url: "https://cdn15.live-tv.cloud/ua_infinitas_tv/7tvod-abr/playlist.m3u8", type: "hls" },
-            { name: "Suspilne Pershyi", logo: "iconukr.png", url: "https://www.youtube.com/watch?v=uOntga5OQrs", type: "youtube" }, 
-            { name: "Suspline Mix", logo: "iconukr.png", url: "suspline.m3u8", type: "hls" },
-            { name: "Suspline Kyiv Video Only", logo: "iconukr.png", url: "https://live-nstu.cdn-03.cosmonova.net.ua/mobile-app/main/nstu-kyiv/nstu-kyiv_video_high_.m3u8", type: "hls" },
-            { name: "Suspline Kyiv Audio Only", logo: "iconukr.png", url: "https://live-nstu.cdn-03.cosmonova.net.ua/mobile-app/main/nstu-kyiv/nstu-kyiv_audio_ukr_high_.m3u8", type: "hls" },
             { name: "Telekanal RAI", logo: "iconukr.png", url: "https://stream.rai.ua/rai/stream.m3u8", type: "hls" },
 
-
-          
-        ];
+    ];
 
         let activeFocusIndex = 0;
 
@@ -329,7 +314,7 @@
                     </div>
                     <div class="channel-details">
                         <div class="channel-name">${channel.name}</div>
-                        <div class="channel-type">${channel.type === 'youtube' ? 'YouTube' : 'Canlı Stream'}</div>
+                        <div class="channel-type">${channel.type === 'youtube' ? 'YouTube' : 'Live Stream'}</div>
                     </div>
                 `;
 
