@@ -1,8 +1,14 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="apple-touch-icon" sizes="180x180" href="food-icon-128.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="KALORİ">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <title>Kalori Sayacı</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
@@ -12,7 +18,7 @@
         <div class="bg-slate-800 rounded-3xl p-8 text-center border border-slate-700 shadow-2xl">
             <h2 class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">Kalan Kalori</h2>
             <div id="remaining" class="text-7xl font-black text-emerald-400">1350</div>
-            <div class="mt-4 text-[10px] text-slate-500 uppercase tracking-tighter">Günlük Hedef: 1350 kcal</div>
+            <div class="mt-4 text-[10px] text-slate-500 uppercase tracking-tighter">Günlük Hedef: 1250 kcal</div>
         </div>
 
         <div class="bg-slate-800 p-6 rounded-3xl border border-slate-700">
@@ -33,7 +39,7 @@
     </div>
 
     <script>
-        const GOAL = 1350;
+        const GOAL = 1250;
 
         // Sayfa açıldığında çalışır
         window.onload = () => {
