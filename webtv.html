@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link rel="apple-touch-icon" sizes="180x180" href="IMG_1030.jpeg">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="WEB TV">
+    <title>WEB TV</title>
+    
+    <!-- Video.js CSS -->
+    <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #080b11;
+            color: #f3f4f6;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* 1. MOBİL İÇİN VİDEO BÖLÜMÜ (Masaüstünde flex-direction değişecek) */
+        .player-section {
+            width: 100%;
+            background-color: #000;
+            position: relative;
+            z-index: 10;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .player-wrapper {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background: #000;
+        }
+
+        .video-js {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .info-bar {
+            background: #0d1321;
+            padding: 12px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .info-bar h1 {
+            font-size: 1rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, #fff, #fff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .current-badge {
+            font-size: 1.2rem;
+            background: rgba(59, 130, 246, 0.1);
+            border: 2px solid rgba(59, 130, 246, 0.3);
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        /* 2. KANAL LİSTESİ BÖLÜMÜ */
+        .content-section {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .section-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #4b5563;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .channel-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding-bottom: 40px;
+        }
+
+        .channel-card {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 14px;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .channel-card:focus {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #ffffff;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+            transform: scale(1.02);
+        }
+
+        .channel-card.active {
+            background: linear-gradient(90deg, rgba(30, 58, 138, 0.6) 0%, rgba(17, 24, 39, 0.8) 100%);
+            border-color: #3b82f6;
+            
+        }
+
+        .logo-container {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            background: #000;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 16px;
+            flex-shrink: 0;
+        }
+
+        .channel-logo {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .channel-name {
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .channel-type {
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-top: 2px;
+        }
+
+        /* ==========================================================================
+           MASAÜSTÜ AYARLARI (Yenilenmiş Sinematik Tam Ekran Düzeni)
+           ========================================================================== */
+        @media (min-width: 992px) {
+            body { 
+                flex-direction: row-reverse; /* Listeyi sağa, videoyu sola dev ekran olarak yaslar */
+            }
+
+            /* Video Alanı: Artık ufacık değil, listenin dışındaki tüm dev alanı kaplar */
+            .player-section { 
+                flex: 1; 
+                height: 100vh; 
+                padding: 0; 
+                background: #000;
+                box-shadow: none;
+            }
+
+            /* Video kutusu tüm ekranı dolduracak şekilde esnetildi */
+            .player-wrapper { 
+                flex: 1;
+                height: calc(100vh - 55px); /* Bilgi çubuğu yüksekliği düşüldü */
+                aspect-ratio: auto; /* Sabit 16:9 oran zorlamasını kaldırıp tam ekran yaptık */
+            }
+
+            .info-bar { 
+                height: 55px;
+                background: #06080c; 
+                border-top: 1px solid rgba(255, 255, 255, 0.05);
+                border-bottom: none;
+            }
+
+            /* Kanal Listesi: Sol veya sağ tarafta sabit 380px sütun olarak kalır */
+            .content-section { 
+                width: 380px; 
+                max-width: 380px; 
+                height: 100vh;
+                background: #0d1321; 
+                border-right: 1px solid rgba(255, 255, 255, 0.05); 
+                border-left: none;
+            }
+
+            .channel-card:hover {
+                background: rgba(255, 255, 255, 0.05);
+                border-color: rgba(255, 255, 255, 0.15);
+            }
+        }
+
+
+          
+
+    
+
+
+
+
+    </style>
+</head>
+<body>
+
+    <!-- Oynatıcı Alanı (Masaüstünde Dev Ekran) -->
+    <div class="player-section">
+        <div class="player-wrapper">
+            <video id="main-tv-player" class="video-js vjs-default-skin vjs-big-play-centered" controls preload="auto" playsinline></video>
+        </div>
+        <div class="info-bar">
+            <h1>TVX2</h1>
+            <div class="current-badge" id="currentTrack">Yükleniyor...</div>
+        </div>
+    </div>
+
+    <!-- Yan Menü Kanal Listesi -->
+    <div class="content-section">
+        <div class="section-title">Kanallar</div>
+        <div class="channel-grid" id="channelGrid"></div>
+    </div>
+
+    <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/videojs-youtube/3.0.1/videojs-youtube.min.js"></script>
+
+    <script>
+        const channels = [
+  { name: "WELCOME", logo: "IMG_1030.jpeg", url: "https://lotus.stingray.com/manifest/ose-122ads-montreal/samsungtvplus/master.m3u8", type: "hls" },
+  { name: "FX TR", logo: "IMG_1030.jpeg", url: "https://saran-live.ercdn.net/fx/index.m3u8", type: "hls" },
+  { name: "CNBC-E", logo: "IMG_1030.jpeg", url: "https://hnpsechtsc.turknet.ercdn.net/xpnvudnlsv/cnbc-e/cnbc-e_720p.m3u8", type: "hls" },
+  { name: "TRT1", logo: "IMG_1030.jpeg", url: "https://tv-trt1.medya.trt.com.tr/master_1080.m3u8", type: "hls" },
+  { name: "TRT2", logo: "IMG_1030.jpeg", url: "https://tv-trt2.medya.trt.com.tr/master_1080.m3u8", type: "hls" },
+  { name: "TRT BELGESEL", logo: "IMG_1030.jpeg", url: "https://tv-trtbelgesel.medya.trt.com.tr/master.m3u8", type: "hls" },
+  { name: "GZT", logo: "IMG_1030.jpeg", url: "https://gzttv-live.lg.mncdn.com/gzttv/gzttv/chunklist.m3u8", type: "hls" },
+  { name: "TRT SPOR", logo: "IMG_1030.jpeg", url: "https://tv-trtspor1.medya.trt.com.tr/master.m3u8", type: "hls" },
+  { name: "Kabel Eins", logo: "IMG_1030.jpeg", url: "https://dash4.antik.sk/live/test_kabel_eins_tizen/playlist.m3u8", type: "hls" },
+  { name: "BritBox M", logo: "IMG_1030.jpeg", url: "https://aegis-cloudfront-1.tubi.video/c95700f8-e51c-4a36-ad46-56f70fc9f1d9/playlist_1920x1080.m3u8", type: "hls" },
+  { name: "Getfa UK", logo: "IMG_1030.jpeg", url: "https://d1nhni5l2n8hjt.cloudfront.net/gf_720.m3u8", type: "hls" },
+  { name: "ARTE HD", logo: "IMG_1030.jpeg", url: "https://dash4.antik.sk/live/test_arte_avc_25p/playlist.m3u8", type: "hls" },
+  { name: "PRO 7", logo: "IMG_1030.jpeg", url: "https://dash4.antik.sk/live/test_pro_sieben_tizen/playlist.m3u8", type: "hls" },
+  { name: "SAT 1 GOLD", logo: "IMG_1030.jpeg", url: "https://dash4.antik.sk/live/test_sat_eins_gold_tizen/playlist.m3u8", type: "hls" },
+  { name: "Into Crime", logo: "IMG_1030.jpeg", url: "https://amg00711-zylo-amg00711c10-rakuten-fr-6731.playouts.now.amagi.tv/playlist1080p.m3u8", type: "hls" },
+  { name: "InWild", logo: "IMG_1030.jpeg", url: "https://amg00861-amg00861c7-stirr-us-8227.playouts.now.amagi.tv/1080p-en/index.m3u8", type: "hls" },
+  { name: "Atlas", logo: "IMG_1030.jpeg", url: "https://cdn.whiplash.cc/whiplash-atlas/tracks-v1a1/mono.m3u8", type: "hls" },
+  { name: "The Nest", logo: "IMG_1030.jpeg", url: "https://fast-channels.sinclairstoryline.com/THENEST/index_1.m3u8", type: "hls" },
+  { name: "FRANCE 24", logo: "IMG_1030.jpeg", url: "https://live.france24.com/hls/live/2037218-b/F24_EN_HI_HLS/master_5000.m3u8", type: "hls" },
+  { name: "BBC NEWS", logo: "IMG_1030.jpeg", url: "https://vs-hls-push-ww-live.akamaized.net/x=4/i=urn:bbc:pips:service:bbc_news_channel_hd/t=3840/v=pv14/b=5070016/main.m3u8", type: "hls" },
+  { name: "BBC EARTH", logo: "IMG_1030.jpeg", url: "https://amg00793-amg00793c6-xumo-us-2669.playouts.now.amagi.tv/BBCStudios-BBCEarthA-hls/playlist1080p.m3u8", type: "hls" },
+  { name: "CBS NEWS", logo: "IMG_1030.jpeg", url: "https://cbsn-us.cbsnstream.cbsnews.com/out/v1/55a8648e8f134e82a470f83d562deeca/master_24.m3u8", type: "hls" },
+  { name: "DW ENG", logo: "IMG_1030.jpeg", url: "https://dwamdstream102.akamaized.net/hls/live/2015525/dwstream102/stream05/streamPlaylist.m3u8", type: "hls" },
+  { name: "LOVE NATURE", logo: "IMG_1030.jpeg", url: "https://aegis-cloudfront-1.tubi.video/6d6d0f24-8445-4b4c-bdf6-44f9e38beaa4/1080p-cc/index.m3u8", type: "hls" },
+  { name: "NATURESCAPE", logo: "IMG_1030.jpeg", url: "https://lotus.stingray.com/manifest/naturescape-a003-montreal/samsungtvplus/f7ed86a4-b8ac-38e0-a745-710077a95be6/3291200/manifest.m3u8", type: "hls" },
+  { name: "EARTH", logo: "IMG_1030.jpeg", url: "https://autentic-adventure-earth-1-gb.lg.wurl.tv/playlist.m3u8", type: "hls" },
+  { name: "NATURE TIME", logo: "IMG_1030.jpeg", url: "https://amg01515-amg01515c13-xiaomi-international-4618.playouts.now.amagi.tv/playlist.m3u8", type: "hls" },
+  { name: "FASHION TV", logo: "IMG_1030.jpeg", url: "https://cdn-ue1-prod.tsv2.amagi.tv/linear/amg01546-ftv-fashiontv-xiaomi/playlist.m3u8", type: "hls" },
+  { name: "Space Live", logo: "IMG_1030.jpeg", url: "https://d111bsx9oooqoh.cloudfront.net/playlist_1920x1080.m3u8", type: "hls" },
+//{ name: "Suspilne Pershyi", logo: "IMG_1030.jpeg", url: "https://www.youtube.com/watch?v=uOntga5OQrs", type: "youtube" }, 
+  { name: "Empty Slot", logo: "IMG_1030.jpeg", url: "", type: "hls" },
+
+
+          
+        ];
+
+        let activeFocusIndex = 0;
+
+        const player = videojs('main-tv-player', {
+            fluid: false, // Tam ekran yayılımı sağlamak için akışkan mod kapatıldı (Masaüstü için)
+            fill: true,   // Video.js'in içinde bulunduğu div'i tamamen doldurmasını sağlar
+            techOrder: ["html5", "youtube"],
+            youtube: { "iv_load_policy": 3, "modestbranding": 1 }
+        });
+
+        const gridContainer = document.getElementById('channelGrid');
+        const currentTrackBadge = document.getElementById('currentTrack');
+
+        function initApp() {
+            channels.forEach((channel, idx) => {
+                const card = document.createElement('div');
+                card.className = `channel-card ${idx === 0 ? 'active' : ''}`;
+                card.setAttribute('tabindex', '0'); 
+                card.setAttribute('data-index', idx);
+
+                card.innerHTML = `
+                    <div class="logo-container">
+                        <img src="${channel.logo}" class="channel-logo" alt="${channel.name}" onerror="this.src='https://via.placeholder.com/50?text=TV'">
+                    </div>
+                    <div class="channel-details">
+                        <div class="channel-name">${channel.name}</div>
+                        <div class="channel-type">${channel.type === 'youtube' ? 'YouTube' : 'Live Stream'}</div>
+                    </div>
+                `;
+
+                card.addEventListener('click', () => { selectChannel(idx); });
+                card.addEventListener('focus', () => { activeFocusIndex = idx; });
+                gridContainer.appendChild(card);
+            });
+
+            if(channels.length > 0) playStream(channels[0]);
+            
+            setTimeout(() => {
+                const initialFocus = document.querySelector('.channel-card');
+                if(initialFocus) initialFocus.focus();
+            }, 500);
+        }
+
+        function selectChannel(idx) {
+            document.querySelectorAll('.channel-card').forEach(c => c.classList.remove('active'));
+            const cards = document.querySelectorAll('.channel-card');
+            if(cards[idx]) {
+                cards[idx].classList.add('active');
+                playStream(channels[idx]);
+            }
+        }
+
+        function playStream(channel) {
+            currentTrackBadge.innerText = channel.name;
+            if (channel.type === "youtube") {
+                player.src({ src: channel.url, type: "video/youtube" });
+            } else {
+                player.src({ src: channel.url, type: "application/x-mpegURL" });
+            }
+            player.ready(() => {
+                player.play().catch(() => console.log("Oynatma başlatılamadı"));
+            });
+        }
+
+        // TV Kumandası Tuş Kombinasyonları
+        document.addEventListener('keydown', function(e) {
+            const cards = document.querySelectorAll('.channel-card');
+            switch(e.key) {
+                case 'ArrowDown':
+                    e.preventDefault();
+                    if (activeFocusIndex < cards.length - 1) {
+                        activeFocusIndex++;
+                        cards[activeFocusIndex].focus();
+                        cards[activeFocusIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }
+                    break;
+                case 'ArrowUp':
+                    e.preventDefault();
+                    if (activeFocusIndex > 0) {
+                        activeFocusIndex--;
+                        cards[activeFocusIndex].focus();
+                        cards[activeFocusIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }
+                    break;
+                case 'Enter':
+                    e.preventDefault();
+                    selectChannel(activeFocusIndex);
+                    break;
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
