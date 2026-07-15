@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            background: transparent;
+        }
+        textarea {
+            width: 100%; height: 100%; border: none; background: transparent;
+            resize: none; font-size: 16px; outline: none; padding: 15px;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+    <textarea id="note-area" placeholder="Notlarınızı buraya yazın... Otomatik kaydedilir."></textarea>
+
+    <script>
+        const noteArea = document.getElementById('note-area');
+
+        // Tarayıcı belleğinden notu geri yükle
+        window.addEventListener('DOMContentLoaded', () => {
+            const saved = localStorage.getItem('webos_saved_note');
+            if (saved !== null) noteArea.value = saved;
+        });
+
+        // Her yazıldığında belleğe kaydet
+        noteArea.addEventListener('input', () => {
+            localStorage.setItem('webos_saved_note', noteArea.value);
+        });
+    </script>
+</body>
+</html>
