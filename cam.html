@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Kimlik Tara</title>
+    <style>
+        :root {
+            --bg-color: #F2F2F7;
+            --card-bg: #FFFFFF;
+            --primary: #007AFF;
+            --text-color: #000000;
+            --secondary-text: #8E8E93;
+            --border-color: #E5E5EA;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 375px; /* iPhone 13 mini min-width */
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 12px 0;
+            font-size: 17px;
+            font-weight: 600;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .card-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .preview-box {
+            width: 100%;
+            height: 160px;
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            background: #FAFAFC;
+            position: relative;
+        }
+
+        .preview-box img, .preview-box video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            background-color: var(--primary);
+            color: white;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .btn:active {
+            opacity: 0.8;
+        }
+
+        .btn-secondary {
+            background-color: #E5E5EA;
+            color: #000000;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+        }
+
+        canvas {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div class="header">Kimlik Birleştirici</div>
+
+    <!-- Ön Yüz -->
+    <div class="card">
+        <div class="card-title">1. Ön Yüz</div>
+        <div class="preview-box" id="box-front">
+            <span style="color: var(--secondary-text); font-size: 13px;">Görsel Yok</span>
+        </div>
+        <div class="btn-group">
+            <button class="btn" onclick="startCamera('front')">Kamera</button>
+            <button class="btn btn-secondary" onclick="captureImage('front')" id="cap-front" style="display:none;">Çek</button>
+        </div>
+    </div>
+
+    <!-- Arka Yüz -->
+    <div class="card">
+        <div class="card-title">2. Arka Yüz</div>
+        <div class="preview-box" id="box-back">
+            <span style="color: var(--secondary-text); font-size: 13px;">Görsel Yok</span>
+        </div>
+        <div class="btn-group">
+            <button class="btn" onclick="startCamera('back')">Kamera</button>
+            <button class="btn btn-secondary" onclick="captureImage('back')" id="cap-back" style="display:none;">Çek</button>
+        </div>
+    </div>
+
+    <!-- Birleştir & İndir -->
+    <button class="btn" style="background-color: #34C759;" onclick="mergeImages()">Birleştir ve İndir</button>
+</div>
+
+<canvas id="canvas"></canvas>
+
+<script>
+    let currentStream = null;
+    let images = { front: null, back: null };
+
+    async function startCamera(side) {
+        if (currentStream) {
+            currentStream.getTracks().forEach(track => track.stop());
+        }
+
+        const box = document.getElementById(`box-${side}`);
+        box.innerHTML = `<video id="video-${side}" autoplay playsinline></video>`;
+        
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: { exact: "environment" } }
+            }).catch(() => navigator.mediaDevices.getUserMedia({ video: true }));
+
+            currentStream = stream;
+            const video = document.getElementById(`video-${side}`);
+            video.srcObject = stream;
+            document.getElementById(`cap-${side}`).style.display = 'block';
+        } catch (err) {
+            alert("Kameraya erişilemedi: " + err);
+        }
+    }
+
+    function captureImage(side) {
+        const video = document.getElementById(`video-${side}`);
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        const imgData = canvas.toDataURL('image/png');
+        images[side] = new Image();
+        images[side].src = imgData;
+
+        const box = document.getElementById(`box-${side}`);
+        box.innerHTML = `<img src="${imgData}">`;
+
+        if (currentStream) {
+            currentStream.getTracks().forEach(track => track.stop());
+        }
+        document.getElementById(`cap-${side}`).style.display = 'none';
+    }
+
+    function mergeImages() {
+        if (!images.front || !images.back) {
+            alert("Lütfen iki tarafı da çekin.");
+            return;
+        }
+
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        const width = Math.max(images.front.width, images.back.width);
+        const height = images.front.height + images.back.height + 40;
+
+        canvas.width = width;
+        canvas.height = height;
+
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillRect(0, 0, width, height);
+
+        ctx.drawImage(images.front, (width - images.front.width) / 2, 0);
+        ctx.drawImage(images.back, (width - images.back.width) / 2, images.front.height + 40);
+
+        const link = document.createElement('a');
+        link.download = 'kimlik-birlesik.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+    }
+</script>
+
+</body>
+</html>
+
