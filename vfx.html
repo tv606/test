@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -157,19 +157,19 @@
 <div class="app-container">
   <div class="header">
     <h1>Noir FX</h1>
-    <button class="upload-btn" onclick="document.getElementById('fileInput').click()">Medya Seç</button>
+    <button class="upload-btn" onclick="document.getElementById('fileInput').click()">Select Media</button>
     <input type="file" id="fileInput" accept="video/*">
   </div>
 
   <div class="preview-area">
-    <span class="placeholder" id="placeholderText">Maksimum 20s video yükleyin</span>
+    <span class="placeholder" id="placeholderText">Upload video (Max 20s)</span>
     <canvas id="canvas" style="display:none;"></canvas>
     <video id="video" autoplay loop playsinline muted hidden></video>
     
     <div class="loading-overlay" id="loadingOverlay">
       <div class="spinner" id="loadingSpinner"></div>
-      <span class="loading-text" id="loadingText">Hazırlanıyor... %0</span>
-      <button class="overlay-share-btn" id="overlayShareBtn" onclick="triggerNativeShare()">Videoyu Paylaş / Kaydet</button>
+      <span class="loading-text" id="loadingText">Processing... 0%</span>
+      <button class="overlay-share-btn" id="overlayShareBtn" onclick="triggerNativeShare()">Share / Save Video</button>
     </div>
   </div>
 
@@ -177,11 +177,19 @@
     <div class="filter-bar">
       <div class="filter-card active" onclick="applyFilter('classic', this)">
         <div class="filter-thumb" style="background:#666;"></div>
-        <span>Klasik</span>
+        <span>Classic</span>
       </div>
       <div class="filter-card" onclick="applyFilter('noir', this)">
         <div class="filter-thumb" style="background:#222; border:1px solid #555;"></div>
-        <span>Derin Noir</span>
+        <span>Deep Noir</span>
+      </div>
+      <div class="filter-card" onclick="applyFilter('vhs', this)">
+        <div class="filter-thumb" style="background:#333; border: 1px dashed #777;"></div>
+        <span>VHS Tape</span>
+      </div>
+      <div class="filter-card" onclick="applyFilter('glitch', this)">
+        <div class="filter-thumb" style="background:#1a1a1a;"></div>
+        <span>80s Glitch</span>
       </div>
       <div class="filter-card" onclick="applyFilter('grain', this)">
         <div class="filter-thumb" style="background:#888;"></div>
@@ -189,19 +197,19 @@
       </div>
       <div class="filter-card" onclick="applyFilter('scratch', this)">
         <div class="filter-thumb" style="background:#444;"></div>
-        <span>Çizikli Film</span>
+        <span>Scratch</span>
       </div>
       <div class="filter-card" onclick="applyFilter('soft', this)">
         <div class="filter-thumb" style="background:#aaa;"></div>
-        <span>Yumuşak</span>
+        <span>Soft</span>
       </div>
       <div class="filter-card" onclick="applyFilter('charcoal', this)">
         <div class="filter-thumb" style="background:#111;"></div>
-        <span>Kömür</span>
+        <span>Charcoal</span>
       </div>
     </div>
 
-    <button class="action-btn" id="shareBtn" onclick="exportVideo()">Video İşle</button>
+    <button class="action-btn" id="shareBtn" onclick="exportVideo()">Process Video</button>
   </div>
 </div>
 
@@ -229,7 +237,7 @@
 
   video.onloadedmetadata = () => {
     if (video.duration > 20) {
-      alert("Video süresi 20 saniyeden uzun olamaz!");
+      alert("Video length cannot exceed 20 seconds!");
       video.removeAttribute('src');
       video.load();
       fileInput.value = '';
@@ -254,6 +262,8 @@
   function processPixels() {
     const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const d = imgData.data;
+    const w = canvas.width;
+    const h = canvas.height;
     
     for (let i = 0; i < d.length; i += 4) {
       let r = d[i], g = d[i+1], b = d[i+2];
@@ -261,6 +271,10 @@
 
       if (currentFilter === 'noir') {
         v = (v - 128) * 1.6 + 128;
+      } else if (currentFilter === 'vhs') {
+        v += (Math.random() - 0.5) * 35;
+      } else if (currentFilter === 'glitch') {
+        v = (v - 128) * 1.8 + 128;
       } else if (currentFilter === 'grain') {
         v += (Math.random() - 0.5) * 45;
       } else if (currentFilter === 'scratch') {
@@ -277,13 +291,34 @@
     
     ctx.putImageData(imgData, 0, 0);
 
+    if (currentFilter === 'vhs') {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+      for (let y = 0; y < h; y += 4) {
+        ctx.fillRect(0, y, w, 2);
+      }
+      if (Math.random() < 0.3) {
+        const lineY = Math.random() * h;
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+        ctx.fillRect(0, lineY, w, Math.random() * 4 + 1);
+      }
+    }
+
+    if (currentFilter === 'glitch' && Math.random() < 0.35) {
+      const sliceY = Math.floor(Math.random() * (h - 20));
+      const sliceH = Math.floor(Math.random() * 15) + 5;
+      const offsetX = (Math.random() - 0.5) * 30;
+      
+      const sliceData = ctx.getImageData(0, sliceY, w, sliceH);
+      ctx.putImageData(sliceData, offsetX, sliceY);
+    }
+
     if (currentFilter === 'scratch' && Math.random() < 0.4) {
       ctx.strokeStyle = Math.random() < 0.5 ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)';
       ctx.lineWidth = Math.random() * 2;
       ctx.beginPath();
-      let x = Math.random() * canvas.width;
+      let x = Math.random() * w;
       ctx.moveTo(x, 0);
-      ctx.lineTo(x + (Math.random() - 0.5) * 10, canvas.height);
+      ctx.lineTo(x + (Math.random() - 0.5) * 10, h);
       ctx.stroke();
     }
   }
@@ -304,7 +339,7 @@
     overlay.style.display = 'flex';
     loadingSpinner.style.display = 'block';
     overlayShareBtn.style.display = 'none';
-    loadingText.innerText = 'İşleniyor... %0';
+    loadingText.innerText = 'Processing... 0%';
     shareBtn.disabled = true;
     shareBtn.style.opacity = '0.5';
 
@@ -327,7 +362,7 @@
     const progressInterval = setInterval(() => {
       if (video.duration) {
         const percent = Math.min(100, Math.round((video.currentTime / video.duration) * 100));
-        loadingText.innerText = `İşleniyor... %${percent}`;
+        loadingText.innerText = `Processing... ${percent}%`;
       }
     }, 100);
 
@@ -341,7 +376,7 @@
       processedFile = new File([blob], `noir-fx.${ext}`, { type: type });
 
       loadingSpinner.style.display = 'none';
-      loadingText.innerText = 'Video Hazır!';
+      loadingText.innerText = 'Video Ready!';
       overlayShareBtn.style.display = 'inline-block';
     };
 
