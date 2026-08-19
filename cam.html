@@ -218,7 +218,7 @@
                     <span style="color: var(--secondary-text); font-size: 12px;">No Image</span>
                 </div>
                 <div class="btn-group">
-                    <button class="btn" onclick="startCamera('front')">Camera</button>
+                    <button class="btn" id="btn-start-front" onclick="startCamera('front')">Camera</button>
                     <button class="btn btn-secondary" onclick="captureImage('front')" id="cap-front" style="display:none;">Capture</button>
                 </div>
             </div>
@@ -230,7 +230,7 @@
                     <span style="color: var(--secondary-text); font-size: 12px;">No Image</span>
                 </div>
                 <div class="btn-group">
-                    <button class="btn" onclick="startCamera('back')">Camera</button>
+                    <button class="btn" id="btn-start-back" onclick="startCamera('back')">Camera</button>
                     <button class="btn btn-secondary" onclick="captureImage('back')" id="cap-back" style="display:none;">Capture</button>
                 </div>
             </div>
@@ -251,7 +251,7 @@
             <span style="color: var(--secondary-text); font-size: 12px;">Generating preview...</span>
         </div>
 
-        <button class="btn btn-save" onclick="saveToGallery()">Save to Gallery</button>
+        <button class="btn btn-save" onclick="saveToGallery()">Save Image</button>
     </div>
 </div>
 
@@ -283,7 +283,9 @@
             currentStream = stream;
             const video = document.getElementById(`video-${side}`);
             video.srcObject = stream;
+            
             document.getElementById(`cap-${side}`).style.display = 'block';
+            document.getElementById(`btn-start-${side}`).style.display = 'block';
         } catch (err) {
             alert("Camera access denied: " + err);
         }
@@ -309,6 +311,7 @@
             currentStream.getTracks().forEach(track => track.stop());
         }
         document.getElementById(`cap-${side}`).style.display = 'none';
+        document.getElementById(`btn-start-${side}`).style.display = 'block';
     }
 
     function goToPreview() {
