@@ -273,11 +273,10 @@
         try {
             const stream = await navigator.mediaDevices.getUserMedia({
                 video: { 
-                    facingMode: { exact: "environment" },
-                    aspectRatio: 4 / 3
+                    facingMode: { exact: "environment" }
                 }
             }).catch(() => navigator.mediaDevices.getUserMedia({ 
-                video: { aspectRatio: 4 / 3 } 
+                video: true 
             }));
 
             currentStream = stream;
@@ -293,18 +292,47 @@
 
     function captureImage(side) {
         const video = document.getElementById(`video-${side}`);
-        const canvas = document.createElement('canvas');
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
+        const box = document.getElementById(`box-${side}`);
         
+        const boxRect = box.getBoundingClientRect();
+        const boxWidth = boxRect.width;
+        const boxHeight = boxRect.height;
+        
+        const canvas = document.createElement('canvas');
+        canvas.width = boxWidth * 2;
+        canvas.height = boxHeight * 2;
         const ctx = canvas.getContext('2d');
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        const videoWidth = video.videoWidth;
+        const videoHeight = video.videoHeight;
+        
+        const boxRatio = boxWidth / boxHeight;
+        const videoRatio = videoWidth / videoHeight;
+
+        let sx, sy, sWidth, sHeight;
+
+        if (videoRatio > boxRatio) {
+            sHeight = videoHeight;
+            sWidth = videoHeight * boxRatio;
+            sx = (videoWidth - sWidth) / 2;
+            sy = 0;
+        } else {
+            sWidth = videoWidth;
+            sHeight = videoWidth / boxRatio;
+            sx = 0;
+            sy = (videoHeight - sHeight) / 2;
+        }
+
+        ctx.drawImage(video, sx, sy, sWidth, sHeight, 0, 0, canvas.width, canvas.height);
 
         const imgData = canvas.toDataURL('image/png');
-        images[side] = new Image();
-        images[side].src = imgData;
+        images[side] = {
+            img: new Image(),
+            width: canvas.width,
+            height: canvas.height
+        };
+        images[side].img.src = imgData;
 
-        const box = document.getElementById(`box-${side}`);
         box.innerHTML = `<img src="${imgData}">`;
 
         if (currentStream) {
@@ -332,8 +360,12 @@
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
 
-        const width = Math.max(images.front.width, images.back.width);
-        const height = images.front.height + images.back.height + 40;
+        const front = images.front;
+        const back = images.back;
+
+        const width = Math.max(front.width, back.width);
+        const gap = 20;
+        const height = front.height + back.height + gap;
 
         canvas.width = width;
         canvas.height = height;
@@ -341,8 +373,8 @@
         ctx.fillStyle = "#0F0F12";
         ctx.fillRect(0, 0, width, height);
 
-        ctx.drawImage(images.front, (width - images.front.width) / 2, 0);
-        ctx.drawImage(images.back, (width - images.back.width) / 2, images.front.height + 40);
+        ctx.drawImage(front.img, (width - front.width) / 2, 0, front.width, front.height);
+        ctx.drawImage(back.img, (width - back.width) / 2, front.height + gap, back.width, back.height);
 
         mergedDataUrl = canvas.toDataURL('image/png');
         
