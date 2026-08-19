@@ -8,23 +8,23 @@
   <title>FilterApp</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background-color: #000; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; color: #fff; }
+    html, body { width: 100%; height: 100dvh; overflow: hidden; background-color: #000; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; color: #fff; }
     
     .app-container {
-      width: 100vw;
-      height: 100vh;
-      max-width: 375px;
-      max-height: 812px;
+      width: 100%;
+      height: 100dvh;
+      max-width: 430px;
       margin: 0 auto;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      padding: env(safe-area-inset-top, 20px) 16px env(safe-area-inset-bottom, 20px) 16px;
+      padding: env(safe-area-inset-top, 12px) 16px env(safe-area-inset-bottom, 12px) 16px;
       position: relative;
     }
 
     .header {
-      height: 44px;
+      height: 40px;
+      flex-shrink: 0;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -43,9 +43,10 @@
 
     .preview-area {
       flex: 1;
-      margin: 12px 0;
+      min-height: 0;
+      margin: 8px 0;
       background: #121212;
-      border-radius: 24px;
+      border-radius: 20px;
       overflow: hidden;
       display: flex;
       align-items: center;
@@ -53,13 +54,14 @@
       position: relative;
       box-shadow: 0 20px 40px rgba(0,0,0,0.5);
     }
-    canvas { width: 100%; height: 100%; object-fit: cover; }
+    canvas { width: 100%; height: 100%; object-fit: contain; }
     .placeholder { color: #666; font-size: 14px; }
 
     .controls {
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 12px;
+      flex-shrink: 0;
     }
 
     .filter-bar {
@@ -72,29 +74,29 @@
     .filter-bar::-webkit-scrollbar { display: none; }
 
     .filter-card {
-      flex: 0 0 68px;
+      flex: 0 0 60px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 6px;
+      gap: 4px;
       cursor: pointer;
     }
     .filter-thumb {
-      width: 56px;
-      height: 56px;
-      border-radius: 16px;
+      width: 50px;
+      height: 50px;
+      border-radius: 14px;
       background: #222;
       border: 2px solid transparent;
       transition: all 0.2s ease;
     }
     .filter-card.active .filter-thumb { border-color: #007AFF; transform: scale(1.05); }
-    .filter-card span { font-size: 11px; color: #aaa; font-weight: 400; }
+    .filter-card span { font-size: 11px; color: #aaa; font-weight: 400; white-space: nowrap; }
     .filter-card.active span { color: #fff; font-weight: 600; }
 
     .action-btn {
       width: 100%;
-      height: 50px;
-      border-radius: 25px;
+      height: 46px;
+      border-radius: 23px;
       background: #007AFF;
       border: none;
       color: #fff;
@@ -115,7 +117,7 @@
 <div class="app-container">
   <div class="header">
     <h1>FX Video</h1>
-    <button class="upload-btn" onclick="document.getElementById('fileInput').click()">Medyo Seç</button>
+    <button class="upload-btn" onclick="document.getElementById('fileInput').click()">Medya Seç</button>
     <input type="file" id="fileInput" accept="video/*">
   </div>
 
@@ -131,7 +133,7 @@
         <div class="filter-thumb"></div>
         <span>Normal</span>
       </div>
-      <div class="filter-card" onclick="applyFilter('grayscale(100%)', this)">
+      <div class="filter-card" onclick="applyFilter('grayscale(100%) contrast(120%)', this)">
         <div class="filter-thumb" style="filter: grayscale(100%); background:#888;"></div>
         <span>S&B</span>
       </div>
@@ -139,17 +141,33 @@
         <div class="filter-thumb" style="filter: sepia(100%); background:#a88;"></div>
         <span>Sepya</span>
       </div>
-      <div class="filter-card" onclick="applyFilter('contrast(160%) brightness(110%) saturate(140%)', this)">
+      <div class="filter-card" onclick="applyFilter('contrast(150%) brightness(110%) saturate(160%)', this)">
         <div class="filter-thumb" style="filter: contrast(150%); background:#e66;"></div>
-        <span>Vivid</span>
+        <span>Canlı</span>
       </div>
-      <div class="filter-card" onclick="applyFilter('hue-rotate(180deg) invert(10%)', this)">
+      <div class="filter-card" onclick="applyFilter('hue-rotate(180deg) invert(10%) contrast(130%)', this)">
         <div class="filter-thumb" style="filter: hue-rotate(180deg); background:#48e;"></div>
         <span>Cyber</span>
       </div>
+      <div class="filter-card" onclick="applyFilter('sepia(50%) contrast(140%) brightness(90%) hue-rotate(-30deg)', this)">
+        <div class="filter-thumb" style="filter: sepia(50%) hue-rotate(-30deg); background:#c96;"></div>
+        <span>Vintage</span>
+      </div>
+      <div class="filter-card" onclick="applyFilter('invert(100%) hue-rotate(180deg) saturate(200%)', this)">
+        <div class="filter-thumb" style="filter: invert(100%); background:#0ff;"></div>
+        <span>Neon</span>
+      </div>
+      <div class="filter-card" onclick="applyFilter('contrast(200%) brightness(80%) saturate(80%)', this)">
+        <div class="filter-thumb" style="filter: contrast(200%); background:#444;"></div>
+        <span>Dramatik</span>
+      </div>
+      <div class="filter-card" onclick="applyFilter('sepia(30%) saturate(180%) brightness(105%)', this)">
+        <div class="filter-thumb" style="filter: sepia(30%) saturate(180%); background:#f93;"></div>
+        <span>Sıcak</span>
+      </div>
     </div>
 
-    <button class="action-btn" id="saveBtn" onclick="exportVideo()">Kaydet</button>
+    <button class="action-btn" id="shareBtn" onclick="exportVideo()">Paylaş</button>
   </div>
 </div>
 
@@ -167,6 +185,11 @@
     video.src = URL.createObjectURL(file);
     placeholder.style.display = 'none';
     canvas.style.display = 'block';
+  };
+
+  video.onloadedmetadata = () => {
+    canvas.width = video.videoWidth || 375;
+    canvas.height = video.videoHeight || 500;
     video.play();
   };
 
@@ -178,8 +201,6 @@
 
   function render() {
     if (!video.paused && !video.ended) {
-      canvas.width = video.videoWidth || 375;
-      canvas.height = video.videoHeight || 500;
       ctx.filter = currentFilter;
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     }
@@ -190,7 +211,15 @@
   function exportVideo() {
     if (!video.src) return;
     const stream = canvas.captureStream(30);
-    const recorder = new MediaRecorder(stream, { mimeType: 'video/mp4' });
+    
+    let options = {};
+    if (MediaRecorder.isTypeSupported('video/mp4')) {
+      options = { mimeType: 'video/mp4' };
+    } else if (MediaRecorder.isTypeSupported('video/webm')) {
+      options = { mimeType: 'video/webm' };
+    }
+
+    const recorder = new MediaRecorder(stream, options);
     const chunks = [];
 
     video.currentTime = 0;
@@ -198,13 +227,27 @@
     recorder.start();
 
     recorder.ondataavailable = e => chunks.push(e.data);
-    recorder.onstop = () => {
-      const blob = new Blob(chunks, { type: 'video/mp4' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'video-fx.mp4';
-      a.click();
+    recorder.onstop = async () => {
+      const type = options.mimeType || 'video/mp4';
+      const ext = type.includes('webm') ? 'webm' : 'mp4';
+      const blob = new Blob(chunks, { type: type });
+      const file = new File([blob], `video-fx.${ext}`, { type: type });
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({
+            files: [file],
+            title: 'FX Video',
+            text: 'Filtrelenmiş video'
+          });
+        } catch (err) {}
+      } else {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `video-fx.${ext}`;
+        a.click();
+      }
     };
 
     setTimeout(() => recorder.stop(), video.duration * 1000);
