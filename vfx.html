@@ -105,7 +105,7 @@
       gap: 12px;
       overflow-x: auto;
       scrollbar-width: none;
-      padding: 4px 0;
+      padding: 8px 4px;
     }
     .filter-bar::-webkit-scrollbar { display: none; }
 
@@ -114,20 +114,24 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 4px;
+      gap: 6px;
       cursor: pointer;
     }
     .filter-thumb {
-      width: 50px;
-      height: 50px;
+      width: 52px;
+      height: 52px;
       border-radius: 14px;
       background: #222;
       border: 2px solid transparent;
       transition: all 0.2s ease;
     }
-    .filter-card.active .filter-thumb { border-color: #007AFF; transform: scale(1.05); }
+    .filter-card.active .filter-thumb { 
+      border: 3px solid #007AFF; 
+      box-shadow: 0 0 12px rgba(0,122,255,0.9);
+      transform: scale(1.1); 
+    }
     .filter-card span { font-size: 11px; color: #aaa; font-weight: 400; white-space: nowrap; }
-    .filter-card.active span { color: #fff; font-weight: 600; }
+    .filter-card.active span { color: #007AFF; font-weight: 700; }
 
     .action-btn {
       width: 100%;
@@ -197,7 +201,7 @@
       </div>
     </div>
 
-    <button class="action-btn" id="shareBtn" onclick="exportVideo()">Video İşle</button>
+    <button class="action-btn" id="shareBtn" onclick="exportVideo()">Video İşle (Maks 20sn)</button>
   </div>
 </div>
 
@@ -294,6 +298,7 @@
     shareBtn.disabled = true;
     shareBtn.style.opacity = '0.5';
 
+    const maxDuration = Math.min(video.duration || 20, 20);
     const stream = canvas.captureStream(30);
     
     let options = {};
@@ -311,10 +316,8 @@
     recorder.start();
 
     const progressInterval = setInterval(() => {
-      if (video.duration) {
-        const percent = Math.min(100, Math.round((video.currentTime / video.duration) * 100));
-        loadingText.innerText = `İşleniyor... %${percent}`;
-      }
+      const percent = Math.min(100, Math.round((video.currentTime / maxDuration) * 100));
+      loadingText.innerText = `İşleniyor... %${percent}`;
     }, 100);
 
     recorder.ondataavailable = e => chunks.push(e.data);
@@ -331,7 +334,7 @@
       overlayShareBtn.style.display = 'inline-block';
     };
 
-    setTimeout(() => recorder.stop(), video.duration * 1000);
+    setTimeout(() => recorder.stop(), maxDuration * 1000);
   }
 
   async function triggerNativeShare() {
