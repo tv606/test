@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>ID Tack</title>
     <style>
         :root {
@@ -21,47 +21,89 @@
             padding: 0;
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
             -webkit-tap-highlight-color: transparent;
+            user-select: none;
         }
 
-        body {
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
             background-color: var(--bg-color);
             color: var(--text-color);
-            display: flex;
-            justify-content: center;
-            min-height: 100vh;
-            padding-bottom: env(safe-area-inset-bottom);
         }
 
-        .app-container {
-            width: 100%;
-            max-width: 375px;
-            padding: 20px 16px;
+        /* Slide View System */
+        .slider-wrapper {
+            width: 200%;
+            height: 100%;
+            display: flex;
+            transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        .slider-wrapper.show-preview {
+            transform: translateX(-50%);
+        }
+
+        .screen {
+            width: 50%;
+            height: 100%;
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            padding: 16px;
+            padding-top: max(16px, env(safe-area-inset-top));
+            padding-bottom: max(16px, env(safe-area-inset-bottom));
         }
 
         .header {
             text-align: center;
-            padding: 12px 0;
+            padding: 8px 0;
             font-size: 20px;
             font-weight: 700;
             letter-spacing: -0.5px;
-            color: var(--text-color);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 44px;
+        }
+
+        .back-btn {
+            position: absolute;
+            left: 0;
+            background: none;
+            border: none;
+            color: var(--primary);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 0;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            justify-content: space-evenly;
         }
 
         .card {
             background: var(--card-bg);
             border-radius: 16px;
-            padding: 16px;
+            padding: 12px;
             border: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 8px;
+            flex: 1;
+            max-height: 42vh;
         }
 
         .card-title {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -70,7 +112,8 @@
 
         .preview-box {
             width: 100%;
-            height: 170px;
+            flex: 1;
+            aspect-ratio: 4 / 3;
             border: 1px dashed var(--border-color);
             border-radius: 12px;
             display: flex;
@@ -79,6 +122,7 @@
             overflow: hidden;
             background: #141416;
             position: relative;
+            margin: 0 auto;
         }
 
         .preview-box img, .preview-box video {
@@ -89,7 +133,7 @@
 
         .btn {
             width: 100%;
-            padding: 14px;
+            padding: 12px;
             border: none;
             border-radius: 12px;
             background-color: var(--primary);
@@ -98,7 +142,7 @@
             font-weight: 600;
             cursor: pointer;
             text-align: center;
-            transition: background-color 0.2s, opacity 0.2s;
+            transition: opacity 0.2s;
         }
 
         .btn:active {
@@ -111,16 +155,45 @@
         }
 
         .btn-action {
+            background-color: var(--primary);
+            color: #FFFFFF;
+            font-weight: 700;
+            padding: 14px;
+        }
+
+        .btn-save {
             background-color: var(--success);
             color: #000000;
             font-weight: 700;
-            margin-top: 8px;
+            padding: 14px;
         }
 
         .btn-group {
             display: flex;
             gap: 8px;
             width: 100%;
+        }
+
+        /* Preview Screen Specifics */
+        .merged-preview-container {
+            flex: 1;
+            background: var(--card-bg);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+            overflow: hidden;
+            margin: 12px 0;
+        }
+
+        .merged-preview-container img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
         }
 
         canvas {
@@ -130,35 +203,54 @@
 </head>
 <body>
 
-<div class="app-container">
-    <div class="header">ID Tack</div>
+<div class="slider-wrapper" id="slider">
+    <!-- Screen 1: Capture View -->
+    <div class="screen">
+        <div class="header">ID Tack</div>
+        
+        <div class="main-content">
+            <!-- Front Side -->
+            <div class="card">
+                <div class="card-title">Front Side</div>
+                <div class="preview-box" id="box-front">
+                    <span style="color: var(--secondary-text); font-size: 13px;">No Image</span>
+                </div>
+                <div class="btn-group">
+                    <button class="btn" onclick="startCamera('front')">Camera</button>
+                    <button class="btn btn-secondary" onclick="captureImage('front')" id="cap-front" style="display:none;">Capture</button>
+                </div>
+            </div>
 
-    <!-- Ön Yüz -->
-    <div class="card">
-        <div class="card-title">Ön Yüz</div>
-        <div class="preview-box" id="box-front">
-            <span style="color: var(--secondary-text); font-size: 13px;">Görsel Yok</span>
-        </div>
-        <div class="btn-group">
-            <button class="btn" onclick="startCamera('front')">Kamera</button>
-            <button class="btn btn-secondary" onclick="captureImage('front')" id="cap-front" style="display:none;">Çek</button>
+            <!-- Back Side -->
+            <div class="card">
+                <div class="card-title">Back Side</div>
+                <div class="preview-box" id="box-back">
+                    <span style="color: var(--secondary-text); font-size: 13px;">No Image</span>
+                </div>
+                <div class="btn-group">
+                    <button class="btn" onclick="startCamera('back')">Camera</button>
+                    <button class="btn btn-secondary" onclick="captureImage('back')" id="cap-back" style="display:none;">Capture</button>
+                </div>
+            </div>
+
+            <!-- Preview Button -->
+            <button class="btn btn-action" onclick="goToPreview()">Preview</button>
         </div>
     </div>
 
-    <!-- Arka Yüz -->
-    <div class="card">
-        <div class="card-title">Arka Yüz</div>
-        <div class="preview-box" id="box-back">
-            <span style="color: var(--secondary-text); font-size: 13px;">Görsel Yok</span>
+    <!-- Screen 2: Preview & Save View -->
+    <div class="screen">
+        <div class="header">
+            <button class="back-btn" onclick="goToCapture()">‹ Back</button>
+            <span>Preview</span>
         </div>
-        <div class="btn-group">
-            <button class="btn" onclick="startCamera('back')">Kamera</button>
-            <button class="btn btn-secondary" onclick="captureImage('back')" id="cap-back" style="display:none;">Çek</button>
-        </div>
-    </div>
 
-    <!-- Birleştir & İndir -->
-    <button class="btn btn-action" onclick="mergeImages()">Birleştir ve İndir</button>
+        <div class="merged-preview-container" id="merged-container">
+            <span style="color: var(--secondary-text); font-size: 13px;">Generating preview...</span>
+        </div>
+
+        <button class="btn btn-save" onclick="saveToGallery()">Save to Gallery</button>
+    </div>
 </div>
 
 <canvas id="canvas"></canvas>
@@ -166,6 +258,7 @@
 <script>
     let currentStream = null;
     let images = { front: null, back: null };
+    let mergedDataUrl = null;
 
     async function startCamera(side) {
         if (currentStream) {
@@ -177,15 +270,20 @@
         
         try {
             const stream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: { exact: "environment" } }
-            }).catch(() => navigator.mediaDevices.getUserMedia({ video: true }));
+                video: { 
+                    facingMode: { exact: "environment" },
+                    aspectRatio: 4 / 3
+                }
+            }).catch(() => navigator.mediaDevices.getUserMedia({ 
+                video: { aspectRatio: 4 / 3 } 
+            }));
 
             currentStream = stream;
             const video = document.getElementById(`video-${side}`);
             video.srcObject = stream;
             document.getElementById(`cap-${side}`).style.display = 'block';
         } catch (err) {
-            alert("Kameraya erişilemedi: " + err);
+            alert("Camera access denied: " + err);
         }
     }
 
@@ -211,12 +309,21 @@
         document.getElementById(`cap-${side}`).style.display = 'none';
     }
 
-    function mergeImages() {
+    function goToPreview() {
         if (!images.front || !images.back) {
-            alert("Lütfen iki tarafı da çekin.");
+            alert("Please capture both front and back sides.");
             return;
         }
 
+        mergeImages();
+        document.getElementById('slider').classList.add('show-preview');
+    }
+
+    function goToCapture() {
+        document.getElementById('slider').classList.remove('show-preview');
+    }
+
+    function mergeImages() {
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
 
@@ -232,12 +339,22 @@
         ctx.drawImage(images.front, (width - images.front.width) / 2, 0);
         ctx.drawImage(images.back, (width - images.back.width) / 2, images.front.height + 40);
 
+        mergedDataUrl = canvas.toDataURL('image/png');
+        
+        const container = document.getElementById('merged-container');
+        container.innerHTML = `<img src="${mergedDataUrl}">`;
+    }
+
+    function saveToGallery() {
+        if (!mergedDataUrl) return;
+
         const link = document.createElement('a');
-        link.download = 'idtack-kimlik.png';
-        link.href = canvas.toDataURL('image/png');
+        link.download = 'idtack-merged.png';
+        link.href = mergedDataUrl;
         link.click();
     }
 </script>
 
 </body>
 </html>
+ 
