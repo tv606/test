@@ -162,7 +162,7 @@
   </div>
 
   <div class="preview-area">
-    <span class="placeholder" id="placeholderText">Galeriden video yükleyin</span>
+    <span class="placeholder" id="placeholderText">Maksimum 20s video yükleyin</span>
     <canvas id="canvas" style="display:none;"></canvas>
     <video id="video" autoplay loop playsinline muted hidden></video>
     
@@ -201,7 +201,7 @@
       </div>
     </div>
 
-    <button class="action-btn" id="shareBtn" onclick="exportVideo()">Video İşle (Maks 20sn)</button>
+    <button class="action-btn" id="shareBtn" onclick="exportVideo()">Video İşle</button>
   </div>
 </div>
 
@@ -225,11 +225,21 @@
     const file = e.target.files[0];
     if (!file) return;
     video.src = URL.createObjectURL(file);
-    placeholder.style.display = 'none';
-    canvas.style.display = 'block';
   };
 
   video.onloadedmetadata = () => {
+    if (video.duration > 20) {
+      alert("Video süresi 20 saniyeden uzun olamaz!");
+      video.removeAttribute('src');
+      video.load();
+      fileInput.value = '';
+      placeholder.style.display = 'block';
+      canvas.style.display = 'none';
+      return;
+    }
+
+    placeholder.style.display = 'none';
+    canvas.style.display = 'block';
     canvas.width = video.videoWidth || 375;
     canvas.height = video.videoHeight || 500;
     video.play();
@@ -298,7 +308,6 @@
     shareBtn.disabled = true;
     shareBtn.style.opacity = '0.5';
 
-    const maxDuration = Math.min(video.duration || 20, 20);
     const stream = canvas.captureStream(30);
     
     let options = {};
@@ -316,8 +325,10 @@
     recorder.start();
 
     const progressInterval = setInterval(() => {
-      const percent = Math.min(100, Math.round((video.currentTime / maxDuration) * 100));
-      loadingText.innerText = `İşleniyor... %${percent}`;
+      if (video.duration) {
+        const percent = Math.min(100, Math.round((video.currentTime / video.duration) * 100));
+        loadingText.innerText = `İşleniyor... %${percent}`;
+      }
     }, 100);
 
     recorder.ondataavailable = e => chunks.push(e.data);
@@ -334,7 +345,7 @@
       overlayShareBtn.style.display = 'inline-block';
     };
 
-    setTimeout(() => recorder.stop(), maxDuration * 1000);
+    setTimeout(() => recorder.stop(), video.duration * 1000);
   }
 
   async function triggerNativeShare() {
