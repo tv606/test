@@ -167,7 +167,15 @@
             color: #000000;
             font-weight: 700;
             padding: 12px;
-            margin-top: 4px;
+            flex: 1;
+        }
+
+        .btn-share {
+            background-color: var(--primary);
+            color: #FFFFFF;
+            font-weight: 700;
+            padding: 12px;
+            flex: 1;
         }
 
         .btn-group {
@@ -175,6 +183,18 @@
             gap: 6px;
             width: 100%;
             flex-shrink: 0;
+        }
+
+        .btn-group .btn {
+            flex: 1;
+            width: 50%;
+        }
+
+        .action-group {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+            margin-top: 4px;
         }
 
         .merged-preview-container {
@@ -251,7 +271,10 @@
             <span style="color: var(--secondary-text); font-size: 12px;">Generating preview...</span>
         </div>
 
-        <button class="btn btn-save" onclick="saveToGallery()">Save Image</button>
+        <div class="action-group">
+            <button class="btn btn-save" onclick="saveToGallery()">Save Image</button>
+            <button class="btn btn-share" onclick="shareImage()">Share</button>
+        </div>
     </div>
 </div>
 
@@ -261,6 +284,7 @@
     let currentStream = null;
     let images = { front: null, back: null };
     let mergedDataUrl = null;
+    let mergedBlob = null;
 
     async function startCamera(side) {
         if (currentStream) {
@@ -272,19 +296,14 @@
         
         try {
             const stream = await navigator.mediaDevices.getUserMedia({
-                video: { 
-                    facingMode: { exact: "environment" }
-                }
-            }).catch(() => navigator.mediaDevices.getUserMedia({ 
-                video: true 
-            }));
+                video: { facingMode: { exact: "environment" } }
+            }).catch(() => navigator.mediaDevices.getUserMedia({ video: true }));
 
             currentStream = stream;
             const video = document.getElementById(`video-${side}`);
             video.srcObject = stream;
             
             document.getElementById(`cap-${side}`).style.display = 'block';
-            document.getElementById(`btn-start-${side}`).style.display = 'block';
         } catch (err) {
             alert("Camera access denied: " + err);
         }
@@ -339,7 +358,6 @@
             currentStream.getTracks().forEach(track => track.stop());
         }
         document.getElementById(`cap-${side}`).style.display = 'none';
-        document.getElementById(`btn-start-${side}`).style.display = 'block';
     }
 
     function goToPreview() {
@@ -378,6 +396,10 @@
 
         mergedDataUrl = canvas.toDataURL('image/png');
         
+        canvas.toBlob((blob) => {
+            mergedBlob = blob;
+        }, 'image/png');
+
         const container = document.getElementById('merged-container');
         container.innerHTML = `<img src="${mergedDataUrl}">`;
     }
@@ -389,6 +411,28 @@
         link.download = 'idtack-merged.png';
         link.href = mergedDataUrl;
         link.click();
+    }
+
+    async function shareImage() {
+        if (!mergedBlob) return;
+
+        const file = new File([mergedBlob], 'idtack-merged.png', { type: 'image/png' });
+
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+            try {
+                await navigator.share({
+                    files: [file],
+                    title: 'ID Tack',
+                    text: 'Merged ID Document'
+                });
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    alert("Share failed: " + err.message);
+                }
+            }
+        } else {
+            saveToGallery();
+        }
     }
 </script>
 
