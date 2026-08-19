@@ -12,7 +12,7 @@
             --text-color: #FFFFFF;
             --secondary-text: #8E8E93;
             --border-color: #2C2C2E;
-            --success: #30D158;
+            --warning: #FF9500;
         }
 
         * {
@@ -33,18 +33,22 @@
         }
 
         .slider-wrapper {
-            width: 200%;
+            width: 300%;
             height: 100%;
             display: flex;
             transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
         }
 
-        .slider-wrapper.show-preview {
-            transform: translateX(-50%);
+        .slider-wrapper[data-step="back"] {
+            transform: translateX(-33.333%);
+        }
+
+        .slider-wrapper[data-step="preview"] {
+            transform: translateX(-66.666%);
         }
 
         .screen {
-            width: 50%;
+            width: 33.333%;
             height: 100%;
             display: flex;
             flex-direction: column;
@@ -80,6 +84,23 @@
             align-items: center;
             gap: 4px;
             padding: 4px 0;
+        }
+
+        .flash-btn {
+            position: absolute;
+            right: 0;
+            background: none;
+            border: none;
+            color: var(--secondary-text);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+
+        .flash-btn.active {
+            color: var(--warning);
         }
 
         .main-content {
@@ -162,22 +183,6 @@
             margin-top: 4px;
         }
 
-        .btn-save {
-            background-color: var(--success);
-            color: #000000;
-            font-weight: 700;
-            padding: 12px;
-            flex: 1;
-        }
-
-        .btn-share {
-            background-color: var(--primary);
-            color: #FFFFFF;
-            font-weight: 700;
-            padding: 12px;
-            flex: 1;
-        }
-
         .btn-group {
             display: flex;
             gap: 6px;
@@ -188,13 +193,6 @@
         .btn-group .btn {
             flex: 1;
             width: 50%;
-        }
-
-        .action-group {
-            display: flex;
-            gap: 8px;
-            width: 100%;
-            margin-top: 4px;
         }
 
         .merged-preview-container {
@@ -226,14 +224,16 @@
 <body>
 
 <div class="slider-wrapper" id="slider">
-    <!-- Screen 1: Capture View -->
+    <!-- Step 1: Front Side Capture -->
     <div class="screen">
-        <div class="header">ID Tack</div>
+        <div class="header">
+            <span>ID Tack</span>
+            <button class="flash-btn" id="flash-front" onclick="toggleFlash('front')">⚡ Flash Off</button>
+        </div>
         
         <div class="main-content">
-            <!-- Front Side -->
             <div class="card">
-                <div class="card-title">ID Front Side</div>
+                <div class="card-title">1. ID Front Side</div>
                 <div class="preview-box" id="box-front">
                     <span style="color: var(--secondary-text); font-size: 12px;">No Image</span>
                 </div>
@@ -243,9 +243,21 @@
                 </div>
             </div>
 
-            <!-- Back Side -->
+            <button class="btn btn-action" onclick="goToStep('back')">Next: Back Side ›</button>
+        </div>
+    </div>
+
+    <!-- Step 2: Back Side Capture -->
+    <div class="screen">
+        <div class="header">
+            <button class="back-btn" onclick="goToStep('front')">‹ Back</button>
+            <span>ID Tack</span>
+            <button class="flash-btn" id="flash-back" onclick="toggleFlash('back')">⚡ Flash Off</button>
+        </div>
+
+        <div class="main-content">
             <div class="card">
-                <div class="card-title">ID Back Side</div>
+                <div class="card-title">2. ID Back Side</div>
                 <div class="preview-box" id="box-back">
                     <span style="color: var(--secondary-text); font-size: 12px;">No Image</span>
                 </div>
@@ -255,15 +267,14 @@
                 </div>
             </div>
 
-            <!-- Preview Button -->
-            <button class="btn btn-action" onclick="goToPreview()">Preview</button>
+            <button class="btn btn-action" onclick="goToPreview()">Preview ›</button>
         </div>
     </div>
 
-    <!-- Screen 2: Preview & Save View -->
+    <!-- Step 3: Preview & Share View -->
     <div class="screen">
         <div class="header">
-            <button class="back-btn" onclick="goToCapture()">‹ Back</button>
+            <button class="back-btn" onclick="goToStep('back')">‹ Back</button>
             <span>Preview</span>
         </div>
 
@@ -271,10 +282,7 @@
             <span style="color: var(--secondary-text); font-size: 12px;">Generating preview...</span>
         </div>
 
-        <div class="action-group">
-            <button class="btn btn-save" onclick="saveToGallery()">Save Image</button>
-            <button class="btn btn-share" onclick="shareImage()">Share</button>
-        </div>
+        <button class="btn btn-action" onclick="shareImage()">Share</button>
     </div>
 </div>
 
@@ -283,29 +291,76 @@
 <script>
     let currentStream = null;
     let images = { front: null, back: null };
+    let flashState = { front: false, back: false };
     let mergedDataUrl = null;
     let mergedBlob = null;
 
-    async function startCamera(side) {
+    function stopCurrentStream() {
         if (currentStream) {
             currentStream.getTracks().forEach(track => track.stop());
+            currentStream = null;
         }
+    }
+
+    async function startCamera(side) {
+        stopCurrentStream();
 
         const box = document.getElementById(`box-${side}`);
         box.innerHTML = `<video id="video-${side}" autoplay playsinline></video>`;
         
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: { exact: "environment" } }
-            }).catch(() => navigator.mediaDevices.getUserMedia({ video: true }));
+            const constraints = {
+                video: { 
+                    facingMode: { exact: "environment" }
+                }
+            };
+
+            const stream = await navigator.mediaDevices.getUserMedia(constraints)
+                .catch(() => navigator.mediaDevices.getUserMedia({ video: true }));
 
             currentStream = stream;
             const video = document.getElementById(`video-${side}`);
             video.srcObject = stream;
             
             document.getElementById(`cap-${side}`).style.display = 'block';
+
+            if (flashState[side]) {
+                applyTorch(true);
+            }
         } catch (err) {
             alert("Camera access denied: " + err);
+        }
+    }
+
+    async function toggleFlash(side) {
+        flashState[side] = !flashState[side];
+        const btn = document.getElementById(`flash-${side}`);
+        
+        if (flashState[side]) {
+            btn.classList.add('active');
+            btn.innerText = '⚡ Flash On';
+        } else {
+            btn.classList.remove('active');
+            btn.innerText = '⚡ Flash Off';
+        }
+
+        applyTorch(flashState[side]);
+    }
+
+    async function applyTorch(on) {
+        if (!currentStream) return;
+        const track = currentStream.getVideoTracks()[0];
+        if (!track) return;
+
+        try {
+            const capabilities = track.getCapabilities ? track.getCapabilities() : {};
+            if (capabilities.torch) {
+                await track.applyConstraints({
+                    advanced: [{ torch: on }]
+                });
+            }
+        } catch (e) {
+            console.log("Torch constraint not supported on this device/browser.");
         }
     }
 
@@ -354,24 +409,34 @@
 
         box.innerHTML = `<img src="${imgData}">`;
 
-        if (currentStream) {
-            currentStream.getTracks().forEach(track => track.stop());
-        }
+        stopCurrentStream();
         document.getElementById(`cap-${side}`).style.display = 'none';
     }
 
+    function goToStep(step) {
+        stopCurrentStream();
+        const slider = document.getElementById('slider');
+        
+        if (step === 'front') {
+            slider.removeAttribute('data-step');
+        } else if (step === 'back') {
+            if (!images.front) {
+                alert("Please capture the front side first.");
+                return;
+            }
+            slider.setAttribute('data-step', 'back');
+        }
+    }
+
     function goToPreview() {
-        if (!images.front || !images.back) {
-            alert("Please capture both front and back sides.");
+        if (!images.back) {
+            alert("Please capture the back side first.");
             return;
         }
 
+        stopCurrentStream();
         mergeImages();
-        document.getElementById('slider').classList.add('show-preview');
-    }
-
-    function goToCapture() {
-        document.getElementById('slider').classList.remove('show-preview');
+        document.getElementById('slider').setAttribute('data-step', 'preview');
     }
 
     function mergeImages() {
@@ -404,15 +469,6 @@
         container.innerHTML = `<img src="${mergedDataUrl}">`;
     }
 
-    function saveToGallery() {
-        if (!mergedDataUrl) return;
-
-        const link = document.createElement('a');
-        link.download = 'idtack-merged.png';
-        link.href = mergedDataUrl;
-        link.click();
-    }
-
     async function shareImage() {
         if (!mergedBlob) return;
 
@@ -431,7 +487,10 @@
                 }
             }
         } else {
-            saveToGallery();
+            const link = document.createElement('a');
+            link.download = 'idtack-merged.png';
+            link.href = mergedDataUrl;
+            link.click();
         }
     }
 </script>
