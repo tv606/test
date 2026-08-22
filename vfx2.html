@@ -322,83 +322,79 @@
             progressBox.style.display = "block";
             shareArea.innerHTML = "";
             progressFill.style.width = "0%";
-            status.innerText = "Kareler hazırlanıyor...";
+            status.innerText = "İşleniyor... %0";
 
-            video.currentTime = 0.1;
+            video.currentTime = 0;
             video.playbackRate = selectedSpeed;
 
-            video.onseeked = function startRecording() {
-                video.onseeked = null;
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const stream = canvas.captureStream(30);
+            const mimeType = MediaRecorder.isTypeSupported('video/mp4') ? 'video/mp4' : 'video/webm';
+            const mediaRecorder = new MediaRecorder(stream, { mimeType });
+            const recordedChunks = [];
 
-                const stream = canvas.captureStream(30);
-                const mimeType = MediaRecorder.isTypeSupported('video/mp4') ? 'video/mp4' : 'video/webm';
-                const mediaRecorder = new MediaRecorder(stream, { mimeType });
-                const recordedChunks = [];
+            mediaRecorder.ondataavailable = (e) => {
+                if (e.data.size > 0) recordedChunks.push(e.data);
+            };
 
-                mediaRecorder.ondataavailable = (e) => {
-                    if (e.data.size > 0) recordedChunks.push(e.data);
-                };
+            mediaRecorder.onstop = () => {
+                const ext = mimeType.split('/')[1];
+                const blob = new Blob(recordedChunks, { type: mimeType });
+                generatedFile = new File([blob], `rabbit_hizli_cekim.${ext}`, { type: mimeType });
 
-                mediaRecorder.onstop = () => {
-                    const ext = mimeType.split('/')[1];
-                    const blob = new Blob(recordedChunks, { type: mimeType });
-                    generatedFile = new File([blob], `rabbit_hizli_cekim.${ext}`, { type: mimeType });
+                status.innerText = "İşlem tamamlandı!";
+                progressFill.style.width = "100%";
+                processBtn.disabled = true;
 
-                    status.innerText = "İşlem tamamlandı!";
-                    progressFill.style.width = "100%";
-                    processBtn.disabled = true;
-
-                    const shareBtn = document.createElement('button');
-                    shareBtn.className = 'btn';
-                    shareBtn.innerText = '📤 Kaydet / Paylaş';
-                    shareBtn.onclick = async () => {
-                        if (navigator.share && navigator.canShare && navigator.canShare({ files: [generatedFile] })) {
-                            try {
-                                await navigator.share({
-                                    files: [generatedFile],
-                                    title: 'Rabbit v1 Video'
-                                });
-                                shareBtn.innerText = '✅ Kaydedildi / Paylaşıldı';
-                                shareBtn.classList.add('btn-success');
-                                shareBtn.disabled = true;
-                            } catch (err) {
-                                console.log(err);
-                            }
-                        } else {
-                            const a = document.createElement('a');
-                            a.href = URL.createObjectURL(blob);
-                            a.download = generatedFile.name;
-                            a.click();
-                            shareBtn.innerText = '✅ Kaydedildi / İndirildi';
+                const shareBtn = document.createElement('button');
+                shareBtn.className = 'btn';
+                shareBtn.innerText = '📤 Kaydet / Paylaş';
+                shareBtn.onclick = async () => {
+                    if (navigator.share && navigator.canShare && navigator.canShare({ files: [generatedFile] })) {
+                        try {
+                            await navigator.share({
+                                files: [generatedFile],
+                                title: 'Rabbit v1 Video'
+                            });
+                            shareBtn.innerText = '✅ Kaydedildi / Paylaşıldı';
                             shareBtn.classList.add('btn-success');
                             shareBtn.disabled = true;
+                        } catch (err) {
+                            console.log(err);
                         }
-                    };
-                    shareArea.appendChild(shareBtn);
-                };
-
-                mediaRecorder.start();
-                video.play();
-
-                function updateProgress() {
-                    if (!video.paused && !video.ended && video.currentTime < processDuration) {
-                        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                        
-                        const percent = Math.min(Math.round((video.currentTime / processDuration) * 100), 100);
-                        progressFill.style.width = percent + "%";
-                        status.innerText = `İşleniyor... %${percent}`;
-
-                        requestAnimationFrame(updateProgress);
-                    } else if (video.currentTime >= processDuration || video.ended) {
-                        video.pause();
-                        mediaRecorder.stop();
+                    } else {
+                        const a = document.createElement('a');
+                        a.href = URL.createObjectURL(blob);
+                        a.download = generatedFile.name;
+                        a.click();
+                        shareBtn.innerText = '✅ Kaydedildi / İndirildi';
+                        shareBtn.classList.add('btn-success');
+                        shareBtn.disabled = true;
                     }
-                }
-
-                updateProgress();
+                };
+                shareArea.appendChild(shareBtn);
             };
+
+            mediaRecorder.start();
+            video.play();
+
+            function updateProgress() {
+                if (!video.paused && !video.ended && video.currentTime < processDuration) {
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    
+                    const percent = Math.min(Math.round((video.currentTime / processDuration) * 100), 100);
+                    progressFill.style.width = percent + "%";
+                    status.innerText = `İşleniyor... %${percent}`;
+
+                    requestAnimationFrame(updateProgress);
+                } else if (video.currentTime >= processDuration || video.ended) {
+                    video.pause();
+                    mediaRecorder.stop();
+                }
+            }
+
+            updateProgress();
         });
     </script>
 </body>
