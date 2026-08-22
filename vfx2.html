@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Rabbit</title>
+    <title>Rabbit v1</title>
     <style>
         :root {
             --bg-color: #0f172a;
@@ -220,7 +220,7 @@
 
     <div class="container">
         <div class="header">
-            <h1>Rabbit</h1>
+            <h1>Rabbit v1</h1>
             <p class="subtitle">Hızlı Çekim Video Dönüştürücü</p>
         </div>
 
@@ -329,10 +329,7 @@
 
                     const stream = canvas.captureStream(30);
                     const mimeType = MediaRecorder.isTypeSupported('video/mp4') ? 'video/mp4' : 'video/webm';
-                    const mediaRecorder = new MediaRecorder(stream, { 
-                        mimeType,
-                        videoBitsPerSecond: 8000000 
-                    });
+                    const mediaRecorder = new MediaRecorder(stream, { mimeType });
                     const recordedChunks = [];
 
                     mediaRecorder.ondataavailable = (e) => {
