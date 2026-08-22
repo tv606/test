@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FastLapse</title>
+    <title>Rabbit v1</title>
     <style>
         :root {
             --bg-color: #0f172a;
@@ -52,8 +52,8 @@
 
         p.subtitle {
             color: var(--text-muted);
-            font-size: 0.875rem;
-            margin-bottom: 24px;
+            font-size: 0.85rem;
+            margin-bottom: 20px;
         }
 
         video, canvas { display: none; }
@@ -62,12 +62,10 @@
             position: relative;
             display: inline-block;
             width: 100%;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
 
-        .file-upload input[type="file"] {
-            display: none;
-        }
+        .file-upload input[type="file"] { display: none; }
 
         .file-label {
             display: flex;
@@ -89,6 +87,34 @@
             color: var(--text-main);
         }
 
+        .controls {
+            display: none;
+            margin-bottom: 20px;
+        }
+
+        .speed-options {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .speed-btn {
+            flex: 1;
+            padding: 8px;
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-main);
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .speed-btn.active {
+            background-color: var(--accent);
+            border-color: var(--accent);
+        }
+
         .btn {
             width: 100%;
             padding: 14px;
@@ -100,33 +126,51 @@
             font-weight: 600;
             cursor: pointer;
             transition: background 0.2s ease, transform 0.1s ease;
-            display: none;
         }
 
         .btn:hover { background-color: var(--accent-hover); }
         .btn:active { transform: scale(0.98); }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        .btn-download {
-            background-color: #10b981;
-            margin-top: 15px;
-            text-decoration: none;
-            display: inline-block;
+        .progress-box {
+            display: none;
+            margin-top: 20px;
         }
-        .btn-download:hover { background-color: #059669; }
+
+        .progress-bar-bg {
+            width: 100%;
+            height: 8px;
+            background-color: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background-color: var(--accent);
+            transition: width 0.1s linear;
+        }
 
         #status {
-            margin-top: 15px;
             font-size: 0.85rem;
             color: var(--text-muted);
+        }
+
+        .warning {
+            color: #f59e0b;
+            font-size: 0.8rem;
+            margin-top: 5px;
+            display: none;
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>FastLapse</h1>
-        <p class="subtitle">Maksimum 1 dakikalık videoyu 4x hızlandırın</p>
+        <h1>Rabbit v1</h1>
+        <p class="subtitle">Hızlı Çekim Video Dönüştürücü</p>
 
         <div class="file-upload">
             <label for="videoInput" class="file-label" id="fileLabel">
@@ -135,13 +179,31 @@
             <input type="file" id="videoInput" accept="video/*">
         </div>
 
+        <div id="warning" class="warning">⚠️ Video 3 dakikadan uzun, ilk 3 dakikası kırpılacak.</div>
+
+        <div class="controls" id="controls">
+            <p style="font-size: 0.85rem; color: var(--text-muted);">Hız Seçin:</p>
+            <div class="speed-options">
+                <button class="speed-btn" data-speed="2">2x</button>
+                <button class="speed-btn active" data-speed="4">4x</button>
+                <button class="speed-btn" data-speed="6">6x</button>
+                <button class="speed-btn" data-speed="8">8x</button>
+            </div>
+            <br>
+            <button id="processBtn" class="btn">İşlemi Başlat</button>
+        </div>
+
+        <div class="progress-box" id="progressBox">
+            <div class="progress-bar-bg">
+                <div class="progress-bar-fill" id="progressFill"></div>
+            </div>
+            <div id="status">İşleniyor... %0</div>
+        </div>
+
+        <div id="shareArea" style="margin-top: 15px;"></div>
+
         <video id="video" playsinline muted></video>
         <canvas id="canvas"></canvas>
-
-        <button id="processBtn" class="btn">4x Hızlandır ve Oluştur</button>
-
-        <div id="status"></div>
-        <div id="downloadArea"></div>
     </div>
 
     <script>
@@ -149,12 +211,27 @@
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
-        const processBtn = document.getElementById('processBtn');
-        const status = document.getElementById('status');
-        const downloadArea = document.getElementById('downloadArea');
         const fileLabel = document.getElementById('fileLabel');
+        const controls = document.getElementById('controls');
+        const warning = document.getElementById('warning');
+        const processBtn = document.getElementById('processBtn');
+        const progressBox = document.getElementById('progressBox');
+        const progressFill = document.getElementById('progressFill');
+        const status = document.getElementById('status');
+        const shareArea = document.getElementById('shareArea');
+        const speedBtns = document.querySelectorAll('.speed-btn');
 
-        let stream, mediaRecorder, recordedChunks = [];
+        let selectedSpeed = 4;
+        let processDuration = 0;
+        let generatedFile = null;
+
+        speedBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                speedBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                selectedSpeed = parseFloat(btn.dataset.speed);
+            });
+        });
 
         videoInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
@@ -165,61 +242,87 @@
             video.src = url;
 
             video.onloadedmetadata = () => {
-                if (video.duration > 60) {
-                    status.innerText = "Hata: Video 1 dakikadan uzun olamaz.";
-                    status.style.color = "#ef4444";
-                    videoInput.value = "";
-                    processBtn.style.display = "none";
-                    return;
+                processDuration = Math.min(video.duration, 180);
+                if (video.duration > 180) {
+                    warning.style.display = "block";
+                } else {
+                    warning.style.display = "none";
                 }
+
                 canvas.width = video.videoWidth;
                 canvas.height = video.videoHeight;
-                processBtn.style.display = "block";
-                status.innerText = "Video hazır.";
-                status.style.color = "#94a3b8";
-                downloadArea.innerHTML = "";
+                controls.style.display = "block";
+                shareArea.innerHTML = "";
+                progressBox.style.display = "none";
             };
         });
 
         processBtn.addEventListener('click', () => {
-            recordedChunks = [];
             processBtn.disabled = true;
-            status.innerText = "İşleniyor...";
+            progressBox.style.display = "block";
+            shareArea.innerHTML = "";
+            progressFill.style.width = "0%";
+            status.innerText = "İşleniyor... %0";
 
-            video.playbackRate = 4.0;
-            stream = canvas.captureStream(30);
-
+            video.currentTime = 0;
+            video.playbackRate = selectedSpeed;
+            
+            const stream = canvas.captureStream(30);
             const mimeType = MediaRecorder.isTypeSupported('video/mp4') ? 'video/mp4' : 'video/webm';
-            mediaRecorder = new MediaRecorder(stream, { mimeType });
+            const mediaRecorder = new MediaRecorder(stream, { mimeType });
+            const recordedChunks = [];
 
             mediaRecorder.ondataavailable = (e) => {
                 if (e.data.size > 0) recordedChunks.push(e.data);
             };
 
             mediaRecorder.onstop = () => {
-                const blob = new Blob(recordedChunks, { type: mimeType });
-                const videoUrl = URL.createObjectURL(blob);
                 const ext = mimeType.split('/')[1];
+                const blob = new Blob(recordedChunks, { type: mimeType });
+                generatedFile = new File([blob], `rabbit_hizli_cekim.${ext}`, { type: mimeType });
 
-                downloadArea.innerHTML = `<a href="${videoUrl}" download="hizli_cekim.${ext}" class="btn btn-download">Videoyu İndir</a>`;
                 status.innerText = "İşlem tamamlandı!";
+                progressFill.style.width = "100%";
                 processBtn.disabled = false;
+
+                const shareBtn = document.createElement('button');
+                shareBtn.className = 'btn';
+                shareBtn.innerText = '📤 Paylaş / Kaydet';
+                shareBtn.onclick = () => {
+                    if (navigator.share && navigator.canShare && navigator.canShare({ files: [generatedFile] })) {
+                        navigator.share({
+                            files: [generatedFile],
+                            title: 'Rabbit v1 Video'
+                        }).catch(console.error);
+                    } else {
+                        const a = document.createElement('a');
+                        a.href = URL.createObjectURL(blob);
+                        a.download = generatedFile.name;
+                        a.click();
+                    }
+                };
+                shareArea.appendChild(shareBtn);
             };
 
             mediaRecorder.start();
             video.play();
 
-            function drawFrame() {
-                if (!video.paused && !video.ended) {
+            function updateProgress() {
+                if (!video.paused && !video.ended && video.currentTime < processDuration) {
                     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                    requestAnimationFrame(drawFrame);
+                    
+                    const percent = Math.min(Math.round((video.currentTime / processDuration) * 100), 100);
+                    progressFill.style.width = percent + "%";
+                    status.innerText = `İşleniyor... %${percent}`;
+
+                    requestAnimationFrame(updateProgress);
+                } else if (video.currentTime >= processDuration || video.ended) {
+                    video.pause();
+                    mediaRecorder.stop();
                 }
             }
-            drawFrame();
 
-            video.onended = () => {
-                mediaRecorder.stop();
-            };
+            updateProgress();
         });
     </script>
 </body>
