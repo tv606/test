@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Rabbit V1</title>
+    <title>Rabbit v1</title>
     <style>
         :root {
             --bg-color: #0f172a;
@@ -225,7 +225,7 @@
         </div>
 
         <div class="info-text">
-            ℹ️ Maksimum 3 dakikalık videolar desteklenir.
+            ℹ️ En iyi performans için maksimum 3 dakikalık videolar desteklenir.
         </div>
 
         <div class="file-upload">
@@ -329,7 +329,10 @@
 
                     const stream = canvas.captureStream(30);
                     const mimeType = MediaRecorder.isTypeSupported('video/mp4') ? 'video/mp4' : 'video/webm';
-                    const mediaRecorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 8000000 // 8 Mbps yüksek kalite});
+                    const mediaRecorder = new MediaRecorder(stream, { 
+                        mimeType,
+                        videoBitsPerSecond: 8000000 
+                    });
                     const recordedChunks = [];
 
                     mediaRecorder.ondataavailable = (e) => {
