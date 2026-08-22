@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Rabbit v1</title>
     <style>
         :root {
@@ -20,49 +20,63 @@
             margin: 0;
             padding: 0;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: fixed;
+            background-color: var(--bg-color);
+            color: var(--text-main);
         }
 
         body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            padding: 16px;
+            padding-top: calc(16px + env(safe-area-inset-top));
+            padding-bottom: calc(16px + env(safe-area-inset-bottom));
         }
 
         .container {
             background-color: var(--card-bg);
             border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 30px;
+            border-radius: 24px;
+            padding: 20px 16px;
             width: 100%;
-            max-width: 400px;
+            max-width: 340px;
+            max-height: 100%;
+            display: flex;
+            flex-direction: column;
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
             text-align: center;
+            justify-content: space-between;
+        }
+
+        .header {
+            margin-bottom: 12px;
         }
 
         h1 {
-            font-size: 1.5rem;
+            font-size: 1.35rem;
             font-weight: 700;
-            margin-bottom: 8px;
             letter-spacing: -0.5px;
         }
 
         p.subtitle {
             color: var(--text-muted);
-            font-size: 0.85rem;
-            margin-bottom: 20px;
+            font-size: 0.75rem;
+            margin-top: 2px;
         }
 
         video, canvas { display: none; }
 
         .file-upload {
-            position: relative;
-            display: inline-block;
             width: 100%;
-            margin-bottom: 15px;
+            margin-bottom: 8px;
         }
 
         .file-upload input[type="file"] { display: none; }
@@ -71,41 +85,44 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            padding: 14px;
+            padding: 12px;
             background-color: rgba(255, 255, 255, 0.05);
             border: 1px dashed var(--border);
             border-radius: 12px;
             color: var(--text-muted);
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .file-label:hover {
-            border-color: var(--accent);
-            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .controls {
             display: none;
-            margin-bottom: 20px;
+            margin-bottom: 8px;
+        }
+
+        .speed-title {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 6px;
         }
 
         .speed-options {
             display: flex;
-            gap: 8px;
+            gap: 6px;
             justify-content: center;
-            margin-top: 10px;
+            margin-bottom: 12px;
         }
 
         .speed-btn {
             flex: 1;
-            padding: 8px;
+            padding: 8px 0;
             background-color: rgba(255, 255, 255, 0.05);
             border: 1px solid var(--border);
             border-radius: 8px;
             color: var(--text-main);
+            font-size: 0.85rem;
             font-weight: 600;
             cursor: pointer;
         }
@@ -117,33 +134,35 @@
 
         .btn {
             width: 100%;
-            padding: 14px;
+            padding: 12px;
             background-color: var(--accent);
             color: white;
             border: none;
             border-radius: 12px;
-            font-size: 1rem;
+            font-size: 0.9rem;
             font-weight: 600;
             cursor: pointer;
-            transition: background 0.2s ease, transform 0.1s ease;
+            transition: background 0.2s ease, opacity 0.2s ease;
         }
 
-        .btn:hover { background-color: var(--accent-hover); }
-        .btn:active { transform: scale(0.98); }
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
 
         .progress-box {
             display: none;
-            margin-top: 20px;
+            margin-top: 6px;
+            margin-bottom: 6px;
         }
 
         .progress-bar-bg {
             width: 100%;
-            height: 8px;
+            height: 6px;
             background-color: var(--border);
-            border-radius: 4px;
+            border-radius: 3px;
             overflow: hidden;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
 
         .progress-bar-fill {
@@ -154,23 +173,29 @@
         }
 
         #status {
-            font-size: 0.85rem;
+            font-size: 0.75rem;
             color: var(--text-muted);
         }
 
         .warning {
             color: #f59e0b;
-            font-size: 0.8rem;
-            margin-top: 5px;
+            font-size: 0.7rem;
+            margin-bottom: 8px;
             display: none;
+        }
+
+        #shareArea {
+            margin-top: 4px;
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>Rabbit v1</h1>
-        <p class="subtitle">Hızlı Çekim Video Dönüştürücü</p>
+        <div class="header">
+            <h1>Rabbit v1</h1>
+            <p class="subtitle">Hızlı Çekim Video Dönüştürücü</p>
+        </div>
 
         <div class="file-upload">
             <label for="videoInput" class="file-label" id="fileLabel">
@@ -182,14 +207,13 @@
         <div id="warning" class="warning">⚠️ Video 3 dakikadan uzun, ilk 3 dakikası kırpılacak.</div>
 
         <div class="controls" id="controls">
-            <p style="font-size: 0.85rem; color: var(--text-muted);">Hız Seçin:</p>
+            <p class="speed-title">Hız Seçin:</p>
             <div class="speed-options">
                 <button class="speed-btn" data-speed="2">2x</button>
                 <button class="speed-btn active" data-speed="4">4x</button>
                 <button class="speed-btn" data-speed="6">6x</button>
                 <button class="speed-btn" data-speed="8">8x</button>
             </div>
-            <br>
             <button id="processBtn" class="btn">İşlemi Başlat</button>
         </div>
 
@@ -200,7 +224,7 @@
             <div id="status">İşleniyor... %0</div>
         </div>
 
-        <div id="shareArea" style="margin-top: 15px;"></div>
+        <div id="shareArea"></div>
 
         <video id="video" playsinline muted></video>
         <canvas id="canvas"></canvas>
@@ -230,6 +254,7 @@
                 speedBtns.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 selectedSpeed = parseFloat(btn.dataset.speed);
+                processBtn.disabled = false;
             });
         });
 
@@ -243,15 +268,12 @@
 
             video.onloadedmetadata = () => {
                 processDuration = Math.min(video.duration, 180);
-                if (video.duration > 180) {
-                    warning.style.display = "block";
-                } else {
-                    warning.style.display = "none";
-                }
+                warning.style.display = video.duration > 180 ? "block" : "none";
 
                 canvas.width = video.videoWidth;
                 canvas.height = video.videoHeight;
                 controls.style.display = "block";
+                processBtn.disabled = false;
                 shareArea.innerHTML = "";
                 progressBox.style.display = "none";
             };
@@ -283,7 +305,7 @@
 
                 status.innerText = "İşlem tamamlandı!";
                 progressFill.style.width = "100%";
-                processBtn.disabled = false;
+                processBtn.disabled = true;
 
                 const shareBtn = document.createElement('button');
                 shareBtn.className = 'btn';
