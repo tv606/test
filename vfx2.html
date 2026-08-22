@@ -317,15 +317,29 @@
             };
         });
 
-        processBtn.addEventListener('click', () => {
+        processBtn.addEventListener('click', async () => {
             processBtn.disabled = true;
             progressBox.style.display = "block";
             shareArea.innerHTML = "";
             progressFill.style.width = "0%";
-            status.innerText = "İşleniyor... %0";
+            status.innerText = "Hazırlanıyor...";
 
-            video.currentTime = 0;
             video.playbackRate = selectedSpeed;
+            video.currentTime = 0;
+
+            await new Promise((resolve) => {
+                const onSeek = () => {
+                    video.removeEventListener('seeked', onSeek);
+                    resolve();
+                };
+                video.addEventListener('seeked', onSeek);
+            });
+
+            try {
+                await video.play();
+            } catch (err) {
+                console.error(err);
+            }
 
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
@@ -377,7 +391,6 @@
             };
 
             mediaRecorder.start();
-            video.play();
 
             function updateProgress() {
                 if (!video.paused && !video.ended && video.currentTime < processDuration) {
