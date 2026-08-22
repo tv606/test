@@ -57,9 +57,7 @@
             justify-content: space-between;
         }
 
-        .header {
-            margin-bottom: 12px;
-        }
+        .header { margin-bottom: 8px; }
 
         h1 {
             font-size: 1.35rem;
@@ -73,14 +71,32 @@
             margin-top: 2px;
         }
 
+        .info-text {
+            background-color: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 8px;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            line-height: 1.3;
+        }
+
         video, canvas { display: none; }
 
         .file-upload {
             width: 100%;
             margin-bottom: 8px;
+            position: relative;
         }
 
         .file-upload input[type="file"] { display: none; }
+
+        @keyframes glowingBorder {
+            0% { box-shadow: 0 0 5px rgba(255, 255, 255, 0.2), inset 0 0 5px rgba(255, 255, 255, 0.1); }
+            50% { box-shadow: 0 0 15px rgba(255, 255, 255, 0.6), inset 0 0 10px rgba(255, 255, 255, 0.3); border-color: rgba(255, 255, 255, 0.8); }
+            100% { box-shadow: 0 0 5px rgba(255, 255, 255, 0.2), inset 0 0 5px rgba(255, 255, 255, 0.1); }
+        }
 
         .file-label {
             display: flex;
@@ -88,14 +104,24 @@
             justify-content: center;
             padding: 12px;
             background-color: rgba(255, 255, 255, 0.05);
-            border: 1px dashed var(--border);
+            border: 1px dashed rgba(255, 255, 255, 0.4);
             border-radius: 12px;
-            color: var(--text-muted);
+            color: var(--text-main);
             font-size: 0.85rem;
+            font-weight: 600;
             cursor: pointer;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            animation: glowingBorder 2.5s infinite ease-in-out;
+            transition: all 0.3s ease;
+        }
+
+        .file-label.has-file {
+            animation: none;
+            border-style: solid;
+            border-color: var(--border);
+            color: var(--text-muted);
         }
 
         .controls {
@@ -151,9 +177,7 @@
             cursor: not-allowed;
         }
 
-        .btn-success {
-            background-color: var(--success) !important;
-        }
+        .btn-success { background-color: var(--success) !important; }
 
         .progress-box {
             display: none;
@@ -189,17 +213,19 @@
             display: none;
         }
 
-        #shareArea {
-            margin-top: 4px;
-        }
+        #shareArea { margin-top: 4px; }
     </style>
 </head>
 <body>
 
     <div class="container">
         <div class="header">
-            <h1>Rabbit v1</h1>
+            <h1>Rabbit v1x</h1>
             <p class="subtitle">Hızlı Çekim Video Dönüştürücü</p>
+        </div>
+
+        <div class="info-text">
+            ℹ️ En iyi performans için maksimum 3 dakikalık videolar desteklenir.
         </div>
 
         <div class="file-upload">
@@ -209,7 +235,7 @@
             <input type="file" id="videoInput" accept="video/*">
         </div>
 
-        <div id="warning" class="warning">⚠️ Video 3 dakikadan uzun, ilk 3 dakikası kırpılacak.</div>
+        <div id="warning" class="warning">⚠️ Video 3 dakikadan uzun, ilk 3 dakikası işlenecek.</div>
 
         <div class="controls" id="controls">
             <p class="speed-title">Hız Seçin:</p>
@@ -226,7 +252,7 @@
             <div class="progress-bar-bg">
                 <div class="progress-bar-fill" id="progressFill"></div>
             </div>
-            <div id="status">İşleniyor... %0</div>
+            <div id="status">Hazırlanıyor...</div>
         </div>
 
         <div id="shareArea"></div>
@@ -268,6 +294,7 @@
             if (!file) return;
 
             fileLabel.querySelector('span').innerText = file.name;
+            fileLabel.classList.add('has-file');
             const url = URL.createObjectURL(file);
             video.src = url;
 
@@ -289,89 +316,87 @@
             progressBox.style.display = "block";
             shareArea.innerHTML = "";
             progressFill.style.width = "0%";
-            status.innerText = "Kareler hazırlanıyor...";
+            status.innerText = "Hazırlanıyor...";
 
-            video.currentTime = 0.1;
+            video.currentTime = 0;
             video.playbackRate = selectedSpeed;
 
-            video.onseeked = function startRecording() {
-                video.onseeked = null;
+            const onTimeUpdate = () => {
+                if (video.currentTime > 0) {
+                    video.removeEventListener('timeupdate', onTimeUpdate);
+                    
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    const stream = canvas.captureStream(30);
+                    const mimeType = MediaRecorder.isTypeSupported('video/mp4') ? 'video/mp4' : 'video/webm';
+                    const mediaRecorder = new MediaRecorder(stream, { mimeType });
+                    const recordedChunks = [];
 
-                const stream = canvas.captureStream(30);
-                const mimeType = MediaRecorder.isTypeSupported('video/mp4') ? 'video/mp4' : 'video/webm';
-                const mediaRecorder = new MediaRecorder(stream, { mimeType });
-                const recordedChunks = [];
-
-                mediaRecorder.ondataavailable = (e) => {
-                    if (e.data.size > 0) recordedChunks.push(e.data);
-                };
-
-                mediaRecorder.onstop = () => {
-                    const ext = mimeType.split('/')[1];
-                    const blob = new Blob(recordedChunks, { type: mimeType });
-                    generatedFile = new File([blob], `rabbit_hizli_cekim.${ext}`, { type: mimeType });
-
-                    status.innerText = "İşlem tamamlandı!";
-                    progressFill.style.width = "100%";
-                    processBtn.disabled = true;
-
-                    const shareBtn = document.createElement('button');
-                    shareBtn.className = 'btn';
-                    shareBtn.innerText = '📤 Kaydet / Paylaş';
-                    shareBtn.onclick = async () => {
-                        if (navigator.share && navigator.canShare && navigator.canShare({ files: [generatedFile] })) {
-                            try {
-                                await navigator.share({
-                                    files: [generatedFile],
-                                    title: 'Rabbit v1 Video'
-                                });
-                                shareBtn.innerText = '✅ Kaydedildi / Paylaşıldı';
-                                shareBtn.classList.add('btn-success');
-                                setTimeout(() => {
-                                    shareBtn.innerText = '📤 Kaydet / Paylaş';
-                                    shareBtn.classList.remove('btn-success');
-                                }, 3000);
-                            } catch (err) {
-                                console.log(err);
-                            }
-                        } else {
-                            const a = document.createElement('a');
-                            a.href = URL.createObjectURL(blob);
-                            a.download = generatedFile.name;
-                            a.click();
-                            shareBtn.innerText = '✅ İndirme Başlatıldı';
-                            shareBtn.classList.add('btn-success');
-                            setTimeout(() => {
-                                shareBtn.innerText = '📤 Kaydet / Paylaş';
-                                shareBtn.classList.remove('btn-success');
-                            }, 3000);
-                        }
+                    mediaRecorder.ondataavailable = (e) => {
+                        if (e.data.size > 0) recordedChunks.push(e.data);
                     };
-                    shareArea.appendChild(shareBtn);
-                };
 
-                mediaRecorder.start();
-                video.play();
+                    mediaRecorder.onstop = () => {
+                        const ext = mimeType.split('/')[1];
+                        const blob = new Blob(recordedChunks, { type: mimeType });
+                        generatedFile = new File([blob], `rabbit_hizli_cekim.${ext}`, { type: mimeType });
 
-                function updateProgress() {
-                    if (!video.paused && !video.ended && video.currentTime < processDuration) {
-                        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                        
-                        const percent = Math.min(Math.round((video.currentTime / processDuration) * 100), 100);
-                        progressFill.style.width = percent + "%";
-                        status.innerText = `İşleniyor... %${percent}`;
+                        status.innerText = "İşlem tamamlandı!";
+                        progressFill.style.width = "100%";
+                        processBtn.disabled = true;
 
-                        requestAnimationFrame(updateProgress);
-                    } else if (video.currentTime >= processDuration || video.ended) {
-                        video.pause();
-                        mediaRecorder.stop();
+                        const shareBtn = document.createElement('button');
+                        shareBtn.className = 'btn';
+                        shareBtn.innerText = '📤 Kaydet / Paylaş';
+                        shareBtn.onclick = async () => {
+                            if (navigator.share && navigator.canShare && navigator.canShare({ files: [generatedFile] })) {
+                                try {
+                                    await navigator.share({
+                                        files: [generatedFile],
+                                        title: 'Rabbit v1 Video'
+                                    });
+                                    shareBtn.innerText = '✅ Kaydedildi / Paylaşıldı';
+                                    shareBtn.classList.add('btn-success');
+                                    shareBtn.disabled = true;
+                                } catch (err) {
+                                    console.log(err);
+                                }
+                            } else {
+                                const a = document.createElement('a');
+                                a.href = URL.createObjectURL(blob);
+                                a.download = generatedFile.name;
+                                a.click();
+                                shareBtn.innerText = '✅ Kaydedildi / İndirildi';
+                                shareBtn.classList.add('btn-success');
+                                shareBtn.disabled = true;
+                            }
+                        };
+                        shareArea.appendChild(shareBtn);
+                    };
+
+                    mediaRecorder.start();
+
+                    function updateProgress() {
+                        if (!video.paused && !video.ended && video.currentTime < processDuration) {
+                            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                            
+                            const percent = Math.min(Math.round((video.currentTime / processDuration) * 100), 100);
+                            progressFill.style.width = percent + "%";
+                            status.innerText = `İşleniyor... %${percent}`;
+
+                            requestAnimationFrame(updateProgress);
+                        } else if (video.currentTime >= processDuration || video.ended) {
+                            video.pause();
+                            mediaRecorder.stop();
+                        }
                     }
-                }
 
-                updateProgress();
+                    updateProgress();
+                }
             };
+
+            video.addEventListener('timeupdate', onTimeUpdate);
+            video.play();
         });
     </script>
 </body>
