@@ -4,8 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Video Kurgucu Mini Hızlı</title>
-    <script src="https://unpkg.com/coi-serviceworker/coi-serviceworker.min.js"></script>
-    <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
+<script src="https://unpkg.com/@ffmpeg/ffmpeg@0.10.1/dist/ffmpeg.min.js"></script>
+<script>
+    const { createFFmpeg, fetchFile } = FFmpeg;
+    const ffmpeg = createFFmpeg({
+        log: true,
+        corePath: 'https://unpkg.com/@ffmpeg/core@0.10.0/dist/ffmpeg-core.js'
+    });
+</script>
     <style>
         :root {
             --bg: #0f172a;
@@ -211,7 +217,7 @@
 
 <div class="wrapper">
     <div class="row-header">
-        <div class="cell header-cell">Video Kurgucu Mini</div>
+        <div class="cell header-cell">Video Kurgucu Minix</div>
     </div>
 
     <div class="row-main">
