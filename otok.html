@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Video Kurgucu Mini Hızlı</title>
+    <script src="https://unpkg.com/coi-serviceworker/coi-serviceworker.min.js"></script>
+    <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
     <style>
         :root {
             --bg: #0f172a;
@@ -112,12 +114,14 @@
             overflow: hidden;
             text-overflow: ellipsis;
             color: var(--sub);
+            pointer-events: none;
         }
 
         .file-remove {
             float: right;
             color: var(--danger);
             font-weight: bold;
+            pointer-events: auto;
         }
 
         .controls-box {
@@ -207,15 +211,15 @@
 
 <div class="wrapper">
     <div class="row-header">
-        <div class="cell header-cell">Video Kurgucu Minix</div>
+        <div class="cell header-cell">Video Kurgucu Mini</div>
     </div>
 
     <div class="row-main">
         <div class="cell main-cell">
-            <div class="drop-box" onclick="document.getElementById('fileInput').click()">
+            <label class="drop-box" for="fileInput">
                 + Videoları Seç / Ekle
                 <input type="file" id="fileInput" multiple accept="video/*" style="display:none;">
-            </div>
+            </label>
 
             <div class="file-box">
                 <div id="fileList"></div>
@@ -250,18 +254,12 @@
     </div>
 </div>
 
-<script src="https://unpkg.com/coi-serviceworker/coi-serviceworker.min.js"></script>
-<script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
 <script>
     const { createFFmpeg, fetchFile } = FFmpeg;
     const ffmpeg = createFFmpeg({
         log: true,
         corePath: 'https://unpkg.com/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js'
     });
-</script>
-<script>
-    const { createFFmpeg, fetchFile } = FFmpeg;
-    const ffmpeg = createFFmpeg({ log: false });
 
     let filesArray = [];
 
@@ -391,18 +389,6 @@
         }
 
         statusLabel.innerText = "Kurgulanıyor (Ultra Hızlı)...";
-
-        let command = [];
-        for (let i = 0; i < tumDilimler.length; i++) {
-            const item = tumDilimler[i];
-            command.push(
-                '-ss', item.start.toFixed(2),
-                '-t', item.duration.toFixed(2),
-                '-i', `input_${item.fileIndex}.mp4`,
-                '-c', 'copy',
-                `part_${i}.ts`
-            );
-        }
 
         try {
             for (let i = 0; i < tumDilimler.length; i++) {
