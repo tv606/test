@@ -3,16 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Video Kurgucu Mini</title>
+    <title>Video Kurgucu Mini Hızlı</title>
     <style>
         :root {
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
-            --text-main: #f8fafc;
-            --text-sub: #94a3b8;
-            --accent-color: #10b981;
-            --accent-hover: #059669;
-            --border-color: #334155;
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f8fafc;
+            --sub: #94a3b8;
+            --accent: #10b981;
+            --border: #334155;
             --danger: #ef4444;
         }
 
@@ -20,111 +19,89 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            -webkit-tap-highlight-color: transparent;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             user-select: none;
         }
 
         html, body {
             width: 100%;
-            height: 100%;
+            height: 100vh;
+            height: -webkit-fill-available;
             overflow: hidden;
-            background-color: var(--bg-color);
-            color: var(--text-main);
+            background: var(--bg);
+            color: var(--text);
         }
 
-        body {
+        .wrapper {
             display: table;
-            table-layout: fixed;
             width: 100%;
-            height: 100vh;
+            height: 100%;
             padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
         }
 
-        .app-layout {
-            display: table-row-group;
-            height: 100%;
+        .row-header {
+            display: table-row;
+            height: 40px;
         }
 
-        .header-row {
+        .row-main {
             display: table-row;
-            height: 48px;
+            height: auto;
+        }
+
+        .row-footer {
+            display: table-row;
+            height: 50px;
+        }
+
+        .cell {
+            display: table-cell;
+            vertical-align: middle;
+            padding: 0 10px;
         }
 
         .header-cell {
-            display: table-cell;
-            vertical-align: middle;
             text-align: center;
-            background-color: var(--card-bg);
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .header-cell h1 {
-            font-size: 1rem;
-            font-weight: 600;
-            letter-spacing: -0.01em;
-        }
-
-        .main-row {
-            display: table-row;
-            height: calc(100% - 108px);
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+            font-weight: bold;
         }
 
         .main-cell {
-            display: table-cell;
             vertical-align: top;
-            padding: 10px;
+            padding-top: 8px;
         }
 
         .drop-box {
             display: block;
-            width: 100%;
-            height: 75px;
-            border: 2px dashed var(--border-color);
-            border-radius: 10px;
+            height: 50px;
+            border: 2px dashed var(--border);
+            border-radius: 8px;
             text-align: center;
-            background-color: #1a2436;
-            margin-bottom: 8px;
+            background: #1a2436;
+            margin-bottom: 6px;
             cursor: pointer;
-        }
-
-        .drop-box-content {
-            display: block;
-            padding-top: 18px;
-        }
-
-        .drop-box p {
-            font-size: 0.82rem;
+            line-height: 46px;
+            font-size: 0.8rem;
+            color: var(--text);
             font-weight: 600;
-            color: var(--text-main);
-        }
-
-        .drop-box span {
-            font-size: 0.7rem;
-            color: var(--text-sub);
         }
 
         .file-box {
             display: block;
-            width: 100%;
-            height: 70px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            background-color: var(--card-bg);
+            height: 50px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card);
             overflow-y: auto;
-            margin-bottom: 8px;
-        }
-
-        .file-list {
-            list-style: none;
-            display: block;
+            margin-bottom: 6px;
         }
 
         .file-item {
-            display: block;
-            padding: 5px 8px;
-            border-bottom: 1px solid var(--border-color);
-            font-size: 0.75rem;
+            padding: 4px 6px;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.7rem;
             clear: both;
         }
 
@@ -134,81 +111,63 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            color: var(--text-sub);
+            color: var(--sub);
         }
 
         .file-remove {
             float: right;
             color: var(--danger);
             font-weight: bold;
-            font-size: 0.85rem;
-            cursor: pointer;
         }
 
-        .controls-card {
-            display: block;
-            width: 100%;
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 8px;
-            margin-bottom: 8px;
+        .controls-box {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 6px;
+            margin-bottom: 6px;
         }
 
         .input-table {
             display: table;
             width: 100%;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
 
         .input-cell {
             display: table-cell;
             width: 50%;
-            padding: 0 4px;
+            padding: 0 2px;
         }
 
         .input-cell label {
             display: block;
-            font-size: 0.68rem;
-            color: var(--text-sub);
-            margin-bottom: 2px;
+            font-size: 0.65rem;
+            color: var(--sub);
         }
 
         .input-cell input {
             width: 100%;
-            background-color: var(--bg-color);
-            border: 1px solid var(--border-color);
-            color: var(--text-main);
-            border-radius: 6px;
-            padding: 5px;
-            font-size: 0.8rem;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text);
+            border-radius: 4px;
+            padding: 3px;
+            font-size: 0.75rem;
             text-align: center;
             outline: none;
         }
 
         .checkbox-row {
-            display: block;
-            padding: 2px 4px;
-            font-size: 0.72rem;
-        }
-
-        .checkbox-row input {
-            vertical-align: middle;
-            margin-right: 4px;
-        }
-
-        .checkbox-row label {
-            vertical-align: middle;
-            color: var(--text-sub);
+            font-size: 0.68rem;
+            color: var(--sub);
         }
 
         .status-box {
-            display: block;
-            width: 100%;
-            height: 18px;
-            font-size: 0.7rem;
+            height: 16px;
+            font-size: 0.65rem;
             text-align: center;
-            color: var(--accent-color);
+            color: var(--accent);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -217,72 +176,52 @@
         .video-preview {
             display: none;
             width: 100%;
-            height: 110px;
+            height: 80px;
             border-radius: 6px;
-            background-color: #000;
-            margin-top: 4px;
-        }
-
-        .footer-row {
-            display: table-row;
-            height: 60px;
-        }
-
-        .footer-cell {
-            display: table-cell;
-            vertical-align: middle;
-            padding: 0 10px 10px 10px;
+            background: #000;
+            margin-top: 2px;
         }
 
         .btn-submit {
             display: block;
             width: 100%;
-            height: 44px;
-            line-height: 44px;
-            background-color: var(--accent-color);
-            color: #ffffff;
+            height: 40px;
+            line-height: 40px;
+            background: var(--accent);
+            color: #fff;
             border: none;
-            border-radius: 10px;
-            font-size: 0.9rem;
-            font-weight: 600;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: bold;
             text-align: center;
             cursor: pointer;
         }
 
-        .btn-submit:active {
-            background-color: var(--accent-hover);
-        }
-
         .btn-submit:disabled {
-            background-color: var(--border-color);
-            color: var(--text-sub);
+            background: var(--border);
+            color: var(--sub);
         }
     </style>
 </head>
 <body>
 
-<div class="app-layout">
-    <div class="header-row">
-        <div class="header-cell">
-            <h1>Video Kurgucu Mini</h1>
-        </div>
+<div class="wrapper">
+    <div class="row-header">
+        <div class="cell header-cell">Video Kurgucu Mini</div>
     </div>
 
-    <div class="main-row">
-        <div class="main-cell">
+    <div class="row-main">
+        <div class="cell main-cell">
             <div class="drop-box" onclick="document.getElementById('fileInput').click()">
-                <div class="drop-box-content">
-                    <p>Videoları Ekle</p>
-                    <span>Dokun ve video seç</span>
-                </div>
+                + Videoları Seç / Ekle
                 <input type="file" id="fileInput" multiple accept="video/*" style="display:none;">
             </div>
 
             <div class="file-box">
-                <div class="file-list" id="fileList"></div>
+                <div id="fileList"></div>
             </div>
 
-            <div class="controls-card">
+            <div class="controls-box">
                 <div class="input-table">
                     <div class="input-cell">
                         <label for="minSure">Min (sn):</label>
@@ -295,7 +234,7 @@
                 </div>
                 <div class="checkbox-row">
                     <input type="checkbox" id="ardisikEngelle" checked>
-                    <label for="ardisikEngelle">Aynı video üste gelmesin</label>
+                    <label for="ardisikEngelle">Aynı video peş peşe gelmesin</label>
                 </div>
             </div>
 
@@ -304,8 +243,8 @@
         </div>
     </div>
 
-    <div class="footer-row">
-        <div class="footer-cell">
+    <div class="row-footer">
+        <div class="cell">
             <button class="btn-submit" id="startBtn" onclick="videolariIsle()">VİDEOLARI OLUŞTUR</button>
         </div>
     </div>
@@ -410,13 +349,13 @@
         }
 
         startBtn.disabled = true;
-        statusLabel.innerText = "Yükleniyor...";
+        statusLabel.innerText = "FFmpeg yükleniyor...";
 
         if (!ffmpeg.isLoaded()) {
             await ffmpeg.load();
         }
 
-        statusLabel.innerText = "Parçalanıyor...";
+        statusLabel.innerText = "Videolar aktarılıyor...";
 
         let tumDilimler = [];
 
@@ -443,24 +382,43 @@
             tumDilimler.sort(() => Math.random() - 0.5);
         }
 
-        statusLabel.innerText = "Birleştiriliyor...";
-
-        let filterConcat = "";
-        for (let i = 0; i < tumDilimler.length; i++) {
-            filterConcat += `[${i}:v][${i}:a]`;
-        }
-        filterConcat += `concat=n=${tumDilimler.length}:v=1:a=1[outv][outa]`;
+        statusLabel.innerText = "Kurgulanıyor (Ultra Hızlı)...";
 
         let command = [];
         for (let i = 0; i < tumDilimler.length; i++) {
             const item = tumDilimler[i];
-            command.push('-ss', item.start.toString(), '-t', item.duration.toString(), '-i', `input_${item.fileIndex}.mp4`);
+            command.push(
+                '-ss', item.start.toFixed(2),
+                '-t', item.duration.toFixed(2),
+                '-i', `input_${item.fileIndex}.mp4`,
+                '-c', 'copy',
+                `part_${i}.ts`
+            );
         }
 
-        command.push('-filter_complex', filterConcat, '-map', '[outv]', '-map', '[outa]', 'output.mp4');
-
         try {
-            await ffmpeg.run(...command);
+            for (let i = 0; i < tumDilimler.length; i++) {
+                const item = tumDilimler[i];
+                await ffmpeg.run(
+                    '-ss', item.start.toFixed(2),
+                    '-t', item.duration.toFixed(2),
+                    '-i', `input_${item.fileIndex}.mp4`,
+                    '-c', 'copy',
+                    `part_${i}.ts`
+                );
+            }
+
+            let concatList = tumDilimler.map((_, i) => `file 'part_${i}.ts'`).join('\n');
+            ffmpeg.FS('writeFile', 'concat_list.txt', concatList);
+
+            await ffmpeg.run(
+                '-f', 'concat',
+                '-safe', '0',
+                '-i', 'concat_list.txt',
+                '-c', 'copy',
+                'output.mp4'
+            );
+
             const data = ffmpeg.FS('readFile', 'output.mp4');
             const videoUrl = URL.createObjectURL(new Blob([data.buffer], { type: 'video/mp4' }));
             
@@ -469,7 +427,26 @@
             statusLabel.innerText = "Hazır!";
         } catch (error) {
             console.error(error);
-            statusLabel.innerText = "Hata oluştu!";
+            statusLabel.innerText = "Hata! Yeniden kodlamaya geçiliyor...";
+            
+            let filterConcat = "";
+            for (let i = 0; i < tumDilimler.length; i++) filterConcat += `[${i}:v][${i}:a]`;
+            filterConcat += `concat=n=${tumDilimler.length}:v=1:a=1[outv][outa]`;
+
+            let fallbackCmd = [];
+            for (let i = 0; i < tumDilimler.length; i++) {
+                const item = tumDilimler[i];
+                fallbackCmd.push('-ss', item.start.toFixed(2), '-t', item.duration.toFixed(2), '-i', `input_${item.fileIndex}.mp4`);
+            }
+            fallbackCmd.push('-filter_complex', filterConcat, '-map', '[outv]', '-map', '[outa]', '-preset', 'ultrafast', 'output.mp4');
+
+            await ffmpeg.run(...fallbackCmd);
+            const data = ffmpeg.FS('readFile', 'output.mp4');
+            const videoUrl = URL.createObjectURL(new Blob([data.buffer], { type: 'video/mp4' }));
+            
+            outputVideo.src = videoUrl;
+            outputVideo.style.display = 'block';
+            statusLabel.innerText = "Hazır!";
         } finally {
             startBtn.disabled = false;
         }
