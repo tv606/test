@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Hassas Veri Sansürleme</title>
+  <style>
+    :root {
+      --primary: #007AFF;
+      --bg-dark: #000000;
+      --card-bg: rgba(28, 28, 30, 0.9);
+      --border-color: rgba(255, 255, 255, 0.15);
+      --text-main: #FFFFFF;
+      --text-sub: #8E8E93;
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
+
+    body {
+      margin: 0; padding: 0;
+      width: 100vw; height: 100vh;
+      background-color: var(--bg-dark);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+      color: var(--text-main);
+      display: flex; flex-direction: column; justify-content: space-between;
+      overflow: hidden;
+    }
+
+    header {
+      padding: calc(env(safe-area-inset-top) + 8px) 16px 12px;
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      border-bottom: 0.5px solid var(--border-color);
+      display: flex; justify-content: space-between; align-items: center;
+      z-index: 10;
+    }
+
+    .btn-header {
+      background: none; border: none; color: var(--primary);
+      font-size: 16px; font-weight: 600; cursor: pointer;
+    }
+    .btn-header:disabled { color: var(--text-sub); opacity: 0.4; }
+
+    .viewport {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      position: relative; overflow: hidden; background-color: #121212;
+    }
+
+    .upload-placeholder {
+      display: flex; flex-direction: column; align-items: center; gap: 10px;
+      color: var(--text-sub); text-align: center;
+    }
+
+    .upload-icon {
+      width: 60px; height: 60px; border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--primary); font-size: 26px;
+    }
+
+    #fileInput { display: none; }
+
+    canvas { max-width: 100%; max-height: 100%; touch-action: none; }
+
+    footer {
+      padding: 12px 16px calc(env(safe-area-inset-bottom) + 12px);
+      background: var(--card-bg); backdrop-filter: blur(20px);
+      border-top: 0.5px solid var(--border-color);
+      display: flex; flex-direction: column; gap: 12px; z-index: 10;
+    }
+
+    .controls-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    }
+
+    .segmented-control {
+      display: flex; background: rgba(120, 120, 128, 0.24);
+      padding: 2px; border-radius: 9px; flex: 1;
+    }
+
+    .segment-btn {
+      flex: 1; border: none; background: transparent;
+      color: var(--text-main); padding: 8px 0; font-size: 13px;
+      border-radius: 7px; cursor: pointer;
+    }
+
+    .segment-btn.active { background: #636366; font-weight: 600; }
+
+    .slider-container {
+      display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--text-sub);
+    }
+
+    input[type=range] { flex: 1; accent-color: var(--primary); }
+
+    .action-bar { display: flex; gap: 10px; }
+
+    .btn-action {
+      flex: 1; background: rgba(255, 255, 255, 0.12); border: none;
+      color: var(--text-main); padding: 12px; border-radius: 12px;
+      font-size: 15px; font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <button class="btn-header" id="undoBtn" disabled>↩ Geri Al</button>
+    <span style="font-weight: 600; font-size: 16px;">Fırça Sansür</span>
+    <button class="btn-header" id="exportBtn" disabled>Kaydet</button>
+  </header>
+
+  <div class="viewport">
+    <div class="upload-placeholder" id="uploadBtn">
+      <div class="upload-icon">📷</div>
+      <div style="font-size: 15px; font-weight: 600;">Belge veya Görsel Yükle</div>
+    </div>
+    <input type="file" id="fileInput" accept="image/*">
+    <canvas id="canvas" style="display: none;"></canvas>
+  </div>
+
+  <footer>
+    <div class="slider-container">
+      <span>Fırça Boyutu:</span>
+      <input type="range" id="brushSize" min="10" max="80" value="30">
+    </div>
+
+    <div class="segmented-control">
+      <button class="segment-btn active" data-mode="blur">Bulanık</button>
+      <button class="segment-btn" data-mode="black">Siyah Maske</button>
+      <button class="segment-btn" data-mode="pixel">Piksel</button>
+    </div>
+
+    <div class="action-bar">
+      <button class="btn-action" id="changeImgBtn">Yeni Görsel</button>
+    </div>
+  </footer>
+
+  <script>
+    const fileInput = document.getElementById('fileInput');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const changeImgBtn = document.getElementById('changeImgBtn');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const undoBtn = document.getElementById('undoBtn');
+    const exportBtn = document.getElementById('exportBtn');
+    const brushSizeInput = document.getElementById('brushSize');
+    const segmentBtns = document.querySelectorAll('.segment-btn');
+
+    let currentMode = 'blur';
+    let loadedImage = null;
+    let isDrawing = false;
+    let historyStack = [];
+
+    segmentBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        segmentBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentMode = btn.dataset.mode;
+      });
+    });
+
+    uploadBtn.addEventListener('click', () => fileInput.click());
+    changeImgBtn.addEventListener('click', () => fileInput.click());
+
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        loadedImage = new Image();
+        loadedImage.onload = () => {
+          canvas.width = loadedImage.width;
+          canvas.height = loadedImage.height;
+          ctx.drawImage(loadedImage, 0, 0);
+          
+          historyStack = [];
+          saveState();
+
+          uploadBtn.style.display = 'none';
+          canvas.style.display = 'block';
+          exportBtn.disabled = false;
+        };
+        loadedImage.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    function saveState() {
+      historyStack.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+      undoBtn.disabled = historyStack.length <= 1;
+    }
+
+    undoBtn.addEventListener('click', () => {
+      if (historyStack.length > 1) {
+        historyStack.pop();
+        ctx.putImageData(historyStack[historyStack.length - 1], 0, 0);
+        undoBtn.disabled = historyStack.length <= 1;
+      }
+    });
+
+    function getPos(e) {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      return {
+        x: (clientX - rect.left) * scaleX,
+        y: (clientY - rect.top) * scaleY
+      };
+    }
+
+    function drawStroke(x, y) {
+      const radius = parseInt(brushSizeInput.value, 10);
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, Math.PI * 2);
+      ctx.clip();
+
+      if (currentMode === 'black') {
+        ctx.fillStyle = '#000000';
+        ctx.fill();
+      } else if (currentMode === 'blur') {
+        ctx.filter = 'blur(12px)';
+        ctx.drawImage(canvas, 0, 0);
+      } else if (currentMode === 'pixel') {
+        const size = 12;
+        const tempCanvas = document.createElement('canvas');
+        const tempCtx = tempCanvas.getContext('2d');
+        const boxX = x - radius;
+        const boxY = y - radius;
+        const boxW = radius * 2;
+        const boxH = radius * 2;
+
+        tempCanvas.width = Math.max(1, boxW / size);
+        tempCanvas.height = Math.max(1, boxH / size);
+
+        tempCtx.drawImage(canvas, boxX, boxY, boxW, boxH, 0, 0, tempCanvas.width, tempCanvas.height);
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(tempCanvas, 0, 0, tempCanvas.width, tempCanvas.height, boxX, boxY, boxW, boxH);
+      }
+      ctx.restore();
+    }
+
+    function handleStart(e) {
+      if (!loadedImage) return;
+      isDrawing = true;
+      const pos = getPos(e);
+      drawStroke(pos.x, pos.y);
+    }
+
+    function handleMove(e) {
+      if (!isDrawing) return;
+      const pos = getPos(e);
+      drawStroke(pos.x, pos.y);
+    }
+
+    function handleEnd() {
+      if (isDrawing) {
+        isDrawing = false;
+        saveState();
+      }
+    }
+
+    canvas.addEventListener('mousedown', handleStart);
+    canvas.addEventListener('mousemove', handleMove);
+    canvas.addEventListener('mouseup', handleEnd);
+
+    canvas.addEventListener('touchstart', (e) => { e.preventDefault(); handleStart(e); });
+    canvas.addEventListener('touchmove', (e) => { e.preventDefault(); handleMove(e); });
+    canvas.addEventListener('touchend', handleEnd);
+
+    exportBtn.addEventListener('click', () => {
+      const link = document.createElement('a');
+      link.download = 'sansur.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    });
+  </script>
+</body>
+</html>
