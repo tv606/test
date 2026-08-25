@@ -10,19 +10,34 @@
     body { background: #141414; color: #fff; font-family: sans-serif; overflow-x: hidden; padding: 20px; }
     #search { width: 100%; padding: 15px; font-size: 20px; background: #333; color: #fff; border: 2px solid transparent; border-radius: 8px; margin-bottom: 20px; outline: none; }
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px; }
-    .card { background: #222; border-radius: 8px; overflow: hidden; border: 3px solid transparent; cursor: pointer; aspect-ratio: 2/3; display: flex; flex-direction: column; position: relative; }
+    .card { background: #222; border-radius: 8px; overflow: hidden; border: 4px solid transparent; cursor: pointer; aspect-ratio: 2/3; display: flex; flex-direction: column; position: relative; }
     .card img { width: 100%; height: 80%; object-fit: cover; background: #111; pointer-events: none; }
     .card .title { padding: 8px; font-size: 14px; text-align: center; font-weight: bold; height: 20%; display: flex; align-items: center; justify-content: center; word-break: break-word; pointer-events: none; }
-    .focusable:focus, .card:focus, #search:focus { border-color: #e50914; background: #333; transform: scale(1.05); outline: none; z-index: 10; }
     
-    #player-container { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 99999; }
-    video { width: 100%; height: 100%; object-fit: contain; }
+    /* Turkuaz Seçim Çerçevesi */
+    .focusable:focus, .card:focus, #search:focus { border-color: #00ffff; background: #333; transform: scale(1.05); outline: none; z-index: 10; box-shadow: 0 0 15px #00ffff; }
+    
+    /* Z-Index ve WebView Donanım Hızlandırması Düzeltilmiş Player */
+    #player-container { 
+      display: none; 
+      position: fixed; 
+      top: 0; 
+      left: 0; 
+      width: 100vw; 
+      height: 100vh; 
+      background: #000; 
+      z-index: 2147483647; 
+      transform: translateZ(0);
+    }
+    video { width: 100%; height: 100%; object-fit: contain; background: #000; }
   </style>
 </head>
 <body>
 
-  <input type="text" id="search" class="focusable" placeholder="Film Ara..." />
-  <div id="grid" class="grid"></div>
+  <div id="main-content">
+    <input type="text" id="search" class="focusable" placeholder="Film Ara..." />
+    <div id="grid" class="grid"></div>
+  </div>
   
   <div id="player-container">
     <video id="video" controls autoplay playsinline></video>
@@ -97,9 +112,7 @@
         div.appendChild(img);
         div.appendChild(titleDiv);
         
-        const startPlay = () => playVideo(m.url);
-        div.onclick = startPlay;
-        
+        div.onclick = () => playVideo(m.url);
         grid.appendChild(div);
       });
       
@@ -108,7 +121,11 @@
 
     function playVideo(url) {
       const container = document.getElementById('player-container');
+      const mainContent = document.getElementById('main-content');
       const video = document.getElementById('video');
+      
+      // Video üstte kalsın diye ana içeriği tamamen gizle
+      mainContent.style.display = 'none';
       container.style.display = 'block';
 
       if (hlsInstance) {
@@ -145,6 +162,7 @@
 
     function closePlayer() {
       const container = document.getElementById('player-container');
+      const mainContent = document.getElementById('main-content');
       const video = document.getElementById('video');
       
       if (hlsInstance) {
@@ -155,7 +173,9 @@
       video.pause();
       video.removeAttribute('src');
       video.load();
+      
       container.style.display = 'none';
+      mainContent.style.display = 'block';
       document.querySelector('.card')?.focus();
     }
 
@@ -185,7 +205,6 @@
         return;
       }
 
-      // Android TV kumanda "OK" / "Select" tuşu tetikleme (KeyCode 13, 23, 66, 100)
       if (e.keyCode === 13 || e.keyCode === 23 || e.keyCode === 66 || e.keyCode === 100 || e.key === 'Enter') {
         if (activeEl && activeEl.classList.contains('card')) {
           activeEl.click();
