@@ -16,17 +16,67 @@
       background: black;
       font-family: sans-serif;
       overflow: hidden;
+      width: 100vw;
+      height: 100vh;
     }
 
+    /* Video player tam ekrana sabitlendi */
     video {
-      width: 100%;
+      width: 100vw;
       height: 100vh;
       object-fit: contain;
-      position: absolute;
+      position: fixed;
       top: 0;
       left: 0;
-      z-index: 0;
+      z-index: 1;
       background: black;
+    }
+
+    /* İlerleme Çubuğu (Progress Bar) */
+    #progressContainer {
+      position: fixed;
+      bottom: 20px;
+      left: 5%;
+      width: 90%;
+      height: 10px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 5px;
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      opacity: 1;
+      transition: opacity 0.4s ease;
+    }
+
+    #progressContainer.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    #progressBar {
+      width: 0%;
+      height: 100%;
+      background: #008CBA;
+      border-radius: 5px;
+    }
+
+    #timeDisplay {
+      position: fixed;
+      bottom: 35px;
+      right: 5%;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      z-index: 999;
+      text-shadow: 1px 1px 2px black;
+      opacity: 1;
+      transition: opacity 0.4s ease;
+    }
+
+    #timeDisplay.hidden {
+      opacity: 0;
+      pointer-events: none;
     }
 
     #loader {
@@ -162,16 +212,11 @@
     .opaq {
       opacity: 40%;
     }
-
-    video::-webkit-media-controls {
-      display: none !important;
-      -webkit-appearance: none;
-    }
   </style>
 </head>
 <body>
 
-<video id="video" autoplay playsinline></video>
+<video id="video" autoplay playsinline webkit-playsinline></video>
 
 <div id="loader">
   <img src="https://tv606.github.io/test/lo.gif" alt="Loading...">
@@ -184,6 +229,11 @@
   <div id="channelBar"></div>
 </div>
 
+<div id="progressContainer">
+  <div id="progressBar"></div>
+</div>
+<div id="timeDisplay">00:00 / 00:00</div>
+
 <script>
   const video = document.getElementById('video');
   const channelBar = document.getElementById('channelBar');
@@ -191,6 +241,9 @@
   const searchBar = document.getElementById('searchBar');
   const overlay = document.getElementById('channelNameOverlay');
   const loader = document.getElementById('loader');
+  const progressContainer = document.getElementById('progressContainer');
+  const progressBar = document.getElementById('progressBar');
+  const timeDisplay = document.getElementById('timeDisplay');
 
   let allMovies = [];
   let filteredMovies = [];
@@ -246,8 +299,30 @@
     hideLoader();
   });
 
-  video.removeAttribute("controls");
-  video.removeAttribute("poster");
+  /* İlerleme Çubuğu Güncellemesi */
+  video.addEventListener('timeupdate', () => {
+    if (video.duration) {
+      const pct = (video.currentTime / video.duration) * 100;
+      progressBar.style.width = pct + '%';
+      timeDisplay.textContent = formatTime(video.currentTime) + ' / ' + formatTime(video.duration);
+    }
+  });
+
+  function formatTime(sec) {
+    if (isNaN(sec)) return "00:00";
+    const m = Math.floor(sec / 60);
+    const s = Math.floor(sec % 60);
+    return (m < 10 ? "0" + m : m) + ":" + (s < 10 ? "0" + s : s);
+  }
+
+  /* Tıklayarak İleri/Geri Alma */
+  progressContainer.addEventListener('click', (e) => {
+    const rect = progressContainer.getBoundingClientRect();
+    const pos = (e.clientX - rect.left) / rect.width;
+    if (video.duration) {
+      video.currentTime = pos * video.duration;
+    }
+  });
 
   function showChannelName(name) {
     overlay.textContent = name;
@@ -330,10 +405,15 @@
   function resetHideTimer() {
     if (document.activeElement === searchBar) return;
     topContainer.classList.remove('hidden');
+    progressContainer.classList.remove('hidden');
+    timeDisplay.classList.remove('hidden');
+    
     clearTimeout(hideTimeout);
     hideTimeout = setTimeout(() => {
       if (document.activeElement !== searchBar) {
         topContainer.classList.add('hidden');
+        progressContainer.classList.add('hidden');
+        timeDisplay.classList.add('hidden');
       }
     }, 3000);
   }
@@ -359,12 +439,15 @@
   searchBar.addEventListener('focus', () => {
     clearTimeout(hideTimeout);
     topContainer.classList.remove('hidden');
+    progressContainer.classList.remove('hidden');
+    timeDisplay.classList.remove('hidden');
   });
 
   searchBar.addEventListener('blur', () => {
     resetHideTimer();
   });
 
+  /* TV Kumandası & Klavye Kontrolleri */
   document.addEventListener('keydown', e => {
     if (document.activeElement === searchBar) return;
     const channels = channelBar.querySelectorAll('.channel');
@@ -380,6 +463,14 @@
     } else if (e.key === 'ArrowLeft') {
       focusedIndex = (focusedIndex - 1 + filteredMovies.length) % filteredMovies.length;
       updateFocus(focusedIndex);
+      resetHideTimer();
+    } else if (e.key === 'ArrowUp') {
+      /* 10 Saniye İleri Al */
+      if (video.duration) video.currentTime = Math.min(video.duration, video.currentTime + 10);
+      resetHideTimer();
+    } else if (e.key === 'ArrowDown') {
+      /* 10 Saniye Geri Al */
+      if (video.duration) video.currentTime = Math.max(0, video.currentTime - 10);
       resetHideTimer();
     } else if (e.key === 'Enter') {
       activateChannel(focusedIndex);
