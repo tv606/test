@@ -11,11 +11,10 @@
     #search { width: 100%; padding: 15px; font-size: 20px; background: #333; color: #fff; border: 2px solid transparent; border-radius: 8px; margin-bottom: 20px; outline: none; }
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px; }
     .card { background: #222; border-radius: 8px; overflow: hidden; border: 3px solid transparent; cursor: pointer; aspect-ratio: 2/3; display: flex; flex-direction: column; position: relative; }
-    .card img { width: 100%; height: 80%; object-fit: cover; background: #111; }
-    .card .title { padding: 8px; font-size: 14px; text-align: center; font-weight: bold; height: 20%; display: flex; align-items: center; justify-content: center; word-break: break-word; }
+    .card img { width: 100%; height: 80%; object-fit: cover; background: #111; pointer-events: none; }
+    .card .title { padding: 8px; font-size: 14px; text-align: center; font-weight: bold; height: 20%; display: flex; align-items: center; justify-content: center; word-break: break-word; pointer-events: none; }
     .focusable:focus, .card:focus, #search:focus { border-color: #e50914; background: #333; transform: scale(1.05); outline: none; z-index: 10; }
     
-    /* Tam Ekran Video Oyuncu Katmanı */
     #player-container { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 99999; }
     video { width: 100%; height: 100%; object-fit: contain; }
   </style>
@@ -37,7 +36,6 @@
     const PAGE_SIZE = 12;
     let hlsInstance = null;
 
-    // Diziyi Rastgele Karıştırma (Fisher-Yates Shuffle)
     function shuffleArray(array) {
       for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -51,9 +49,7 @@
         const res = await fetch(M3U_URL);
         const text = await res.text();
         parseM3U(text);
-      } catch (e) {
-        console.error("M3U yüklenemedi:", e);
-      }
+      } catch (e) {}
     }
 
     function parseM3U(data) {
@@ -76,7 +72,6 @@
         }
       }
 
-      // Her açılışta ve yenilemede listeyi rastgele karıştır
       allMovies = shuffleArray(allMovies);
       filteredMovies = allMovies;
       loadMore();
@@ -102,8 +97,9 @@
         div.appendChild(img);
         div.appendChild(titleDiv);
         
-        div.onclick = () => playVideo(m.url);
-        div.onkeydown = (e) => { if (e.key === 'Enter' || e.keyCode === 13) playVideo(m.url); };
+        const startPlay = () => playVideo(m.url);
+        div.onclick = startPlay;
+        
         grid.appendChild(div);
       });
       
@@ -120,44 +116,26 @@
         hlsInstance = null;
       }
 
-      // HLS.js yapılandırması (CORS ve Akış Hatalarını En Aza İndirmek İçin)
       if (Hls.isSupported()) {
         hlsInstance = new Hls({
-          debug: false,
           enableWorker: true,
-          lowLatencyMode: false,
-          xhrSetup: function (xhr, url) {
-            xhr.withCredentials = false;
-          }
+          lowLatencyMode: false
         });
 
         hlsInstance.loadSource(url);
         hlsInstance.attachMedia(video);
         
         hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
-          video.play().catch(err => console.log("Oynatma başlatılamadı:", err));
+          video.play().catch(() => {});
         });
 
         hlsInstance.on(Hls.Events.ERROR, (event, data) => {
           if (data.fatal) {
-            switch (data.type) {
-              case Hls.ErrorTypes.NETWORK_ERROR:
-                hlsInstance.startLoad();
-                break;
-              case Hls.ErrorTypes.MEDIA_ERROR:
-                hlsInstance.recoverMediaError();
-                break;
-              default:
-                // HLS çalışmazsa doğrudan native html5 video oynatmayı dene
-                hlsInstance.destroy();
-                video.src = url;
-                video.play().catch(() => {});
-                break;
-            }
+            video.src = url;
+            video.play().catch(() => {});
           }
         });
       } else {
-        // Native HLS destekleyen cihaz/browser'lar için
         video.src = url;
         video.play().catch(() => {});
       }
@@ -178,12 +156,9 @@
       video.removeAttribute('src');
       video.load();
       container.style.display = 'none';
-      
-      // Player kapandığında ilk karta odaklan
       document.querySelector('.card')?.focus();
     }
 
-    // Arama Fonksiyonu
     document.getElementById('search').addEventListener('input', (e) => {
       const val = e.target.value.toLowerCase();
       filteredMovies = allMovies.filter(m => m.title.toLowerCase().includes(val));
@@ -192,18 +167,16 @@
       loadMore();
     });
 
-    // Sonsuz Kaydırma (Infinite Scroll)
     window.addEventListener('scroll', () => {
       if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 500) {
         if (displayedCount < filteredMovies.length) loadMore();
       }
     });
 
-    // Kumanda Tuş Kontrolleri
     document.addEventListener('keydown', (e) => {
       const player = document.getElementById('player-container');
+      const activeEl = document.activeElement;
       
-      // Video oynatılırken BACK tuşlarına basılırsa video kapatılsın
       if (player.style.display === 'block') {
         if (e.key === 'Escape' || e.key === 'BackSpace' || e.keyCode === 27 || e.keyCode === 8 || e.keyCode === 10009 || e.keyCode === 461) {
           closePlayer();
@@ -212,8 +185,17 @@
         return;
       }
 
+      // Android TV kumanda "OK" / "Select" tuşu tetikleme (KeyCode 13, 23, 66, 100)
+      if (e.keyCode === 13 || e.keyCode === 23 || e.keyCode === 66 || e.keyCode === 100 || e.key === 'Enter') {
+        if (activeEl && activeEl.classList.contains('card')) {
+          activeEl.click();
+          e.preventDefault();
+          return;
+        }
+      }
+
       const focusables = Array.from(document.querySelectorAll('.focusable'));
-      let index = focusables.indexOf(document.activeElement);
+      let index = focusables.indexOf(activeEl);
 
       if (index === -1) {
         focusables[0]?.focus();
