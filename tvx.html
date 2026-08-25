@@ -1,245 +1,404 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Xinemax TV</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TVX Movies</title>
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: #141414; color: #fff; font-family: sans-serif; overflow-x: hidden; padding: 20px; }
-    #search { width: 100%; padding: 15px; font-size: 20px; background: #333; color: #fff; border: 2px solid transparent; border-radius: 8px; margin-bottom: 20px; outline: none; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px; }
-    .card { background: #222; border-radius: 8px; overflow: hidden; border: 4px solid transparent; cursor: pointer; aspect-ratio: 2/3; display: flex; flex-direction: column; position: relative; }
-    .card img { width: 100%; height: 80%; object-fit: cover; background: #111; pointer-events: none; }
-    .card .title { padding: 8px; font-size: 14px; text-align: center; font-weight: bold; height: 20%; display: flex; align-items: center; justify-content: center; word-break: break-word; pointer-events: none; }
-    
-    /* Turkuaz Seçim Çerçevesi */
-    .focusable:focus, .card:focus, #search:focus { border-color: #00ffff; background: #333; transform: scale(1.05); outline: none; z-index: 10; box-shadow: 0 0 15px #00ffff; }
-    
-    /* Z-Index ve WebView Donanım Hızlandırması Düzeltilmiş Player */
-    #player-container { 
-      display: none; 
-      position: fixed; 
-      top: 0; 
-      left: 0; 
-      width: 100vw; 
-      height: 100vh; 
-      background: #000; 
-      z-index: 2147483647; 
-      transform: translateZ(0);
+    * {
+      box-sizing: border-box;
     }
-    video { width: 100%; height: 100%; object-fit: contain; background: #000; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: black;
+      font-family: sans-serif;
+      overflow: hidden;
+    }
+
+    video {
+      width: 100%;
+      height: 100vh;
+      object-fit: cover;
+      position: absolute;
+      top: 0px;
+      left: 0;
+      z-index: 0;
+    }
+
+    /* Siyah loader ekran */
+    #loader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: black;
+      z-index: 997;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 1;
+      transition: opacity 0.4s ease;
+    }
+
+    #loader img {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 300px;
+      height: auto;
+    }
+
+    #topContainer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 998;
+      transition: opacity 0.4s ease;
+      opacity: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      padding: 5px;
+      background: rgba(0, 0, 0, 0);
+    }
+
+    #topContainer.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    #searchBar {
+      width: min(300px, 80vw);
+      padding: 8px 15px;
+      border-radius: 20px;
+      border: 1px solid #555;
+      background: rgba(0, 0, 0, 0.7);
+      color: #fff;
+      font-size: 16px;
+      outline: none;
+      margin: 0 auto;
+    }
+
+    #channelBar {
+      width: 100%;
+      padding: 0px;
+      display: flex;
+      overflow-x: auto;
+      gap: 10px;
+      scrollbar-width: none;
+    }
+
+    #channelBar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .channel {
+      min-width: 160px;
+      background: #333;
+      color: #fff;
+      padding: 5px;
+      border-radius: 0 0 16px 16px;
+      text-align: center;
+      flex-shrink: 0;
+      font-size: 25px;
+      transition: all 0.3s ease;
+      opacity: 35%;
+      max-height: 40px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      cursor: pointer;
+    }
+
+    .channel:focus,
+    .channel.focused {
+      background: #002C33;
+      outline: none;
+      color: #fff;
+      opacity: 100%;
+      padding: 10px;
+      font-weight: bold;
+      margin-top: 0px;
+      max-height: 50px;
+    }
+
+    .channel.active {
+      font-weight: bold;
+      color: #FFF;
+    }
+
+    @media (max-width: 768px) {
+      .channel {
+        min-width: 120px;
+        font-size: 20px;
+      }
+    }
+
+    #channelNameOverlay {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 12px 24px;
+      border-radius: 16px;
+      font-size: 50px;
+      z-index: 1000;
+      opacity: 0;
+      transition: opacity 0.7s ease;
+      pointer-events: none;
+      font-weight: bold;
+      text-align: center;
+      margin: 0 auto;
+    }
+
+    .opaq {
+      opacity: 40%;
+    }
+
+    video::-webkit-media-controls {
+      display: none !important;
+      -webkit-appearance: none;
+    }
   </style>
 </head>
 <body>
 
-  <div id="main-content">
-    <input type="text" id="search" class="focusable" placeholder="Film Ara..." />
-    <div id="grid" class="grid"></div>
-  </div>
-  
-  <div id="player-container">
-    <video id="video" controls autoplay playsinline></video>
-  </div>
+<video id="video" autoplay playsinline></video>
 
-  <script>
-    const M3U_URL = 'https://tv606.github.io/xinemax/listx.m3u';
-    let allMovies = [];
-    let filteredMovies = [];
-    let displayedCount = 0;
-    const PAGE_SIZE = 12;
-    let hlsInstance = null;
+<!-- Siyah ekran loader -->
+<div id="loader">
+  <img src="https://tv606.github.io/test/lo.gif" alt="Loading...">
+</div>
 
-    function shuffleArray(array) {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-      }
-      return array;
-    }
+<div class="opaq"><div id="channelNameOverlay"></div></div>
 
-    async function loadM3U() {
-      try {
-        const res = await fetch(M3U_URL);
-        const text = await res.text();
-        parseM3U(text);
-      } catch (e) {}
-    }
+<div id="topContainer">
+  <input type="text" id="searchBar" placeholder="Film Ara..." autocomplete="off">
+  <div id="channelBar"></div>
+</div>
 
-    function parseM3U(data) {
-      const lines = data.split('\n');
-      let currentItem = {};
+<script>
+  const video = document.getElementById('video');
+  const channelBar = document.getElementById('channelBar');
+  const topContainer = document.getElementById('topContainer');
+  const searchBar = document.getElementById('searchBar');
+  const overlay = document.getElementById('channelNameOverlay');
+  const loader = document.getElementById('loader');
 
-      for (let i = 0; i < lines.length; i++) {
-        let line = lines[i].trim();
-        if (line.startsWith('#EXTINF:')) {
-          const tvgLogo = line.match(/tvg-logo="([^"]+)"/);
-          const logo = tvgLogo ? tvgLogo[1] : '';
-          const title = line.split(',')[1] || 'Bilinmeyen Film';
-          currentItem = { title: title, logo: logo };
-        } else if (line.startsWith('http')) {
-          if (currentItem.title) {
-            currentItem.url = line;
-            allMovies.push(currentItem);
-            currentItem = {};
-          }
-        }
-      }
+  let allMovies = [];
+  let loadedMovies = [];
+  let filteredMovies = [];
+  let focusedIndex = 0;
+  let hls;
+  let hideTimeout;
+  const BATCH_SIZE = 12;
 
-      allMovies = shuffleArray(allMovies);
-      filteredMovies = allMovies;
-      loadMore();
-    }
+  function showLoader() {
+    loader.style.display = 'flex';
+    loader.style.opacity = 1;
+  }
 
-    function loadMore() {
-      const grid = document.getElementById('grid');
-      const nextBatch = filteredMovies.slice(displayedCount, displayedCount + PAGE_SIZE);
-      
-      nextBatch.forEach(m => {
-        const div = document.createElement('div');
-        div.className = 'card focusable';
-        div.tabIndex = 0;
-        
-        const img = document.createElement('img');
-        img.src = m.logo || 'https://via.placeholder.com/300x450?text=Görsel+Yok';
-        img.onerror = () => { img.src = 'https://via.placeholder.com/300x450?text=Görsel+Yok'; };
-        
-        const titleDiv = document.createElement('div');
-        titleDiv.className = 'title';
-        titleDiv.innerText = m.title;
+  function hideLoader() {
+    loader.style.opacity = 0;
+    setTimeout(() => loader.style.display = 'none', 400);
+  }
 
-        div.appendChild(img);
-        div.appendChild(titleDiv);
-        
-        div.onclick = () => playVideo(m.url);
-        grid.appendChild(div);
+  function playStream(url) {
+    showLoader();
+
+    if (hls) hls.destroy();
+    if (Hls.isSupported()) {
+      hls = new Hls();
+      hls.loadSource(url);
+      hls.attachMedia(video);
+
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        video.play().catch(err => console.error('Oynatma hatası:', err));
       });
-      
-      displayedCount += nextBatch.length;
+
+      video.addEventListener('playing', hideLoader, { once: true });
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      video.src = url;
+      video.addEventListener('loadeddata', () => {
+        video.play().catch(err => console.error('Oynatma hatası:', err));
+        hideLoader();
+      }, { once: true });
+    } else {
+      video.src = url;
+      video.play().catch(err => console.error('Oynatma hatası:', err));
+      video.addEventListener('playing', hideLoader, { once: true });
     }
+  }
 
-    function playVideo(url) {
-      const container = document.getElementById('player-container');
-      const mainContent = document.getElementById('main-content');
-      const video = document.getElementById('video');
-      
-      // Video üstte kalsın diye ana içeriği tamamen gizle
-      mainContent.style.display = 'none';
-      container.style.display = 'block';
+  video.removeAttribute("controls");
+  video.removeAttribute("poster");
 
-      if (hlsInstance) {
-        hlsInstance.destroy();
-        hlsInstance = null;
+  function showChannelName(name) {
+    overlay.textContent = name;
+    overlay.style.opacity = 1;
+    clearTimeout(overlay._timeout);
+    overlay._timeout = setTimeout(() => {
+      overlay.style.opacity = 0;
+    }, 3000);
+  }
+
+  function parseM3U(data) {
+    const lines = data.split('\n');
+    const movies = [];
+    const seenUrls = new Set();
+    let currentTitle = '';
+
+    for (let line of lines) {
+      line = line.trim();
+      if (line.startsWith('#EXTINF:')) {
+        const parts = line.split(',');
+        currentTitle = parts.slice(1).join(',').trim();
+      } else if (line && !line.startsWith('#')) {
+        if (!seenUrls.has(line) && currentTitle) {
+          seenUrls.add(line);
+          movies.push({ title: currentTitle, src: line });
+        }
+        currentTitle = '';
       }
-
-      if (Hls.isSupported()) {
-        hlsInstance = new Hls({
-          enableWorker: true,
-          lowLatencyMode: false
-        });
-
-        hlsInstance.loadSource(url);
-        hlsInstance.attachMedia(video);
-        
-        hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
-          video.play().catch(() => {});
-        });
-
-        hlsInstance.on(Hls.Events.ERROR, (event, data) => {
-          if (data.fatal) {
-            video.src = url;
-            video.play().catch(() => {});
-          }
-        });
-      } else {
-        video.src = url;
-        video.play().catch(() => {});
-      }
-
-      video.focus();
     }
+    return movies;
+  }
 
-    function closePlayer() {
-      const container = document.getElementById('player-container');
-      const mainContent = document.getElementById('main-content');
-      const video = document.getElementById('video');
-      
-      if (hlsInstance) {
-        hlsInstance.destroy();
-        hlsInstance = null;
-      }
-      
-      video.pause();
-      video.removeAttribute('src');
-      video.load();
-      
-      container.style.display = 'none';
-      mainContent.style.display = 'block';
-      document.querySelector('.card')?.focus();
+  function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
     }
+    return array;
+  }
 
-    document.getElementById('search').addEventListener('input', (e) => {
-      const val = e.target.value.toLowerCase();
-      filteredMovies = allMovies.filter(m => m.title.toLowerCase().includes(val));
-      document.getElementById('grid').innerHTML = '';
-      displayedCount = 0;
-      loadMore();
+  function renderMoreMovies() {
+    const currentLength = channelBar.children.length;
+    const nextBatch = filteredMovies.slice(currentLength, currentLength + BATCH_SIZE);
+
+    nextBatch.forEach((movie) => {
+      const div = document.createElement('div');
+      div.className = 'channel';
+      div.innerText = movie.title;
+      div.dataset.src = movie.src;
+
+      const index = channelBar.children.length;
+      div.addEventListener('click', () => {
+        focusedIndex = index;
+        updateFocus(focusedIndex);
+        activateChannel(focusedIndex);
+      });
+
+      channelBar.appendChild(div);
     });
+  }
 
-    window.addEventListener('scroll', () => {
-      if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 500) {
-        if (displayedCount < filteredMovies.length) loadMore();
+  function updateFocus(index) {
+    const channels = channelBar.querySelectorAll('.channel');
+    if (!channels[index]) return;
+    channels.forEach(c => c.classList.remove('focused'));
+    channels[index].classList.add('focused');
+    channels[index].scrollIntoView({ behavior: "smooth", inline: "center" });
+  }
+
+  function activateChannel(index) {
+    const channels = channelBar.querySelectorAll('.channel');
+    if (!channels[index]) return;
+    channels.forEach(c => c.classList.remove('active'));
+    channels[index].classList.add('active');
+    playStream(channels[index].dataset.src);
+    showChannelName(channels[index].innerText);
+    resetHideTimer();
+  }
+
+  function resetHideTimer() {
+    if (document.activeElement === searchBar) return;
+    topContainer.classList.remove('hidden');
+    clearTimeout(hideTimeout);
+    hideTimeout = setTimeout(() => {
+      if (document.activeElement !== searchBar) {
+        topContainer.classList.add('hidden');
       }
+    }, 3000);
+  }
+
+  channelBar.addEventListener('scroll', () => {
+    resetHideTimer();
+    if (channelBar.scrollLeft + channelBar.clientWidth >= channelBar.scrollWidth - 100) {
+      renderMoreMovies();
+    }
+  });
+
+  searchBar.addEventListener('input', (e) => {
+    const query = e.target.value.toLowerCase().trim();
+    filteredMovies = allMovies.filter(m => m.title.toLowerCase().includes(query));
+    channelBar.innerHTML = '';
+    focusedIndex = 0;
+    renderMoreMovies();
+    if (filteredMovies.length > 0) {
+      updateFocus(0);
+    }
+  });
+
+  searchBar.addEventListener('focus', () => {
+    clearTimeout(hideTimeout);
+    topContainer.classList.remove('hidden');
+  });
+
+  searchBar.addEventListener('blur', () => {
+    resetHideTimer();
+  });
+
+  document.addEventListener('keydown', e => {
+    if (document.activeElement === searchBar) return;
+    const channels = channelBar.querySelectorAll('.channel');
+    if (channels.length === 0) return;
+
+    if (e.key === 'ArrowRight') {
+      focusedIndex = (focusedIndex + 1) % filteredMovies.length;
+      if (focusedIndex >= channels.length) {
+        renderMoreMovies();
+      }
+      updateFocus(focusedIndex);
+      resetHideTimer();
+    } else if (e.key === 'ArrowLeft') {
+      focusedIndex = (focusedIndex - 1 + filteredMovies.length) % filteredMovies.length;
+      updateFocus(focusedIndex);
+      resetHideTimer();
+    } else if (e.key === 'Enter') {
+      activateChannel(focusedIndex);
+    }
+  });
+
+  ['mousemove', 'keydown', 'touchstart'].forEach(event => {
+    document.addEventListener(event, resetHideTimer);
+  });
+
+  showLoader();
+  fetch('https://tv606.github.io/xinemax/listx.m3u')
+    .then(res => res.text())
+    .then(data => {
+      allMovies = shuffleArray(parseM3U(data));
+      filteredMovies = [...allMovies];
+      renderMoreMovies();
+      if (filteredMovies.length > 0) {
+        updateFocus(0);
+        activateChannel(0);
+      }
+    })
+    .catch(err => {
+      console.error('Liste yüklenemedi:', err);
+      hideLoader();
     });
+</script>
 
-    document.addEventListener('keydown', (e) => {
-      const player = document.getElementById('player-container');
-      const activeEl = document.activeElement;
-      
-      if (player.style.display === 'block') {
-        if (e.key === 'Escape' || e.key === 'BackSpace' || e.keyCode === 27 || e.keyCode === 8 || e.keyCode === 10009 || e.keyCode === 461) {
-          closePlayer();
-          e.preventDefault();
-        }
-        return;
-      }
-
-      if (e.keyCode === 13 || e.keyCode === 23 || e.keyCode === 66 || e.keyCode === 100 || e.key === 'Enter') {
-        if (activeEl && activeEl.classList.contains('card')) {
-          activeEl.click();
-          e.preventDefault();
-          return;
-        }
-      }
-
-      const focusables = Array.from(document.querySelectorAll('.focusable'));
-      let index = focusables.indexOf(activeEl);
-
-      if (index === -1) {
-        focusables[0]?.focus();
-        return;
-      }
-
-      const cols = Math.floor(document.getElementById('grid').clientWidth / 200) || 1;
-
-      if (e.key === 'ArrowRight' && index < focusables.length - 1) focusables[index + 1].focus();
-      if (e.key === 'ArrowLeft' && index > 0) focusables[index - 1].focus();
-      if (e.key === 'ArrowDown') {
-        if (index + cols < focusables.length) {
-          focusables[index + cols].focus();
-        } else if (displayedCount < filteredMovies.length) {
-          loadMore();
-          setTimeout(() => {
-            const updated = document.querySelectorAll('.focusable');
-            if (updated[index + cols]) updated[index + cols].focus();
-          }, 50);
-        }
-      }
-      if (e.key === 'ArrowUp' && index - cols >= 0) focusables[index - cols].focus();
-    });
-
-    loadM3U();
-  </script>
 </body>
 </html>
