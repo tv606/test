@@ -1,499 +1,223 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>TVX Cinema</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TVX V1</title>
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <style>
     * {
       box-sizing: border-box;
-    }
-
-    html, body {
       margin: 0;
       padding: 0;
-      background: #000;
-      color: #fff;
-      font-family: 'Helvetica Neue', Arial, sans-serif;
-      overflow: hidden;
-      width: 100vw;
-      height: 100vh;
     }
-
-    /* VİDEO KATMANI EN ARKADA */
-    #video {
-      position: fixed;
+    body, html {
+      width: 100%;
+      height: 100%;
+      background-color: #000;
+      color: #fff;
+      font-family: sans-serif;
+      overflow: hidden;
+    }
+    #playerContainer {
+      position: absolute;
       top: 0;
       left: 0;
-      width: 100vw;
-      height: 100vh;
+      width: 100%;
+      height: 100%;
       z-index: 1;
-      background: #000;
+    }
+    video {
+      width: 100%;
+      height: 100%;
       object-fit: contain;
     }
-
-    /* ARAYÜZ KATMANI VİDEONUN ÜSTÜNDE */
-    #uiLayer {
-      position: fixed;
+    #ui {
+      position: absolute;
       top: 0;
       left: 0;
-      width: 100vw;
-      height: 100vh;
+      width: 100%;
+      height: 100%;
       z-index: 10;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      padding: 30px 40px;
-      background: linear-gradient(180deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 40%, rgba(0,0,0,0.85) 100%);
-      transition: opacity 0.4s ease;
-      opacity: 1;
-      pointer-events: auto;
+      padding: 20px;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent, rgba(0,0,0,0.9));
     }
-
-    #uiLayer.hidden {
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    /* HEADER */
     .header {
       display: flex;
-      align-items: center;
       justify-content: space-between;
+      align-items: center;
     }
-
-    .brand {
-      color: #E50914;
-      font-size: 32px;
+    .title {
+      font-size: 24px;
+      color: #e50914;
       font-weight: bold;
-      letter-spacing: 2px;
     }
-
-    #searchBar {
-      width: 300px;
-      padding: 10px 15px;
-      border-radius: 4px;
-      border: 1px solid #333;
-      background: rgba(0, 0, 0, 0.8);
+    #search {
+      padding: 8px 12px;
+      background: rgba(255,255,255,0.2);
+      border: 1px solid #555;
       color: #fff;
-      font-size: 16px;
-      outline: none;
+      border-radius: 4px;
     }
-
-    #searchBar:focus {
-      border-color: #E50914;
-    }
-
-    /* BİLGİ ALANI */
-    .movie-info {
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9);
-    }
-
-    #movieTitle {
-      font-size: 36px;
-      font-weight: bold;
-    }
-
-    /* ALT KONTROLLER */
-    .controls-bottom {
+    .bottom {
       display: flex;
       flex-direction: column;
-      gap: 15px;
+      gap: 10px;
     }
-
-    /* İLERLEME ÇUBUĞU */
-    .progress-area {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      width: 100%;
+    #movieTitle {
+      font-size: 20px;
+      font-weight: bold;
     }
-
-    #progressContainer {
-      flex: 1;
-      height: 10px;
-      background: rgba(255, 255, 255, 0.3);
-      border-radius: 5px;
-      cursor: pointer;
-      position: relative;
-      box-sizing: border-box;
-    }
-
-    #progressContainer.focused {
-      outline: 2px solid #E50914;
-    }
-
     #progressBar {
+      width: 100%;
+      height: 8px;
+      background: #444;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    #progress {
       width: 0%;
       height: 100%;
-      background: #E50914;
-      border-radius: 5px;
-      pointer-events: none;
+      background: #e50914;
     }
-
-    #timeDisplay {
-      font-size: 14px;
-      font-weight: 500;
-      min-width: 110px;
-      text-align: right;
-      color: #ddd;
-    }
-
-    /* LİSTE */
-    #channelBar {
-      width: 100%;
+    #list {
       display: flex;
+      gap: 10px;
       overflow-x: auto;
-      gap: 12px;
-      padding: 10px 0;
-      scrollbar-width: none;
+      padding: 5px 0;
     }
-
-    #channelBar::-webkit-scrollbar {
-      display: none;
-    }
-
-    .channel {
-      min-width: 180px;
-      max-width: 180px;
-      background: rgba(34, 34, 34, 0.9);
-      color: #aaa;
-      padding: 12px 16px;
+    .item {
+      padding: 10px 15px;
+      background: #222;
       border-radius: 4px;
-      text-align: center;
-      flex-shrink: 0;
-      font-size: 15px;
       white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      cursor: pointer;
       border: 2px solid transparent;
     }
-
-    .channel.focused {
-      background: #333;
-      color: #fff;
+    .item.selected {
       border-color: #fff;
-      transform: scale(1.05);
+      background: #333;
     }
-
-    .channel.active {
-      border-color: #E50914;
+    .item.active {
+      background: #e50914;
       color: #fff;
-      font-weight: bold;
-      background: #E50914;
-    }
-
-    /* LOADER */
-    #loader {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0, 0, 0, 0.8);
-      z-index: 20;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      pointer-events: none;
-    }
-
-    #loader img {
-      width: 180px;
     }
   </style>
 </head>
 <body>
 
-<video id="video" autoplay playsinline webkit-playsinline></video>
-
-<div id="loader">
-  <img src="https://tv606.github.io/test/lo.gif" alt="Yükleniyor...">
+<div id="playerContainer">
+  <video id="video" autoplay playsinline webkit-playsinline controls></video>
 </div>
 
-<div id="uiLayer">
+<div id="ui">
   <div class="header">
-    <div class="brand">TVX CINEMA</div>
-    <input type="text" id="searchBar" placeholder="Film ara..." autocomplete="off">
+    <div class="title">TVX V1</div>
+    <input type="text" id="search" placeholder="Ara...">
   </div>
-
-  <div class="movie-info">
-    <div id="movieTitle">Yükleniyor...</div>
-  </div>
-
-  <div class="controls-bottom">
-    <div class="progress-area">
-      <div id="progressContainer">
-        <div id="progressBar"></div>
-      </div>
-      <div id="timeDisplay">00:00 / 00:00</div>
-    </div>
-    
-    <div id="channelBar"></div>
+  
+  <div class="bottom">
+    <div id="movieTitle">-</div>
+    <div id="progressBar"><div id="progress"></div></div>
+    <div id="list"></div>
   </div>
 </div>
 
 <script>
   const video = document.getElementById('video');
-  const channelBar = document.getElementById('channelBar');
-  const uiLayer = document.getElementById('uiLayer');
-  const searchBar = document.getElementById('searchBar');
-  const movieTitle = document.getElementById('movieTitle');
-  const loader = document.getElementById('loader');
-  const progressContainer = document.getElementById('progressContainer');
-  const progressBar = document.getElementById('progressBar');
-  const timeDisplay = document.getElementById('timeDisplay');
+  const listEl = document.getElementById('list');
+  const titleEl = document.getElementById('movieTitle');
+  const progressEl = document.getElementById('progress');
+  const searchEl = document.getElementById('search');
+  
+  let movies = [];
+  let currentIndex = 0;
+  let hls = null;
 
-  let allMovies = [];
-  let filteredMovies = [];
-  let focusedArea = 'channels'; // 'search', 'progress', 'channels'
-  let focusedIndex = 0;
-  let hls;
-  let hideTimeout;
-  const BATCH_SIZE = 12;
-
-  function showLoader() {
-    loader.style.display = 'flex';
-  }
-
-  function hideLoader() {
-    loader.style.display = 'none';
-  }
-
-  function playStream(url) {
-    showLoader();
-
-    if (hls) {
-      hls.destroy();
-    }
-
-    const cleanUrl = url.trim();
-
+  function loadStream(url) {
+    if (hls) hls.destroy();
+    
     if (Hls.isSupported()) {
-      hls = new Hls({
-        enableWorker: true,
-        lowLatencyMode: false
-      });
-      hls.loadSource(cleanUrl);
+      hls = new Hls();
+      hls.loadSource(url);
       hls.attachMedia(video);
-
-      hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        video.play().catch(e => console.log('Oynatma hatası:', e));
-      });
-
-      hls.on(Hls.Events.ERROR, (event, data) => {
-        if (data.fatal) {
-          video.src = cleanUrl;
-          video.play().catch(e => console.log('Fallback hatası:', e));
-        }
-      });
+      hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-      video.src = cleanUrl;
-      video.play().catch(e => console.log('Apple HLS hatası:', e));
+      video.src = url;
+      video.play();
+    } else {
+      video.src = url;
+      video.play();
     }
   }
 
-  video.addEventListener('playing', hideLoader);
-  video.addEventListener('canplay', hideLoader);
-  video.addEventListener('error', hideLoader);
-
-  video.addEventListener('timeupdate', () => {
-    if (video.duration && !isNaN(video.duration)) {
-      const pct = (video.currentTime / video.duration) * 100;
-      progressBar.style.width = pct + '%';
-      timeDisplay.textContent = formatTime(video.currentTime) + ' / ' + formatTime(video.duration);
-    }
-  });
-
-  function formatTime(sec) {
-    if (isNaN(sec)) return "00:00";
-    const m = Math.floor(sec / 60);
-    const s = Math.floor(sec % 60);
-    return (m < 10 ? "0" + m : m) + ":" + (s < 10 ? "0" + s : s);
-  }
-
-  function parseM3U(data) {
-    const lines = data.split(/\r?\n/);
-    const movies = [];
-    const seenUrls = new Set();
-    let currentTitle = '';
-
-    for (let line of lines) {
-      line = line.trim();
-      if (line.startsWith('#EXTINF:')) {
-        const parts = line.split(',');
-        currentTitle = parts.slice(1).join(',').trim();
-      } else if (line && !line.startsWith('#')) {
-        if (!seenUrls.has(line) && currentTitle) {
-          seenUrls.add(line);
-          movies.push({ title: currentTitle, src: line });
-        }
-        currentTitle = '';
-      }
-    }
-    return movies;
-  }
-
-  function shuffleArray(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
-  }
-
-  function renderMoreMovies() {
-    const currentLength = channelBar.children.length;
-    const nextBatch = filteredMovies.slice(currentLength, currentLength + BATCH_SIZE);
-
-    nextBatch.forEach((movie) => {
+  function renderList(data) {
+    listEl.innerHTML = '';
+    data.forEach((m, idx) => {
       const div = document.createElement('div');
-      div.className = 'channel';
-      div.innerText = movie.title;
-      div.dataset.src = movie.src;
-
-      const index = channelBar.children.length;
-      div.addEventListener('click', (e) => {
-        e.stopPropagation();
-        focusedIndex = index;
-        focusedArea = 'channels';
-        updateFocus();
-        activateChannel(focusedIndex);
-      });
-
-      channelBar.appendChild(div);
+      div.className = 'item' + (idx === currentIndex ? ' selected' : '');
+      div.innerText = m.title;
+      div.onclick = () => playMovie(idx);
+      listEl.appendChild(div);
     });
   }
 
-  function updateFocus() {
-    const channels = channelBar.querySelectorAll('.channel');
-
-    searchBar.blur();
-    progressContainer.classList.remove('focused');
-    channels.forEach(c => c.classList.remove('focused'));
-
-    if (focusedArea === 'search') {
-      searchBar.focus();
-    } else if (focusedArea === 'progress') {
-      progressContainer.classList.add('focused');
-    } else if (focusedArea === 'channels' && channels[focusedIndex]) {
-      channels[focusedIndex].classList.add('focused');
-      channels[focusedIndex].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  function playMovie(index) {
+    currentIndex = index;
+    const movie = movies[currentIndex];
+    if (!movie) return;
+    titleEl.innerText = movie.title;
+    loadStream(movie.src);
+    
+    const items = document.querySelectorAll('.item');
+    items.forEach((it, i) => {
+      it.classList.toggle('active', i === currentIndex);
+      it.classList.toggle('selected', i === currentIndex);
+    });
+    if (items[currentIndex]) {
+      items[currentIndex].scrollIntoView({ behavior: 'smooth', inline: 'center' });
     }
   }
 
-  function activateChannel(index) {
-    const channels = channelBar.querySelectorAll('.channel');
-    if (!channels[index]) return;
-    channels.forEach(c => c.classList.remove('active'));
-    channels[index].classList.add('active');
-    movieTitle.textContent = channels[index].innerText;
-    playStream(channels[index].dataset.src);
-    resetHideTimer();
-  }
-
-  function resetHideTimer() {
-    uiLayer.classList.remove('hidden');
-    clearTimeout(hideTimeout);
-    hideTimeout = setTimeout(() => {
-      if (document.activeElement !== searchBar) {
-        uiLayer.classList.add('hidden');
-      }
-    }, 4000);
-  }
-
-  channelBar.addEventListener('scroll', () => {
-    resetHideTimer();
-    if (channelBar.scrollLeft + channelBar.clientWidth >= channelBar.scrollWidth - 100) {
-      renderMoreMovies();
+  video.addEventListener('timeupdate', () => {
+    if (video.duration) {
+      progressEl.style.width = ((video.currentTime / video.duration) * 100) + '%';
     }
   });
 
-  searchBar.addEventListener('input', (e) => {
-    const query = e.target.value.toLowerCase().trim();
-    filteredMovies = allMovies.filter(m => m.title.toLowerCase().includes(query));
-    channelBar.innerHTML = '';
-    focusedIndex = 0;
-    renderMoreMovies();
-    if (filteredMovies.length > 0 && focusedArea === 'channels') {
-      updateFocus();
-    }
-  });
-
-  document.addEventListener('keydown', e => {
-    resetHideTimer();
-
-    if (document.activeElement === searchBar) {
-      if (e.key === 'ArrowDown') {
-        focusedArea = 'progress';
-        updateFocus();
-      }
-      return;
-    }
-
-    const channels = channelBar.querySelectorAll('.channel');
-
-    if (e.key === 'ArrowUp') {
-      if (focusedArea === 'channels') {
-        focusedArea = 'progress';
-      } else if (focusedArea === 'progress') {
-        focusedArea = 'search';
-      }
-      updateFocus();
-    } else if (e.key === 'ArrowDown') {
-      if (focusedArea === 'search') {
-        focusedArea = 'progress';
-      } else if (focusedArea === 'progress') {
-        focusedArea = 'channels';
-      }
-      updateFocus();
-    } else if (e.key === 'ArrowRight') {
-      if (focusedArea === 'channels') {
-        if (focusedIndex < filteredMovies.length - 1) {
-          focusedIndex++;
-          if (focusedIndex >= channels.length) renderMoreMovies();
-          updateFocus();
-        }
-      } else if (focusedArea === 'progress') {
-        if (video.duration) video.currentTime = Math.min(video.duration, video.currentTime + 10);
-      }
+  document.addEventListener('keydown', (e) => {
+    if (document.activeElement === searchEl) return;
+    
+    if (e.key === 'ArrowRight') {
+      if (currentIndex < movies.length - 1) playMovie(currentIndex + 1);
     } else if (e.key === 'ArrowLeft') {
-      if (focusedArea === 'channels') {
-        if (focusedIndex > 0) {
-          focusedIndex--;
-          updateFocus();
-        }
-      } else if (focusedArea === 'progress') {
-        if (video.duration) video.currentTime = Math.max(0, video.currentTime - 10);
-      }
-    } else if (e.key === 'Enter') {
-      if (focusedArea === 'channels') {
-        activateChannel(focusedIndex);
-      }
+      if (currentIndex > 0) playMovie(currentIndex - 1);
     }
   });
 
-  ['mousemove', 'keydown', 'touchstart'].forEach(event => {
-    document.addEventListener(event, resetHideTimer);
+  searchEl.addEventListener('input', (e) => {
+    const q = e.target.value.toLowerCase();
+    const filtered = movies.filter(m => m.title.toLowerCase().includes(q));
+    renderList(filtered);
   });
 
-  showLoader();
   fetch('https://tv606.github.io/xinemax/listx.m3u')
-    .then(res => res.text())
-    .then(data => {
-      allMovies = shuffleArray(parseM3U(data));
-      filteredMovies = [...allMovies];
-      renderMoreMovies();
-      if (filteredMovies.length > 0) {
-        updateFocus();
-        activateChannel(0);
-      }
-    })
-    .catch(err => {
-      console.error('Liste yükleme hatası:', err);
-      hideLoader();
+    .then(r => r.text())
+    .then(text => {
+      const lines = text.split('\n');
+      let currentTitle = '';
+      lines.forEach(line => {
+        line = line.trim();
+        if (line.startsWith('#EXTINF:')) {
+          currentTitle = line.split(',')[1] || 'İsimsiz';
+        } else if (line && !line.startsWith('#')) {
+          movies.push({ title: currentTitle, src: line });
+        }
+      });
+      renderList(movies);
+      if (movies.length > 0) playMovie(0);
     });
 </script>
 
