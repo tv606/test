@@ -28,7 +28,6 @@
       z-index: 0;
     }
 
-    /* Siyah loader ekran */
     #loader {
       position: fixed;
       top: 0;
@@ -173,7 +172,6 @@
 
 <video id="video" autoplay playsinline></video>
 
-<!-- Siyah ekran loader -->
 <div id="loader">
   <img src="https://tv606.github.io/test/lo.gif" alt="Loading...">
 </div>
@@ -194,7 +192,6 @@
   const loader = document.getElementById('loader');
 
   let allMovies = [];
-  let loadedMovies = [];
   let filteredMovies = [];
   let focusedIndex = 0;
   let hls;
@@ -215,7 +212,10 @@
     showLoader();
 
     if (hls) hls.destroy();
-    if (Hls.isSupported()) {
+
+    const isMp4 = url.includes('.mp4') || url.includes('.mkv');
+
+    if (!isMp4 && Hls.isSupported()) {
       hls = new Hls();
       hls.loadSource(url);
       hls.attachMedia(video);
@@ -224,19 +224,24 @@
         video.play().catch(err => console.error('Oynatma hatası:', err));
       });
 
-      video.addEventListener('playing', hideLoader, { once: true });
-    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-      video.src = url;
-      video.addEventListener('loadeddata', () => {
-        video.play().catch(err => console.error('Oynatma hatası:', err));
-        hideLoader();
-      }, { once: true });
+      hls.on(Hls.Events.ERROR, (event, data) => {
+        if (data.fatal) {
+          video.src = url;
+          video.play().catch(err => console.error('HLS Fallback Hatası:', err));
+        }
+      });
     } else {
       video.src = url;
       video.play().catch(err => console.error('Oynatma hatası:', err));
-      video.addEventListener('playing', hideLoader, { once: true });
     }
   }
+
+  video.addEventListener('playing', hideLoader);
+  video.addEventListener('canplay', hideLoader);
+  video.addEventListener('error', () => {
+    console.error('Video yükleme hatası.');
+    hideLoader();
+  });
 
   video.removeAttribute("controls");
   video.removeAttribute("poster");
@@ -251,7 +256,7 @@
   }
 
   function parseM3U(data) {
-    const lines = data.split('\n');
+    const lines = data.split(/\r?\n/);
     const movies = [];
     const seenUrls = new Set();
     let currentTitle = '';
