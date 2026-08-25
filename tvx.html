@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>TVX Movies</title>
+  <title>TVX Cinema</title>
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <style>
     * {
@@ -13,134 +13,143 @@
     html, body {
       margin: 0;
       padding: 0;
-      background: black;
-      font-family: sans-serif;
-      overflow: hidden;
+      background: #141414;
+      color: #fff;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      overflow-hidden;
       width: 100vw;
       height: 100vh;
     }
 
-    /* Video player tam ekrana sabitlendi */
-    video {
-      width: 100vw;
-      height: 100vh;
-      object-fit: contain;
-      position: fixed;
+    /* VİDEO OYNATICI */
+    #videoContainer {
+      position: absolute;
       top: 0;
       left: 0;
+      width: 100vw;
+      height: 100vh;
       z-index: 1;
-      background: black;
+      background: #000;
     }
 
-    /* İlerleme Çubuğu (Progress Bar) */
-    #progressContainer {
-      position: fixed;
-      bottom: 20px;
-      left: 5%;
-      width: 90%;
-      height: 10px;
-      background: rgba(255, 255, 255, 0.2);
-      border-radius: 5px;
-      z-index: 999;
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: #000;
+    }
+
+    /* NETFLIX USULU ÜST KONTROL PANENİ */
+    #uiLayer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 10;
       display: flex;
-      align-items: center;
-      cursor: pointer;
-      opacity: 1;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 30px 40px;
+      background: linear-gradient(180deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 40%, rgba(0,0,0,0.85) 100%);
       transition: opacity 0.4s ease;
+      opacity: 1;
     }
 
-    #progressContainer.hidden {
+    #uiLayer.hidden {
       opacity: 0;
       pointer-events: none;
+    }
+
+    /* HEADER / SEARCH */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .brand {
+      color: #E50914;
+      font-size: 32px;
+      font-weight: bold;
+      letter-spacing: 2px;
+    }
+
+    #searchBar {
+      width: 320px;
+      padding: 10px 20px;
+      border-radius: 4px;
+      border: 1px solid #333;
+      background: rgba(0, 0, 0, 0.75);
+      color: #fff;
+      font-size: 16px;
+      outline: none;
+    }
+
+    #searchBar:focus {
+      border-color: #E50914;
+      background: rgba(0, 0, 0, 0.95);
+    }
+
+    /* ORTA BİLGİ ALANI */
+    .movie-info {
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    }
+
+    #movieTitle {
+      font-size: 36px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    /* ALT KONTROLLER VE KATALOG */
+    .controls-bottom {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    /* İLERLEME ÇUBUĞU */
+    .progress-area {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      width: 100%;
+    }
+
+    #progressContainer {
+      flex: 1;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 4px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
     }
 
     #progressBar {
       width: 0%;
       height: 100%;
-      background: #008CBA;
-      border-radius: 5px;
+      background: #E50914;
+      border-radius: 4px;
     }
 
     #timeDisplay {
-      position: fixed;
-      bottom: 35px;
-      right: 5%;
-      color: white;
-      font-size: 16px;
-      font-weight: bold;
-      z-index: 999;
-      text-shadow: 1px 1px 2px black;
-      opacity: 1;
-      transition: opacity 0.4s ease;
+      font-size: 14px;
+      font-weight: 500;
+      min-width: 100px;
+      text-align: right;
+      color: #ddd;
     }
 
-    #timeDisplay.hidden {
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    #loader {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: black;
-      z-index: 997;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      opacity: 1;
-      transition: opacity 0.4s ease;
-    }
-
-    #loader img {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      width: 300px;
-      height: auto;
-    }
-
-    #topContainer {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      z-index: 998;
-      transition: opacity 0.4s ease;
-      opacity: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-      padding: 5px;
-      background: rgba(0, 0, 0, 0);
-    }
-
-    #topContainer.hidden {
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    #searchBar {
-      width: min(300px, 80vw);
-      padding: 8px 15px;
-      border-radius: 20px;
-      border: 1px solid #555;
-      background: rgba(0, 0, 0, 0.7);
-      color: #fff;
-      font-size: 16px;
-      outline: none;
-      margin: 0 auto;
-    }
-
+    /* FİLM LİSTESİ KATALOĞU */
     #channelBar {
       width: 100%;
-      padding: 0px;
       display: flex;
       overflow-x: auto;
-      gap: 10px;
+      gap: 12px;
+      padding-bottom: 5px;
       scrollbar-width: none;
     }
 
@@ -149,97 +158,97 @@
     }
 
     .channel {
-      min-width: 160px;
-      background: #333;
-      color: #fff;
-      padding: 5px;
-      border-radius: 0 0 16px 16px;
+      min-width: 180px;
+      max-width: 180px;
+      background: #222;
+      color: #aaa;
+      padding: 12px 16px;
+      border-radius: 4px;
       text-align: center;
       flex-shrink: 0;
-      font-size: 25px;
-      transition: all 0.3s ease;
-      opacity: 35%;
-      max-height: 40px;
+      font-size: 16px;
+      transition: all 0.2s ease;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       cursor: pointer;
+      border: 2px solid transparent;
     }
 
-    .channel:focus,
     .channel.focused {
-      background: #002C33;
-      outline: none;
+      background: #333;
       color: #fff;
-      opacity: 100%;
-      padding: 10px;
-      font-weight: bold;
-      margin-top: 0px;
-      max-height: 50px;
+      border-color: #fff;
+      transform: scale(1.05);
     }
 
     .channel.active {
+      border-color: #E50914;
+      color: #fff;
       font-weight: bold;
-      color: #FFF;
+      background: #E50914;
     }
 
-    @media (max-width: 768px) {
-      .channel {
-        min-width: 120px;
-        font-size: 20px;
-      }
+    /* LOADER */
+    #loader {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #000;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 1;
+      transition: opacity 0.4s ease;
     }
 
-    #channelNameOverlay {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      color: white;
-      background: rgba(0, 0, 0, 0.5);
-      padding: 12px 24px;
-      border-radius: 16px;
-      font-size: 50px;
-      z-index: 1000;
-      opacity: 0;
-      transition: opacity 0.7s ease;
-      pointer-events: none;
-      font-weight: bold;
-      text-align: center;
-      margin: 0 auto;
-    }
-
-    .opaq {
-      opacity: 40%;
+    #loader img {
+      width: 200px;
+      height: auto;
     }
   </style>
 </head>
 <body>
 
-<video id="video" autoplay playsinline webkit-playsinline></video>
+<div id="videoContainer">
+  <video id="video" autoplay playsinline webkit-playsinline></video>
+</div>
 
 <div id="loader">
-  <img src="https://tv606.github.io/test/lo.gif" alt="Loading...">
+  <img src="https://tv606.github.io/test/lo.gif" alt="Yükleniyor...">
 </div>
 
-<div class="opaq"><div id="channelNameOverlay"></div></div>
+<div id="uiLayer">
+  <div class="header">
+    <div class="brand">TVX CINEMA</div>
+    <input type="text" id="searchBar" placeholder="Film ara..." autocomplete="off">
+  </div>
 
-<div id="topContainer">
-  <input type="text" id="searchBar" placeholder="Film Ara..." autocomplete="off">
-  <div id="channelBar"></div>
-</div>
+  <div class="movie-info">
+    <div id="movieTitle">Yükleniyor...</div>
+  </div>
 
-<div id="progressContainer">
-  <div id="progressBar"></div>
+  <div class="controls-bottom">
+    <div class="progress-area">
+      <div id="progressContainer">
+        <div id="progressBar"></div>
+      </div>
+      <div id="timeDisplay">00:00 / 00:00</div>
+    </div>
+    
+    <div id="channelBar"></div>
+  </div>
 </div>
-<div id="timeDisplay">00:00 / 00:00</div>
 
 <script>
   const video = document.getElementById('video');
   const channelBar = document.getElementById('channelBar');
-  const topContainer = document.getElementById('topContainer');
+  const uiLayer = document.getElementById('uiLayer');
   const searchBar = document.getElementById('searchBar');
-  const overlay = document.getElementById('channelNameOverlay');
+  const movieTitle = document.getElementById('movieTitle');
   const loader = document.getElementById('loader');
   const progressContainer = document.getElementById('progressContainer');
   const progressBar = document.getElementById('progressBar');
@@ -247,6 +256,7 @@
 
   let allMovies = [];
   let filteredMovies = [];
+  let focusedArea = 'channels'; // 'channels', 'search', 'progress'
   let focusedIndex = 0;
   let hls;
   let hideTimeout;
@@ -268,38 +278,38 @@
     if (hls) hls.destroy();
 
     const cleanUrl = url.trim();
-    const isHls = cleanUrl.includes('.m3u8');
 
-    if (isHls && Hls.isSupported()) {
-      hls = new Hls();
+    if (Hls.isSupported()) {
+      hls = new Hls({
+        enableWorker: true,
+        lowLatencyMode: false
+      });
       hls.loadSource(cleanUrl);
       hls.attachMedia(video);
 
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        video.play().catch(err => console.error('Oynatma hatası:', err));
+        video.play().catch(err => console.error('Play error:', err));
       });
 
       hls.on(Hls.Events.ERROR, (event, data) => {
         if (data.fatal) {
           video.src = cleanUrl;
-          video.play().catch(err => console.error('HLS Fallback Hatası:', err));
+          video.play().catch(err => console.error('Direct fallback error:', err));
         }
       });
     } else {
       video.src = cleanUrl;
       video.load();
-      video.play().catch(err => console.error('Oynatma hatası:', err));
+      video.play().catch(err => console.error('Play error:', err));
     }
   }
 
   video.addEventListener('playing', hideLoader);
   video.addEventListener('canplay', hideLoader);
   video.addEventListener('error', () => {
-    console.error('Video yükleme hatası.');
     hideLoader();
   });
 
-  /* İlerleme Çubuğu Güncellemesi */
   video.addEventListener('timeupdate', () => {
     if (video.duration) {
       const pct = (video.currentTime / video.duration) * 100;
@@ -315,23 +325,14 @@
     return (m < 10 ? "0" + m : m) + ":" + (s < 10 ? "0" + s : s);
   }
 
-  /* Tıklayarak İleri/Geri Alma */
   progressContainer.addEventListener('click', (e) => {
+    e.stopPropagation();
     const rect = progressContainer.getBoundingClientRect();
     const pos = (e.clientX - rect.left) / rect.width;
     if (video.duration) {
       video.currentTime = pos * video.duration;
     }
   });
-
-  function showChannelName(name) {
-    overlay.textContent = name;
-    overlay.style.opacity = 1;
-    clearTimeout(overlay._timeout);
-    overlay._timeout = setTimeout(() => {
-      overlay.style.opacity = 0;
-    }, 3000);
-  }
 
   function parseM3U(data) {
     const lines = data.split(/\r?\n/);
@@ -374,9 +375,11 @@
       div.dataset.src = movie.src;
 
       const index = channelBar.children.length;
-      div.addEventListener('click', () => {
+      div.addEventListener('click', (e) => {
+        e.stopPropagation();
         focusedIndex = index;
-        updateFocus(focusedIndex);
+        focusedArea = 'channels';
+        updateFocus();
         activateChannel(focusedIndex);
       });
 
@@ -384,12 +387,21 @@
     });
   }
 
-  function updateFocus(index) {
+  function updateFocus() {
     const channels = channelBar.querySelectorAll('.channel');
-    if (!channels[index]) return;
+
+    searchBar.blur();
+    progressContainer.style.border = 'none';
     channels.forEach(c => c.classList.remove('focused'));
-    channels[index].classList.add('focused');
-    channels[index].scrollIntoView({ behavior: "smooth", inline: "center" });
+
+    if (focusedArea === 'search') {
+      searchBar.focus();
+    } else if (focusedArea === 'progress') {
+      progressContainer.style.border = '1px solid #E50914';
+    } else if (focusedArea === 'channels' && channels[focusedIndex]) {
+      channels[focusedIndex].classList.add('focused');
+      channels[focusedIndex].scrollIntoView({ behavior: "smooth", inline: "center" });
+    }
   }
 
   function activateChannel(index) {
@@ -397,25 +409,19 @@
     if (!channels[index]) return;
     channels.forEach(c => c.classList.remove('active'));
     channels[index].classList.add('active');
+    movieTitle.textContent = channels[index].innerText;
     playStream(channels[index].dataset.src);
-    showChannelName(channels[index].innerText);
     resetHideTimer();
   }
 
   function resetHideTimer() {
-    if (document.activeElement === searchBar) return;
-    topContainer.classList.remove('hidden');
-    progressContainer.classList.remove('hidden');
-    timeDisplay.classList.remove('hidden');
-    
+    uiLayer.classList.remove('hidden');
     clearTimeout(hideTimeout);
     hideTimeout = setTimeout(() => {
       if (document.activeElement !== searchBar) {
-        topContainer.classList.add('hidden');
-        progressContainer.classList.add('hidden');
-        timeDisplay.classList.add('hidden');
+        uiLayer.classList.add('hidden');
       }
-    }, 3000);
+    }, 4000);
   }
 
   channelBar.addEventListener('scroll', () => {
@@ -431,49 +437,57 @@
     channelBar.innerHTML = '';
     focusedIndex = 0;
     renderMoreMovies();
-    if (filteredMovies.length > 0) {
-      updateFocus(0);
+    if (filteredMovies.length > 0 && focusedArea === 'channels') {
+      updateFocus();
     }
   });
 
-  searchBar.addEventListener('focus', () => {
-    clearTimeout(hideTimeout);
-    topContainer.classList.remove('hidden');
-    progressContainer.classList.remove('hidden');
-    timeDisplay.classList.remove('hidden');
-  });
-
-  searchBar.addEventListener('blur', () => {
-    resetHideTimer();
-  });
-
-  /* TV Kumandası & Klavye Kontrolleri */
   document.addEventListener('keydown', e => {
-    if (document.activeElement === searchBar) return;
-    const channels = channelBar.querySelectorAll('.channel');
-    if (channels.length === 0) return;
+    resetHideTimer();
 
-    if (e.key === 'ArrowRight') {
-      focusedIndex = (focusedIndex + 1) % filteredMovies.length;
-      if (focusedIndex >= channels.length) {
-        renderMoreMovies();
+    if (document.activeElement === searchBar) {
+      if (e.key === 'ArrowDown') {
+        focusedArea = 'channels';
+        updateFocus();
       }
-      updateFocus(focusedIndex);
-      resetHideTimer();
-    } else if (e.key === 'ArrowLeft') {
-      focusedIndex = (focusedIndex - 1 + filteredMovies.length) % filteredMovies.length;
-      updateFocus(focusedIndex);
-      resetHideTimer();
-    } else if (e.key === 'ArrowUp') {
-      /* 10 Saniye İleri Al */
-      if (video.duration) video.currentTime = Math.min(video.duration, video.currentTime + 10);
-      resetHideTimer();
+      return;
+    }
+
+    const channels = channelBar.querySelectorAll('.channel');
+
+    if (e.key === 'ArrowUp') {
+      if (focusedArea === 'channels') {
+        focusedArea = 'progress';
+      } else if (focusedArea === 'progress') {
+        focusedArea = 'search';
+      }
+      updateFocus();
     } else if (e.key === 'ArrowDown') {
-      /* 10 Saniye Geri Al */
-      if (video.duration) video.currentTime = Math.max(0, video.currentTime - 10);
-      resetHideTimer();
+      if (focusedArea === 'search') {
+        focusedArea = 'progress';
+      } else if (focusedArea === 'progress') {
+        focusedArea = 'channels';
+      }
+      updateFocus();
+    } else if (e.key === 'ArrowRight') {
+      if (focusedArea === 'channels') {
+        focusedIndex = (focusedIndex + 1) % filteredMovies.length;
+        if (focusedIndex >= channels.length) renderMoreMovies();
+        updateFocus();
+      } else if (focusedArea === 'progress') {
+        if (video.duration) video.currentTime = Math.min(video.duration, video.currentTime + 10);
+      }
+    } else if (e.key === 'ArrowLeft') {
+      if (focusedArea === 'channels') {
+        focusedIndex = (focusedIndex - 1 + filteredMovies.length) % filteredMovies.length;
+        updateFocus();
+      } else if (focusedArea === 'progress') {
+        if (video.duration) video.currentTime = Math.max(0, video.currentTime - 10);
+      }
     } else if (e.key === 'Enter') {
-      activateChannel(focusedIndex);
+      if (focusedArea === 'channels') {
+        activateChannel(focusedIndex);
+      }
     }
   });
 
@@ -489,12 +503,12 @@
       filteredMovies = [...allMovies];
       renderMoreMovies();
       if (filteredMovies.length > 0) {
-        updateFocus(0);
+        updateFocus();
         activateChannel(0);
       }
     })
     .catch(err => {
-      console.error('Liste yüklenemedi:', err);
+      console.error('List error:', err);
       hideLoader();
     });
 </script>
