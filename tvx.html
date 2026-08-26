@@ -18,21 +18,17 @@
             overflow: hidden;
         }
 
-        /* Focus Efekti */
         :focus {
             outline: 4px solid #8a2be2 !important;
             outline-offset: 4px;
             box-shadow: 0 0 15px #8a2be2;
         }
 
-        /* Header & Nav */
         header {
             display: flex;
             align-items: center;
             padding: 20px 50px;
             background: rgba(0,0,0,0.8);
-            position: relative;
-            z-index: 10;
         }
 
         .logo {
@@ -52,7 +48,6 @@
             border-radius: 4px;
         }
 
-        /* Content Layout */
         main {
             padding: 40px 50px;
         }
@@ -76,20 +71,7 @@
             cursor: pointer;
         }
 
-        /* Dynamic Category List overlay */
-        .category-list {
-            display: none;
-            margin-top: 20px;
-            background: #1f1f1f;
-            padding: 20px;
-            border-radius: 8px;
-        }
-
-        .category-list.active {
-            display: grid;
-        }
-
-        /* Loader Overlay (En Üst Katman) */
+        /* Loader Overlay */
         .loader-overlay {
             display: none;
             position: fixed;
@@ -122,7 +104,7 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* Video Player Container (Loader Altında, Karartma Üstünde) */
+        /* Video Player Container */
         .player-container {
             display: none;
             position: fixed;
@@ -163,16 +145,16 @@
     <header>
         <div class="logo" tabindex="0">STREAM TV</div>
         <nav>
-            <a href="#" class="nav-item category-btn" tabindex="0" data-cat="action">Aksiyon</a>
-            <a href="#" class="nav-item category-btn" tabindex="0" data-cat="comedy">Komedi</a>
-            <a href="#" class="nav-item category-btn" tabindex="0" data-cat="drama">Dram</a>
+            <a href="#" class="nav-item" tabindex="0">Aksiyon</a>
+            <a href="#" class="nav-item" tabindex="0">Komedi</a>
+            <a href="#" class="nav-item" tabindex="0">Dram</a>
         </nav>
     </header>
 
     <main>
-        <h2 class="category-title" id="section-title">Popüler Filmler</h2>
+        <h2 class="category-title">Popüler Filmler</h2>
         
-        <div class="grid" id="movie-grid">
+        <div class="grid">
             <div class="card movie-card" tabindex="0" data-video="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4">
                 <h3>Film 1</h3>
             </div>
@@ -186,17 +168,13 @@
                 <h3>Film 4</h3>
             </div>
         </div>
-
-        <div class="grid category-list" id="category-grid"></div>
     </main>
 
-    <!-- Loader Layer (z-index: 10000) -->
     <div class="loader-overlay" id="loader">
         <div class="spinner"></div>
         <p style="margin-top: 15px;">Yükleniyor...</p>
     </div>
 
-    <!-- Player Layer (z-index: 9999) -->
     <div class="player-container" id="player-wrapper">
         <button class="close-btn" id="close-player" tabindex="0">Kapat</button>
         <video id="video-player" controls></video>
@@ -207,51 +185,7 @@
         const playerWrapper = document.getElementById('player-wrapper');
         const videoPlayer = document.getElementById('video-player');
         const closeBtn = document.getElementById('close-player');
-        const categoryGrid = document.getElementById('category-grid');
-        const movieGrid = document.getElementById('movie-grid');
-        const sectionTitle = document.getElementById('section-title');
 
-        // Kategori Data
-        const categoryData = {
-            action: ['Aksiyon Filmi 1', 'Aksiyon Filmi 2', 'Aksiyon Filmi 3'],
-            comedy: ['Komedi Filmi 1', 'Komedi Filmi 2'],
-            drama: ['Dram Filmi 1', 'Dram Filmi 2', 'Dram Filmi 3', 'Dram Filmi 4']
-        };
-
-        // Kategori Tıklama Yönetimi
-        document.querySelectorAll('.category-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                const cat = btn.getAttribute('data-cat');
-                loadCategoryContent(cat, btn.innerText);
-            });
-        });
-
-        function loadCategoryContent(categoryKey, titleText) {
-            sectionTitle.innerText = titleText + ' Kategorisi';
-            movieGrid.style.display = 'none';
-            categoryGrid.innerHTML = '';
-            
-            const items = categoryData[categoryKey] || [];
-            items.forEach(item => {
-                const card = document.createElement('div');
-                card.className = 'card movie-card';
-                card.setAttribute('tabindex', '0');
-                card.setAttribute('data-video', 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4');
-                card.innerHTML = `<h3>${item}</h3>`;
-                categoryGrid.appendChild(card);
-                
-                card.addEventListener('click', () => playMovie(card.getAttribute('data-video')));
-            });
-
-            categoryGrid.classList.add('active');
-            
-            // Odaklama güncelleme
-            const firstChild = categoryGrid.querySelector('.card');
-            if(firstChild) firstChild.focus();
-        }
-
-        // Video Oynatma Yönetimi
         document.querySelectorAll('.movie-card').forEach(card => {
             card.addEventListener('click', () => {
                 const src = card.getAttribute('data-video');
@@ -261,14 +195,15 @@
 
         function playMovie(src) {
             loader.classList.add('active');
+            playerWrapper.classList.add('active');
             videoPlayer.src = src;
 
-            videoPlayer.onloadeddata = () => {
+            videoPlayer.play().then(() => {
                 loader.classList.remove('active');
-                playerWrapper.classList.add('active');
-                videoPlayer.play();
                 closeBtn.focus();
-            };
+            }).catch(() => {
+                loader.classList.remove('active');
+            });
         }
 
         function closeVideo() {
@@ -281,42 +216,35 @@
 
         closeBtn.addEventListener('click', closeVideo);
 
-        // TV D-Pad Kumanda Kontrolleri
         document.addEventListener('keydown', (e) => {
-            const focusable = Array.from(document.querySelectorAll('[tabindex="0"]:not([style*="display: none"])'));
+            const focusable = Array.from(document.querySelectorAll('[tabindex="0"]'));
             const index = focusable.indexOf(document.activeElement);
 
             switch (e.keyCode) {
-                case 13: // OK / Enter
+                case 13:
                     if (document.activeElement) document.activeElement.click();
                     break;
-                case 10009: // webOS Back Button
-                case 27:    // ESC
+                case 10009:
+                case 27:
                     if (playerWrapper.classList.contains('active')) {
                         closeVideo();
-                    } else if (categoryGrid.classList.contains('active')) {
-                        categoryGrid.classList.remove('active');
-                        movieGrid.style.display = 'grid';
-                        sectionTitle.innerText = 'Popüler Filmler';
-                        document.querySelector('.category-btn').focus();
                     }
                     break;
-                case 37: // Sol
+                case 37:
                     if (index > 0) focusable[index - 1].focus();
                     break;
-                case 39: // Sağ
+                case 39:
                     if (index < focusable.length - 1) focusable[index + 1].focus();
                     break;
-                case 38: // Yukarı
+                case 38:
                     if (index - 4 >= 0) focusable[index - 4].focus();
                     break;
-                case 40: // Aşağı
+                case 40:
                     if (index + 4 < focusable.length) focusable[index + 4].focus();
                     break;
             }
         });
 
-        // Sayfa açıldığında ilk öğeyi odakla
         window.onload = () => {
             document.querySelector('.logo').focus();
         };
