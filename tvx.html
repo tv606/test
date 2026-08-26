@@ -1,246 +1,346 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Netflix Klonu</title>
-<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-<style>
-    body, html { 
-        margin: 0; 
-        padding: 0; 
-        background: #000; 
-        color: #fff; 
-        overflow-x: hidden; 
-        font-family: sans-serif; 
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TVX</title>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <style>
+    * {
+      box-sizing: border-box;
     }
-    #videoContainer { 
-        position: fixed; 
-        top: 0; 
-        left: 0; 
-        width: 100vw; 
-        height: 100vh; 
-        z-index: 1; 
-        display: none; 
-        background: #000; 
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: black;
+      font-family: sans-serif;
+      overflow: hidden;
     }
-    video { 
-        width: 100%; 
-        height: 100%; 
+
+    video{
+      width: 100%;
+      height: auto;
+      object-fit: cover;
+      position: absolute;
+      top: 0px;
+      left: 0;
+      z-index: 0;
     }
-    #ui { 
-        position: relative; 
-        z-index: 100; 
-        padding: 20px; 
+
+
+
+
+
+
+    /* Siyah loader ekran */
+   #loader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: black; /* Arka plan siyah kalıyor */
+      z-index: 997;
+      display: none;
+      opacity: 1;
+      transition: opacity 0.4s ease;
+
+      display: flex;               /* Ortalamak için */
+      align-items: center;         /* Dikey merkezleme */
+      justify-content: center;     /* Yatay merkezleme */
     }
-    h1 { 
-        color: #e50914; 
-        text-align: center; 
+
+   
+    #loader img {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: min(220px, 30vmin);
+      width: 300px;
+      height: auto;
     }
-    #grid { 
-        display: grid; 
-        grid-template-columns: repeat(4, 1fr); 
-        gap: 15px; 
+
+
+
+    #channelBar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      padding: 0px;
+      display: flex;
+      overflow-x: auto;
+      gap: 10px;
+      background: rgba(0, 0, 0, 0);
+      z-index: 998;
+      scrollbar-width: none;
+      transition: opacity 0.4s ease;
+      opacity: 1;
     }
-    .card { 
-        background: rgba(30, 30, 30, 0.9); 
-        border: 4px solid transparent; 
-        border-radius: 8px; 
-        padding: 10px; 
-        text-align: center; 
-        height: 120px; 
-        display: flex; 
-        flex-direction: column; 
-        justify-content: center; 
-        align-items: center; 
-        transition: transform 0.2s;
+
+    #channelBar.hidden {
+      opacity: 0;
+      pointer-events: none;
     }
-    .card.focused { 
-        border-color: #fff; 
-        transform: scale(1.05); 
+
+    #channelBar::-webkit-scrollbar {
+      display: none;
     }
-    .card img { 
-        max-width: 100%; 
-        max-height: 70px; 
-        margin-bottom: 5px; 
+
+    .channel {
+      min-width: 160px;
+      background: #333;
+      color: #fff;
+      padding: 5px;
+      border-radius: 0 0 16px 16px;
+      text-align: center;
+      flex-shrink: 0;
+      font-size: 25px;
+      transition: all 0.3s ease;
+      opacity: 35%;
+      max-height:40px;
     }
-    .title { 
-        font-size: 12px; 
-        overflow: hidden; 
+
+    .channel:focus,
+    .channel.focused {
+      background: #002C33;
+      outline: none;
+      color: #fff;
+      opacity: 100%;
+      padding: 10px;
+      font-weight: bold;
+      margin-top:0px;
+      max-height:50px;
     }
-</style>
+
+    .channel.active {
+      font-weight: bold;
+      color:#FFF;
+    }
+
+    @media (max-width: 768px) {
+      .channel {
+        min-width: 120px;
+        font-size: 20px;
+      }
+    }
+
+    #channelNameOverlay {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 12px 24px;
+      border-radius: 16px;
+      font-size: 50px;
+      z-index: 1000;
+      opacity: 0;
+      transition: opacity 0.7s ease;
+      pointer-events: none;
+      font-weight: bold;
+      text-align: center;
+      margin: 0 auto;
+    }
+
+    .opaq {
+      opacity: 40%;
+    }
+
+    video::-webkit-media-controls {
+      display: none !important;
+      -webkit-appearance: none;
+    }
+  </style>
 </head>
 <body>
 
-<div id="videoContainer">
-    <video id="player" controls></video>
+<video id="video" autoplay playsinline></video>
+
+
+<!-- Siyah ekran loader -->
+<div id="loader">
+  <img src="https://tv606.github.io/test/lo.gif" alt="Loading...">
 </div>
 
-<div id="ui">
-    <h1>NETFLIX</h1>
-    <div id="grid"></div>
+
+<div class="opaq"><div id="channelNameOverlay"></div></div>
+
+
+
+
+
+
+
+
+
+
+
+<div id="channelBar">
+
+
+<div class="channel" data-id="x" data-type="hls" data-src="https://lotus.stingray.com/manifest/ose-122ads-montreal/samsungtvplus/master.m3u8">WELCOME</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://saran-live.ercdn.net/fx/index.m3u8">FX TR</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://hnpsechtsc.turknet.ercdn.net/xpnvudnlsv/cnbc-e/cnbc-e_720p.m3u8">CNBC-E</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://tv-trt2.medya.trt.com.tr/master_1080.m3u8">TRT 2</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://tv-trtbelgesel.medya.trt.com.tr/master.m3u8">TRT BELGESEL</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://gzttv-live.lg.mncdn.com/gzttv/gzttv/chunklist.m3u8">GZT</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://tv-trtspor1.medya.trt.com.tr/master.m3u8">TRT SPOR</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://tv-trt1.medya.trt.com.tr/master_1080.m3u8">TRT1</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://d111bsx9oooqoh.cloudfront.net/playlist_1920x1080.m3u8">Space Live</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://dash4.antik.sk/live/test_kabel_eins_tizen/playlist.m3u8">Kabel Eins</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://aegis-cloudfront-1.tubi.video/c95700f8-e51c-4a36-ad46-56f70fc9f1d9/playlist_1920x1080.m3u8">BritBox M</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://1d153317c8db4250b3789601274e2402.mediatailor.us-west-2.amazonaws.com/v1/manifest/ba62fe743df0fe93366eba3a257d792884136c7f/LINEAR-887-DOCUMENTARYINTERNATIONAL-DOCUMENTARYPLUS/ac1a00f6-2824-4368-ad81-ee920228b23c/0.m3u8">Docu+</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://d1nhni5l2n8hjt.cloudfront.net/gf_720.m3u8">Getfa UK</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://dash4.antik.sk/live/test_arte_avc_25p/playlist.m3u8">ARTE HD</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://dash4.antik.sk/live/test_pro_sieben_tizen/playlist.m3u8">PRO 7</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://dash4.antik.sk/live/test_sat_eins_gold_tizen/playlist.m3u8">SAT 1 GOLD</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://lds-timeline-plex.amagi.tv/1080p-cc/index.m3u8">History Hit</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://amg00711-zylo-amg00711c10-rakuten-fr-6731.playouts.now.amagi.tv/playlist1080p.m3u8">Into Crime</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://amg00861-amg00861c7-stirr-us-8227.playouts.now.amagi.tv/1080p-en/index.m3u8">InWild</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://cdn.whiplash.cc/whiplash-atlas/tracks-v1a1/mono.m3u8">Atlas</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://fast-channels.sinclairstoryline.com/THENEST/index_1.m3u8">The Nest</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://live.france24.com/hls/live/2037218-b/F24_EN_HI_HLS/master_5000.m3u8">FRANCE 24</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://vs-hls-push-ww-live.akamaized.net/x=4/i=urn:bbc:pips:service:bbc_news_channel_hd/t=3840/v=pv14/b=5070016/main.m3u8">BBC NEWS</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://amg00793-amg00793c6-xumo-us-2669.playouts.now.amagi.tv/BBCStudios-BBCEarthA-hls/playlist1080p.m3u8">BBC EARTH</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://cbsn-us.cbsnstream.cbsnews.com/out/v1/55a8648e8f134e82a470f83d562deeca/master_24.m3u8">CBS NEWS</div>
+
+    
+<div class="channel" data-id="x" data-type="hls" data-src="https://dwamdstream102.akamaized.net/hls/live/2015525/dwstream102/stream05/streamPlaylist.m3u8">DW ENG</div>
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+
+
+<div class="channel" data-id="x" data-type="hls" data-src="https://aegis-cloudfront-1.tubi.video/6d6d0f24-8445-4b4c-bdf6-44f9e38beaa4/1080p-cc/index.m3u8">LOVE NATURE</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://lotus.stingray.com/manifest/naturescape-a003-montreal/samsungtvplus/f7ed86a4-b8ac-38e0-a745-710077a95be6/3291200/manifest.m3u8">NATURESCAPE</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://autentic-adventure-earth-1-gb.lg.wurl.tv/playlist.m3u8">EARTH</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://amg01515-amg01515c13-xiaomi-international-4618.playouts.now.amagi.tv/playlist.m3u8">NATURE TIME</div>
+<div class="channel" data-id="x" data-type="hls" data-src="https://cdn-ue1-prod.tsv2.amagi.tv/linear/amg01546-ftv-fashiontv-xiaomi/playlist.m3u8">FASHION TV</div>
+
+
+
+
+
+
 </div>
+
+
+
 
 <script>
-let allMovies = [];
-let displayedCount = 0;
-const batchSize = 12;
-const columns = 4;
-let focusIndex = 0;
-let isPlaying = false;
-let hlsPlayer = null;
+  const video = document.getElementById('video');
+  const channels = document.querySelectorAll('.channel');
+  const channelBar = document.getElementById('channelBar');
+  const overlay = document.getElementById('channelNameOverlay');
+  const loader = document.getElementById('loader');
+  let focusedIndex = 0;
+  let hls;
+  let hideTimeout;
 
-async function init() {
-    try {
-        const res = await fetch('https://tv606.github.io/xinemax/listx.m3u');
-        const text = await res.text();
-        parseM3U(text);
-        shuffle(allMovies);
-        loadMore();
-        setupControls();
-    } catch (e) {
-        console.error('Liste yükleme hatası:', e);
-    }
-}
+  function showLoader() {
+    loader.style.display = 'block';
+    loader.style.opacity = 1;
+  }
 
-function parseM3U(data) {
-    const lines = data.split('\n');
-    let temp = {};
-    const map = new Map();
-    
-    for (let line of lines) {
-        line = line.trim();
-        if (line.startsWith('#EXTINF:')) {
-            const nameMatch = line.match(/,(.+)$/);
-            const logoMatch = line.match(/tvg-logo="([^"]+)"/);
-            if (nameMatch) temp.title = nameMatch[1];
-            if (logoMatch) temp.logo = logoMatch[1];
-        } else if (line.startsWith('http')) {
-            temp.url = line;
-            if (temp.title && temp.url && !map.has(temp.title)) {
-                map.set(temp.title, { ...temp });
-            }
-            temp = {};
-        }
-    }
-    allMovies = Array.from(map.values());
-}
+  function hideLoader() {
+    loader.style.opacity = 0;
+    setTimeout(() => loader.style.display = 'none', 400);
+  }
 
-function shuffle(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-    }
-}
+  function playStream(url) {
+    showLoader();
 
-function loadMore() {
-    const grid = document.getElementById('grid');
-    const end = Math.min(displayedCount + batchSize, allMovies.length);
-    
-    for (let i = displayedCount; i < end; i++) {
-        const m = allMovies[i];
-        const div = document.createElement('div');
-        div.className = 'card';
-        div.id = 'card-' + i;
-        
-        let content = '';
-        if (m.logo) content += `<img src="${m.logo}" alt="Afiş">`;
-        content += `<div class="title">${m.title}</div>`;
-        
-        div.innerHTML = content;
-        grid.appendChild(div);
-    }
-    
-    displayedCount = end;
-    if (displayedCount === batchSize) updateFocus();
-}
-
-function updateFocus() {
-    document.querySelectorAll('.card').forEach(c => c.classList.remove('focused'));
-    const active = document.getElementById('card-' + focusIndex);
-    if (active) {
-        active.classList.add('focused');
-        active.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-}
-
-function playVideo(url) {
-    if (!url) return;
-    isPlaying = true;
-    document.getElementById('ui').style.display = 'none';
-    const vc = document.getElementById('videoContainer');
-    const player = document.getElementById('player');
-    vc.style.display = 'block';
-
-    if (hlsPlayer) {
-        hlsPlayer.destroy();
-        hlsPlayer = null;
-    }
-
+    if (hls) hls.destroy();
     if (Hls.isSupported()) {
-        hlsPlayer = new Hls();
-        hlsPlayer.loadSource(url);
-        hlsPlayer.attachMedia(player);
-        hlsPlayer.on(Hls.Events.MANIFEST_PARSED, function() {
-            player.play().catch(() => {});
-        });
-    } else {
-        player.src = url;
-        player.play().catch(() => {});
+      hls = new Hls();
+      hls.loadSource(url);
+      hls.attachMedia(video);
+
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        video.play().catch(err => console.error('Oynatma hatası:', err));
+      });
+
+      video.addEventListener('playing', hideLoader, { once: true });
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      video.src = url;
+      video.addEventListener('loadeddata', () => {
+        video.play().catch(err => console.error('Oynatma hatası:', err));
+        hideLoader();
+      }, { once: true });
     }
-}
+  }
 
-function stopVideo() {
-    isPlaying = false;
-    const vc = document.getElementById('videoContainer');
-    const player = document.getElementById('player');
-    
-    if (hlsPlayer) {
-        hlsPlayer.destroy();
-        hlsPlayer = null;
+  video.removeAttribute("controls");
+  video.removeAttribute("poster");
+
+  function showChannelName(name) {
+    overlay.textContent = name;
+    overlay.style.opacity = 1;
+    clearTimeout(overlay._timeout);
+    overlay._timeout = setTimeout(() => {
+      overlay.style.opacity = 0;
+    }, 3000);
+  }
+
+  function updateFocus(index) {
+    channels.forEach(c => c.classList.remove('focused'));
+    channels[index].classList.add('focused');
+    channels[index].scrollIntoView({behavior: "smooth", inline: "center"});
+  }
+
+
+
+  function activateChannel(index) {
+    channels.forEach(c => c.classList.remove('active'));
+    channels[index].classList.add('active');
+    playStream(channels[index].dataset.src);
+    showChannelName(channels[index].innerText);
+    resetHideTimer();
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight') {
+      focusedIndex = (focusedIndex + 1) % channels.length;
+      updateFocus(focusedIndex);
+      resetHideTimer();
+    } else if (e.key === 'ArrowLeft') {
+      focusedIndex = (focusedIndex - 1 + channels.length) % channels.length;
+      updateFocus(focusedIndex);
+      resetHideTimer();
+    } else if (e.key === 'Enter') {
+      activateChannel(focusedIndex);
     }
-    
-    player.pause();
-    player.removeAttribute('src');
-    player.load();
-    vc.style.display = 'none';
-    document.getElementById('ui').style.display = 'block';
-    updateFocus();
-}
+  });
 
-function setupControls() {
-    window.addEventListener('keydown', (e) => {
-        if (isPlaying) {
-            if (e.key === 'Escape' || e.key === 'Backspace' || e.keyCode === 10009) {
-                e.preventDefault();
-                stopVideo();
-            }
-            return;
-        }
-
-        if (e.key === 'ArrowRight') {
-            if (focusIndex < displayedCount - 1) focusIndex++;
-        } else if (e.key === 'ArrowLeft') {
-            if (focusIndex > 0) focusIndex--;
-        } else if (e.key === 'ArrowDown') {
-            if (focusIndex + columns < displayedCount) {
-                focusIndex += columns;
-            } else if (displayedCount < allMovies.length) {
-                loadMore();
-                focusIndex += columns;
-                if (focusIndex >= displayedCount) focusIndex = displayedCount - 1;
-            }
-        } else if (e.key === 'ArrowUp') {
-            if (focusIndex - columns >= 0) focusIndex -= columns;
-        } else if (e.key === 'Enter') {
-            if (allMovies[focusIndex]) playVideo(allMovies[focusIndex].url);
-        }
-        
-        updateFocus();
+  channels.forEach((channel, index) => {
+    channel.addEventListener('click', () => {
+      focusedIndex = index;
+      updateFocus(index);
+      activateChannel(index);
     });
-}
+  });
 
-init();
+  function resetHideTimer() {
+    channelBar.classList.remove('hidden');
+    clearTimeout(hideTimeout);
+    hideTimeout = setTimeout(() => {
+      channelBar.classList.add('hidden');
+    }, 3000);
+  }
+
+  ['mousemove', 'keydown', 'touchstart'].forEach(event => {
+    document.addEventListener(event, resetHideTimer);
+  });
+
+  updateFocus(focusedIndex);
+  activateChannel(focusedIndex);
 </script>
+
 </body>
 </html>
