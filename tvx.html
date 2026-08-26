@@ -39,6 +39,26 @@
             overflow-x: hidden;
         }
 
+        /* Android TV Odaklanma Görsel Efektleri */
+        :focus {
+            outline: none !important;
+        }
+
+        .logo:focus,
+        .search-input:focus,
+        .dropdown-btn:focus,
+        .dropdown-item:focus,
+        .movie-card:focus,
+        .close-player-btn:focus,
+        .close-details-btn:focus,
+        .play-now-btn:focus,
+        .trailer-link-btn:focus {
+            outline: 3px solid var(--brand-color) !important;
+            box-shadow: 0 0 20px var(--brand-glow) !important;
+            transform: scale(1.05);
+            z-index: 10;
+        }
+
         .ambient-background {
             position: fixed;
             top: 0;
@@ -80,6 +100,8 @@
             -webkit-text-fill-color: transparent;
             cursor: pointer;
             user-select: none;
+            border-radius: 8px;
+            padding: 4px 8px;
         }
 
         .header-actions {
@@ -624,13 +646,13 @@
     <div id="ambient-bg" class="ambient-background"></div>
 
     <header id="main-header">
-        <div class="logo" id="logo-btn">XINEMAX</div>
+        <div class="logo" id="logo-btn" tabindex="0">XINEMAX</div>
         <div class="header-actions">
             <div class="search-container">
-                <input type="text" id="search-input" class="search-input" placeholder="Sistem senkronize ediliyor..." disabled />
+                <input type="text" id="search-input" class="search-input" placeholder="Sistem senkronize ediliyor..." disabled tabindex="0" />
             </div>
             <div class="dropdown-container" id="dropdown-container">
-                <button class="dropdown-btn" id="dropdown-btn" disabled>
+                <button class="dropdown-btn" id="dropdown-btn" disabled tabindex="0">
                     <span id="selected-category-text">Kategoriler</span>
                     <span class="material-icons-round">expand_more</span>
                 </button>
@@ -641,7 +663,7 @@
 
     <!-- FULLSCREEN DETAY SAYFASI -->
     <div class="details-page" id="details-page">
-        <div class="close-details-btn" id="close-details-btn">
+        <div class="close-details-btn" id="close-details-btn" tabindex="0">
             <span class="material-icons-round">arrow_back</span>
         </div>
         <div id="details-dynamic-content"></div>
@@ -649,7 +671,7 @@
 
     <div class="player-container" id="player-container">
         <div class="player-title" id="current-title">Film Yükleniyor</div>
-        <div class="close-player-btn" id="close-player-btn">
+        <div class="close-player-btn" id="close-player-btn" tabindex="0">
             <span class="material-icons-round">close</span>
         </div>
         <div class="video-wrapper">
@@ -714,6 +736,96 @@
         closePlayerBtn.addEventListener('click', closeVideoPlayer);
         closeDetailsBtn.addEventListener('click', closeDetailsPage);
 
+        // Android TV Kumandası Navigasyon Mantığı
+        document.addEventListener('keydown', handleTvNavigation);
+
+        function handleTvNavigation(e) {
+            const focusableElements = 'button, [tabindex="0"], input, .movie-card, .dropdown-item, .play-now-btn, .trailer-link-btn, .close-player-btn, .close-details-btn';
+            
+            // Player açıkken geri tuşu kontrolü
+            if (playerContainer.style.display === 'block') {
+                if (e.keyCode === 8 || e.keyCode === 27 || e.keyCode === 461 || e.keyCode === 10009) {
+                    closeVideoPlayer();
+                    e.preventDefault();
+                    return;
+                }
+            }
+
+            // Detay sayfası açıkken geri tuşu kontrolü
+            if (detailsPage.classList.contains('active')) {
+                if (e.keyCode === 8 || e.keyCode === 27 || e.keyCode === 461 || e.keyCode === 10009) {
+                    closeDetailsPage();
+                    e.preventDefault();
+                    return;
+                }
+            }
+
+            // Dropdown açıkken geri tuşu
+            if (dropdownContainer.classList.contains('open')) {
+                if (e.keyCode === 8 || e.keyCode === 27 || e.keyCode === 461 || e.keyCode === 10009) {
+                    dropdownContainer.classList.remove('open');
+                    dropdownBtn.focus();
+                    e.preventDefault();
+                    return;
+                }
+            }
+
+            const visibleFocusables = Array.from(document.querySelectorAll(focusableElements)).filter(el => {
+                return el.offsetParent !== null && window.getComputedStyle(el).visibility !== 'hidden';
+            });
+
+            const activeEl = document.activeElement;
+            const currentIndex = visibleFocusables.indexOf(activeEl);
+
+            // Enter tuşu desteği
+            if (e.keyCode === 13) {
+                if (activeEl) {
+                    activeEl.click();
+                }
+                return;
+            }
+
+            // D-Pad Yön Tuşları Yönetimi
+            if ([37, 38, 39, 40].includes(e.keyCode)) {
+                if (currentIndex === -1) {
+                    if (visibleFocusables.length > 0) visibleFocusables[0].focus();
+                    return;
+                }
+
+                const rect = activeEl.getBoundingClientRect();
+                let bestMatch = null;
+                let bestDistance = Infinity;
+
+                visibleFocusables.forEach(el => {
+                    if (el === activeEl) return;
+                    const r = el.getBoundingClientRect();
+
+                    let isValidDirection = false;
+                    if (e.keyCode === 37) isValidDirection = r.right <= rect.left + 10; // Sol
+                    if (e.keyCode === 38) isValidDirection = r.bottom <= rect.top + 10; // Yukarı
+                    if (e.keyCode === 39) isValidDirection = r.left >= rect.right - 10; // Sağ
+                    if (e.keyCode === 40) isValidDirection = r.top >= rect.bottom - 10; // Aşağı
+
+                    if (isValidDirection) {
+                        const distance = Math.hypot(
+                            (r.left + r.width / 2) - (rect.left + rect.width / 2),
+                            (r.top + r.height / 2) - (rect.top + rect.height / 2)
+                        );
+                        if (distance < bestDistance) {
+                            bestDistance = distance;
+                            bestMatch = el;
+                        }
+                    }
+                });
+
+                if (bestMatch) {
+                    bestMatch.focus();
+                    bestMatch.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    e.preventDefault();
+                }
+            }
+        }
+
         playerIframe.addEventListener('load', () => {
             loaderOverlay.style.opacity = '0';
             setTimeout(() => {
@@ -724,6 +836,10 @@
         dropdownBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             dropdownContainer.classList.toggle('open');
+            if (dropdownContainer.classList.contains('open')) {
+                const firstItem = dropdownList.querySelector('.dropdown-item');
+                if (firstItem) firstItem.focus();
+            }
         });
 
         document.addEventListener('click', () => {
@@ -760,6 +876,12 @@
             playerContainer.style.display = 'none';
             playerIframe.src = "";
             document.body.style.overflow = detailsPage.classList.contains('active') ? 'hidden' : 'auto';
+            if (detailsPage.classList.contains('active')) {
+                const playBtn = document.getElementById('details-play-btn');
+                if (playBtn) playBtn.focus();
+            } else {
+                logoBtn.focus();
+            }
         }
 
         function closeDetailsPage() {
@@ -768,6 +890,7 @@
             mainHeader.classList.remove('hidden-header');
             document.body.style.overflow = 'auto';
             detailsDynamicContent.innerHTML = '';
+            logoBtn.focus();
         }
 
         async function fetchM3UList() {
@@ -789,6 +912,9 @@
 
                 renderNextPage();
                 window.addEventListener('scroll', handleScroll);
+
+                // İlk yüklemede odağı arama kutusuna ver
+                setTimeout(() => { searchInput.focus(); }, 500);
             } catch (error) {
                 statusDiv.textContent = "Bağlantı hatası: M3U listesi yüklenemedi.";
                 console.error(error);
@@ -853,11 +979,13 @@
                 item.className = `dropdown-item ${cat === activeCategory ? 'active' : ''}`;
                 item.textContent = cat;
                 item.dataset.category = cat;
+                item.setAttribute('tabindex', '0');
                 
                 item.addEventListener('click', (e) => {
                     e.stopPropagation();
                     selectCategory(cat);
                     dropdownContainer.classList.remove('open');
+                    dropdownBtn.focus();
                 });
                 dropdownList.appendChild(item);
             });
@@ -915,6 +1043,7 @@
             pageItems.forEach(movie => {
                 const card = document.createElement('div');
                 card.className = 'movie-card';
+                card.setAttribute('tabindex', '0');
                 
                 const imgHtml = movie.logo 
                     ? `<img class="movie-thumb" src="${movie.logo}" alt="${movie.title}" loading="lazy" onerror="this.src='https://placehold.co/200x260/13131A/8B5CF6?text=VIDEO'">`
@@ -1048,7 +1177,7 @@
                 const trailer = videosData.results.find(v => v.type === 'Trailer' && v.site === 'YouTube');
                 if (trailer) {
                     trailerHtml = `
-                        <a href="https://www.youtube.com/watch?v=${trailer.key}" target="_blank" rel="noopener noreferrer" class="trailer-link-btn">
+                        <a href="https://www.youtube.com/watch?v=${trailer.key}" target="_blank" rel="noopener noreferrer" class="trailer-link-btn" tabindex="0">
                             <span class="material-icons-round">open_in_new</span> Fragmanı YouTube'da İzle
                         </a>
                     `;
@@ -1068,7 +1197,7 @@
                                 <span>•</span>
                                 <span>Yönetmen: <strong>${director}</strong></span>
                             </div>
-                            <button class="play-now-btn" id="details-play-btn">
+                            <button class="play-now-btn" id="details-play-btn" tabindex="0">
                                 <span class="material-icons-round">play_arrow</span> ŞİMDİ İZLE
                             </button>
                         </div>
@@ -1091,9 +1220,13 @@
                 </div>
             `;
 
-            document.getElementById('details-play-btn').addEventListener('click', () => {
+            const playBtn = document.getElementById('details-play-btn');
+            playBtn.addEventListener('click', () => {
                 playVideo(movie.url, title, poster);
             });
+
+            // Detay sayfası açılınca direkt oynat butonuna odaklan
+            setTimeout(() => { playBtn.focus(); }, 100);
         }
 
         function playVideo(url, title, logoUrl) {
@@ -1106,6 +1239,8 @@
 
             playerIframe.setAttribute("sandbox", "allow-scripts allow-same-origin allow-forms allow-presentation");
             playerIframe.src = url; 
+
+            setTimeout(() => { closePlayerBtn.focus(); }, 100);
         }
     </script>
 </body>
