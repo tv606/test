@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XINEMAX - Fast</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --brand-color: #8B5CF6; 
+            --brand-glow: rgba(139, 92, 246, 0.5);
+            --bg-deep: #070709;     
+            --glass-bg: rgba(18, 18, 26, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: #F3F4F6;
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+        }
+
+        /* HEADER */
+        header {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 90px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 4%;
+            z-index: 1000;
+            background: linear-gradient(to bottom, rgba(7,7,9,0.9) 0%, rgba(7,7,9,0) 100%);
+        }
+
+        .logo {
+            font-size: 2rem;
+            font-weight: 900;
+            letter-spacing: 4px;
+            background: linear-gradient(135deg, #FFF 30%, var(--brand-color) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            user-select: none;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .nav-btn {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: #FFF;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            backdrop-filter: blur(20px);
+            transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .nav-btn:hover {
+            background: var(--brand-color);
+            border-color: var(--brand-color);
+            box-shadow: 0 0 25px var(--brand-glow);
+            transform: translateY(-2px);
+        }
+
+        /* FULLSCREEN HERO CONTAINER */
+        .hero-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 0 4%;
+            background-size: cover;
+            background-position: center top;
+            transition: background-image 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* CINEMATIC OVERLAYS */
+        .hero-overlay {
+    position: absolute;
+    inset: 0;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    background: rgba(7, 7, 9, 0.4);
+    z-index: 1;
+}
+
+        /* MAIN HERO LAYOUT */
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            display: grid;
+            grid-template-columns: minmax(300px, 360px) 1fr;
+            gap: 50px;
+            align-items: center;
+            max-width: 1600px;
+            width: 100%;
+            margin: 0 auto;
+            margin-top: 40px;
+        }
+
+        /* BIG POSTER */
+        .poster-box {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 2 / 3;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.9), 0 0 40px rgba(139, 92, 246, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: var(--glass-bg);
+            flex-shrink: 0;
+        }
+
+        .poster-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .hero-content:hover .poster-img {
+            transform: scale(1.03);
+        }
+
+        /* DETAILS AREA */
+        .details-box {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-width: 850px;
+        }
+
+        .meta-badges {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            padding: 8px 18px;
+            border-radius: 50px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            backdrop-filter: blur(12px);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .badge-rating {
+            background: rgba(245, 158, 11, 0.15);
+            border-color: rgba(245, 158, 11, 0.3);
+            color: #FBBF24;
+        }
+
+        .badge-genre {
+            background: rgba(139, 92, 246, 0.15);
+            border-color: rgba(139, 92, 246, 0.3);
+            color: #C4B5FD;
+        }
+
+        .movie-title {
+            font-size: clamp(2.5rem, 5vw, 4.5rem);
+            font-weight: 900;
+            line-height: 1.05;
+            letter-spacing: -1.5px;
+            color: #FFFFFF;
+            text-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: horizontal;
+            overflow: hidden;
+        }
+
+        .movie-overview {
+    font-size: clamp(1.05rem, 1.5vw, 1.25rem);
+    line-height: 1.6;
+    color: #D1D5DB;
+    font-weight: 400;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    /* -webkit-box-orient: vertical; */
+    overflow: hidden;
+    border-radius: 15px;
+    padding: 20px;
+    background-color: rgba(0, 0, 0, 0.4);}
+
+        /* CAST STRIP */
+        .cast-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 5px;
+        }
+
+        .cast-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #9CA3AF;
+            font-weight: 700;
+        }
+
+        .cast-list {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .cast-chip {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            padding: 6px 14px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            color: #E5E7EB;
+            font-weight: 600;
+        }
+
+        /* ACTION BUTTONS */
+        .action-row {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-top: 10px;
+        }
+
+        .play-btn {
+            background: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%);
+            color: #FFF;
+            border: none;
+            padding: 18px 48px;
+            border-radius: 50px;
+            font-size: 1.15rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 12px 35px var(--brand-glow);
+            transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .play-btn:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 20px 45px var(--brand-glow);
+            filter: brightness(1.1);
+        }
+
+        /* PLAYER IFRAME MODAL */
+        .player-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: #000;
+            z-index: 3000;
+        }
+
+        .player-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            z-index: 10;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: #FFF;
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background: var(--brand-color);
+            transform: rotate(90deg);
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 1024px) {
+            .hero-content {
+                grid-template-columns: 240px 1fr;
+                gap: 30px;
+            }
+            .movie-title { font-size: 3rem; }
+        }
+
+        @media (max-width: 768px) {
+            .hero-container { padding: 90px 5% 40px 5%; align-items: flex-end; }
+            .hero-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+                margin-top: 0;
+            }
+            .poster-box { display: none; }
+            .movie-title { font-size: 2.2rem; }
+            .movie-overview { font-size: 1rem; -webkit-line-clamp: 3; }
+            .action-row { width: 100%; }
+            .play-btn { width: 100%; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">XINEMAX <span style="font-style: italic;">fast</span></div>
+        <div class="header-actions">
+            <button class="nav-btn" id="next-btn">
+                <span class="material-icons-round">shuffle</span> Random
+            </button>
+        </div>
+    </header>
+
+    <div class="hero-container" id="hero-container">
+        <div class="hero-overlay"></div>
+        
+        <div class="hero-content">
+            <div class="poster-box">
+                <img class="poster-img" id="poster-img" src="" alt="Poster">
+            </div>
+
+            <div class="details-box">
+                <div class="meta-badges">
+                    <div class="badge badge-rating">
+                        <span class="material-icons-round" style="font-size:18px;">star</span>
+                        <span id="rating-val">--</span>
+                    </div>
+                    <div class="badge" id="year-val">----</div>
+                    <div class="badge badge-genre" id="genre-val">Sinema</div>
+                </div>
+
+                <h1 class="movie-title" id="movie-title">Loading...</h1>
+                <p class="movie-overview" id="movie-overview">Loading... Please wait</p>
+
+                <div class="cast-container" id="cast-container">
+                    <span class="cast-title">Cast</span>
+                    <div class="cast-list" id="cast-list"></div>
+                </div>
+
+                <div class="action-row">
+                    <button class="play-btn" id="play-btn">
+                        <span class="material-icons-round" style="font-size: 28px;">play_arrow</span> PLAY
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="player-modal" id="player-modal">
+        <div class="close-btn" id="close-btn">
+            <span class="material-icons-round" style="font-size:28px;">close</span>
+        </div>
+        <div class="player-wrapper">
+            <iframe id="player-iframe" allowfullscreen allow="autoplay; encrypted-media"></iframe>
+        </div>
+    </div>
+
+    <script>
+        const M3U_URL = "https://tv606.github.io/xinemax/listx.m3u";
+        const TMDB_API_KEY = "43ddba9df87b2636f3c27ec9f382c85f";
+        
+        let allMovies = [];
+        let currentMovie = null;
+
+        const heroContainer = document.getElementById('hero-container');
+        const posterImg = document.getElementById('poster-img');
+        const movieTitle = document.getElementById('movie-title');
+        const ratingVal = document.getElementById('rating-val');
+        const yearVal = document.getElementById('year-val');
+        const genreVal = document.getElementById('genre-val');
+        const movieOverview = document.getElementById('movie-overview');
+        const castList = document.getElementById('cast-list');
+        const castContainer = document.getElementById('cast-container');
+        
+        const nextBtn = document.getElementById('next-btn');
+        const playBtn = document.getElementById('play-btn');
+        const playerModal = document.getElementById('player-modal');
+        const playerIframe = document.getElementById('player-iframe');
+        const closeBtn = document.getElementById('close-btn');
+
+        window.addEventListener('DOMContentLoaded', initApp);
+        nextBtn.addEventListener('click', loadRandomMovie);
+        playBtn.addEventListener('click', openPlayer);
+        closeBtn.addEventListener('click', closePlayer);
+
+        async function initApp() {
+            try {
+                const res = await fetch(M3U_URL);
+                const text = await res.text();
+                allMovies = parseM3U(text);
+                loadRandomMovie();
+            } catch (err) {
+                movieTitle.textContent = "No Data";
+            }
+        }
+
+        function parseM3U(data) {
+            const lines = data.split('\n');
+            const list = [];
+            let item = null;
+
+            for (let line of lines) {
+                line = line.trim();
+                if (line.startsWith('#EXTINF:')) {
+                    item = {};
+                    const logoMatch = line.match(/tvg-logo="([^"]+)"/);
+                    if (logoMatch) item.logo = logoMatch[1];
+                    const idx = line.lastIndexOf(',');
+                    item.title = idx !== -1 ? line.substring(idx + 1).trim() : "Unknown";
+                } else if (line.startsWith('http') && item) {
+                    item.url = line;
+                    list.push(item);
+                    item = null;
+                }
+            }
+            return list;
+        }
+
+        function cleanTitle(str) {
+            return str.replace(/\(.*?\)/g, '')
+                      .replace(/\[.*?\]/g, '')
+                      .replace(/1080p|720p|4k|uhd|bluray|web-dl|dual|turkish|dubbing|subtitled/gi, '')
+                      .trim();
+        }
+
+        async function loadRandomMovie() {
+            if (!allMovies.length) return;
+            
+            const idx = Math.floor(Math.random() * allMovies.length);
+            currentMovie = allMovies[idx];
+
+            // Eski satır: movieTitle.textContent = currentMovie.title;
+// Yeni satır:
+movieTitle.textContent = " ";
+            ratingVal.textContent = "7.5";
+            yearVal.textContent = "2024";
+            genreVal.textContent = "Cinema";
+            movieOverview.textContent = "Loading info...";
+            posterImg.src = currentMovie.logo || 'https://via.placeholder.com/600x900';
+            castList.innerHTML = '';
+            castContainer.style.display = 'none';
+
+            const cleanName = cleanTitle(currentMovie.title);
+
+            try {
+                const searchRes = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(cleanName)}&language=en-US`);
+                const searchJson = await searchRes.json();
+
+                if (searchJson.results && searchJson.results.length > 0) {
+                    const mId = searchJson.results[0].id;
+
+                    const [detailsRes, creditsRes] = await Promise.all([
+    fetch(`https://api.themoviedb.org/3/movie/${mId}?api_key=${TMDB_API_KEY}&language=tr-TR`),
+    fetch(`https://api.themoviedb.org/3/movie/${mId}/credits?api_key=${TMDB_API_KEY}&language=en-US`)
+]);
+
+                    const details = await detailsRes.json();
+                    const credits = await creditsRes.json();
+
+                    if (details.backdrop_path) {
+                        heroContainer.style.backgroundImage = `url('https://image.tmdb.org/t/p/original${details.backdrop_path}')`;
+                    }
+                    if (details.poster_path) {
+                        posterImg.src = `https://image.tmdb.org/t/p/w780${details.poster_path}`;
+                    }
+
+                    movieTitle.textContent = details.title || currentMovie.title;
+                    ratingVal.textContent = details.vote_average ? details.vote_average.toFixed(1) : '7.0';
+                    yearVal.textContent = details.release_date ? details.release_date.split('-')[0] : '----';
+                    genreVal.textContent = details.genres && details.genres.length > 0 ? details.genres[0].name : 'Cinema';
+                    movieOverview.textContent = details.overview || 'No info.';
+
+                    if (credits.cast && credits.cast.length > 0) {
+                        castContainer.style.display = 'flex';
+                        const topCast = credits.cast.slice(0, 4);
+                        topCast.forEach(actor => {
+                            const chip = document.createElement('div');
+                            chip.className = 'cast-chip';
+                            chip.textContent = actor.name;
+                            castList.appendChild(chip);
+                        });
+                    }
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function openPlayer() {
+            if (!currentMovie) return;
+            playerModal.style.display = 'block';
+            playerIframe.src = currentMovie.url;
+        }
+
+        function closePlayer() {
+            playerModal.style.display = 'none';
+            playerIframe.src = '';
+        }
+    </script>
+</body>
+</html>
