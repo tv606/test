@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <link rel="apple-touch-icon" sizes="180x180" href="tv-icon-128.jpg">
+    <link rel="apple-touch-icon" sizes="180x180" href="tv-icon-120x.jpg">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='10' y='25' width='80' height='60' rx='10' fill='%23333'/><rect x='18' y='33' width='64' height='44' rx='4' fill='%2300d2ff'/><polyline points='35,10 50,25 65,10' stroke='%23333' stroke-width='6' stroke-linecap='round' fill='none'/></svg>">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -244,38 +244,39 @@
 
     <script>
         const channels = [
-  { name: "WELCOME", logo: "tv-icon-128.jpg", url: "https://lotus.stingray.com/manifest/ose-122ads-montreal/samsungtvplus/master.m3u8", type: "hls" },
-  { name: "FX TR", logo: "tv-icon-128.jpg", url: "https://saran-live.ercdn.net/fx/index.m3u8", type: "hls" },
-  { name: "CNBC-E", logo: "tv-icon-128.jpg", url: "https://hnpsechtsc.turknet.ercdn.net/xpnvudnlsv/cnbc-e/cnbc-e_720p.m3u8", type: "hls" },
-  { name: "TRT1", logo: "tv-icon-128.jpg", url: "https://tv-trt1.medya.trt.com.tr/master_1080.m3u8", type: "hls" },
-  { name: "TRT2", logo: "tv-icon-128.jpg", url: "https://tv-trt2.medya.trt.com.tr/master_1080.m3u8", type: "hls" },
-  { name: "TRT BELGESEL", logo: "tv-icon-128.jpg", url: "https://tv-trtbelgesel.medya.trt.com.tr/master.m3u8", type: "hls" },
-  { name: "GZT", logo: "tv-icon-128.jpg", url: "https://gzttv-live.lg.mncdn.com/gzttv/gzttv/chunklist.m3u8", type: "hls" },
-  { name: "TRT SPOR", logo: "tv-icon-128.jpg", url: "https://tv-trtspor1.medya.trt.com.tr/master.m3u8", type: "hls" },
-  { name: "Halk TV", logo: "tv-icon-128.jpg", url: "https://halktv-live.daioncdn.net/halktv/halktv_720p.m3u8", type: "hls" },
-  { name: "Kabel Eins", logo: "tv-icon-128.jpg", url: "https://dash4.antik.sk/live/test_kabel_eins_tizen/playlist.m3u8", type: "hls" },
-  { name: "BritBox M", logo: "tv-icon-128.jpg", url: "https://aegis-cloudfront-1.tubi.video/c95700f8-e51c-4a36-ad46-56f70fc9f1d9/playlist_1920x1080.m3u8", type: "hls" },
-  { name: "Getfa UK", logo: "tv-icon-128.jpg", url: "https://d1nhni5l2n8hjt.cloudfront.net/gf_720.m3u8", type: "hls" },
-  { name: "ARTE HD", logo: "tv-icon-128.jpg", url: "https://dash4.antik.sk/live/test_arte_avc_25p/playlist.m3u8", type: "hls" },
-  { name: "PRO 7", logo: "tv-icon-128.jpg", url: "https://dash4.antik.sk/live/test_pro_sieben_tizen/playlist.m3u8", type: "hls" },
-  { name: "SAT 1 GOLD", logo: "tv-icon-128.jpg", url: "https://dash4.antik.sk/live/test_sat_eins_gold_tizen/playlist.m3u8", type: "hls" },
-  { name: "Into Crime", logo: "tv-icon-128.jpg", url: "https://amg00711-zylo-amg00711c10-rakuten-fr-6731.playouts.now.amagi.tv/playlist1080p.m3u8", type: "hls" },
-  { name: "InWild", logo: "tv-icon-128.jpg", url: "https://amg00861-amg00861c7-stirr-us-8227.playouts.now.amagi.tv/1080p-en/index.m3u8", type: "hls" },
-  { name: "Atlas", logo: "tv-icon-128.jpg", url: "https://cdn.whiplash.cc/whiplash-atlas/tracks-v1a1/mono.m3u8", type: "hls" },
-  { name: "The Nest", logo: "tv-icon-128.jpg", url: "https://fast-channels.sinclairstoryline.com/THENEST/index_1.m3u8", type: "hls" },
-  { name: "FRANCE 24", logo: "tv-icon-128.jpg", url: "https://live.france24.com/hls/live/2037218-b/F24_EN_HI_HLS/master_5000.m3u8", type: "hls" },
-  { name: "BBC NEWS", logo: "tv-icon-128.jpg", url: "https://vs-hls-push-ww-live.akamaized.net/x=4/i=urn:bbc:pips:service:bbc_news_channel_hd/t=3840/v=pv14/b=5070016/main.m3u8", type: "hls" },
-  { name: "BBC EARTH", logo: "tv-icon-128.jpg", url: "https://amg00793-amg00793c6-xumo-us-2669.playouts.now.amagi.tv/BBCStudios-BBCEarthA-hls/playlist1080p.m3u8", type: "hls" },
-  { name: "CBS NEWS", logo: "tv-icon-128.jpg", url: "https://cbsn-us.cbsnstream.cbsnews.com/out/v1/55a8648e8f134e82a470f83d562deeca/master_24.m3u8", type: "hls" },
-  { name: "DW ENG", logo: "tv-icon-128.jpg", url: "https://dwamdstream102.akamaized.net/hls/live/2015525/dwstream102/stream05/streamPlaylist.m3u8", type: "hls" },
-  { name: "LOVE NATURE", logo: "tv-icon-128.jpg", url: "https://aegis-cloudfront-1.tubi.video/6d6d0f24-8445-4b4c-bdf6-44f9e38beaa4/1080p-cc/index.m3u8", type: "hls" },
-  { name: "NATURESCAPE", logo: "tv-icon-128.jpg", url: "https://lotus.stingray.com/manifest/naturescape-a003-montreal/samsungtvplus/f7ed86a4-b8ac-38e0-a745-710077a95be6/3291200/manifest.m3u8", type: "hls" },
-  { name: "EARTH", logo: "tv-icon-128.jpg", url: "https://autentic-adventure-earth-1-gb.lg.wurl.tv/playlist.m3u8", type: "hls" },
-  { name: "NATURE TIME", logo: "tv-icon-128.jpg", url: "https://amg01515-amg01515c13-xiaomi-international-4618.playouts.now.amagi.tv/playlist.m3u8", type: "hls" },
-  { name: "FASHION TV", logo: "tv-icon-128.jpg", url: "https://cdn-ue1-prod.tsv2.amagi.tv/linear/amg01546-ftv-fashiontv-xiaomi/playlist.m3u8", type: "hls" },
-  { name: "Space Live", logo: "tv-icon-128.jpg", url: "https://d111bsx9oooqoh.cloudfront.net/playlist_1920x1080.m3u8", type: "hls" },
-//{ name: "Suspilne Pershyi", logo: "tv-icon-128.jpg", url: "https://www.youtube.com/watch?v=uOntga5OQrs", type: "youtube" }, 
-  { name: "Empty Slot", logo: "tv-icon-128.jpg", url: "", type: "hls" },
+  { name: "WELCOME", logo: "tv-icon-120x.jpg", url: "https://lotus.stingray.com/manifest/ose-122ads-montreal/samsungtvplus/master.m3u8", type: "hls" },
+  { name: "FX TR", logo: "tv-icon-120x.jpg", url: "https://saran-live.ercdn.net/fx/index.m3u8", type: "hls" },
+  { name: "CNBC-E", logo: "tv-icon-120x.jpg", url: "https://hnpsechtsc.turknet.ercdn.net/xpnvudnlsv/cnbc-e/cnbc-e_720p.m3u8", type: "hls" },
+  { name: "TRT1", logo: "tv-icon-120x.jpg", url: "https://tv-trt1.medya.trt.com.tr/master_1080.m3u8", type: "hls" },
+  { name: "TRT2", logo: "tv-icon-120x.jpg", url: "https://tv-trt2.medya.trt.com.tr/master_1080.m3u8", type: "hls" },
+  { name: "TRT BELGESEL", logo: "tv-icon-120x.jpg", url: "https://tv-trtbelgesel.medya.trt.com.tr/master.m3u8", type: "hls" },
+  { name: "GZT", logo: "tv-icon-120x.jpg", url: "https://gzttv-live.lg.mncdn.com/gzttv/gzttv/chunklist.m3u8", type: "hls" },
+  { name: "TRT SPOR", logo: "tv-icon-120x.jpg", url: "https://tv-trtspor1.medya.trt.com.tr/master.m3u8", type: "hls" },
+  { name: "Halk TV", logo: "tv-icon-120x.jpg", url: "https://halktv-live.daioncdn.net/halktv/halktv_720p.m3u8", type: "hls" },
+  { name: "Kabel Eins", logo: "tv-icon-120x.jpg", url: "https://dash4.antik.sk/live/test_kabel_eins_tizen/playlist.m3u8", type: "hls" },
+  { name: "BritBox M", logo: "tv-icon-120x.jpg", url: "https://aegis-cloudfront-1.tubi.video/c95700f8-e51c-4a36-ad46-56f70fc9f1d9/playlist_1920x1080.m3u8", type: "hls" },
+  { name: "Getfa UK", logo: "tv-icon-120x.jpg", url: "https://d1nhni5l2n8hjt.cloudfront.net/gf_720.m3u8", type: "hls" },
+  { name: "ARTE HD", logo: "tv-icon-120x.jpg", url: "https://dash4.antik.sk/live/test_arte_avc_25p/playlist.m3u8", type: "hls" },
+  { name: "PRO 7", logo: "tv-icon-120x.jpg", url: "https://dash4.antik.sk/live/test_pro_sieben_tizen/playlist.m3u8", type: "hls" },
+  { name: "SAT 1 GOLD", logo: "tv-icon-120x.jpg", url: "https://dash4.antik.sk/live/test_sat_eins_gold_tizen/playlist.m3u8", type: "hls" },
+  { name: "Into Crime", logo: "tv-icon-120x.jpg", url: "https://amg00711-zylo-amg00711c10-rakuten-fr-6731.playouts.now.amagi.tv/playlist1080p.m3u8", type: "hls" },
+  { name: "InWild", logo: "tv-icon-120x.jpg", url: "https://amg00861-amg00861c7-stirr-us-8227.playouts.now.amagi.tv/1080p-en/index.m3u8", type: "hls" },
+  { name: "Atlas", logo: "tv-icon-120x.jpg", url: "https://cdn.whiplash.cc/whiplash-atlas/tracks-v1a1/mono.m3u8", type: "hls" },
+  { name: "The Nest", logo: "tv-icon-120x.jpg", url: "https://fast-channels.sinclairstoryline.com/THENEST/index_1.m3u8", type: "hls" },
+  { name: "FRANCE 24", logo: "tv-icon-120x.jpg", url: "https://live.france24.com/hls/live/2037218-b/F24_EN_HI_HLS/master_5000.m3u8", type: "hls" },
+  { name: "BBC NEWS", logo: "tv-icon-120x.jpg", url: "https://vs-hls-push-ww-live.akamaized.net/x=4/i=urn:bbc:pips:service:bbc_news_channel_hd/t=3840/v=pv14/b=5070016/main.m3u8", type: "hls" },
+  { name: "BBC EARTH", logo: "tv-icon-120x.jpg", url: "https://amg00793-amg00793c6-xumo-us-2669.playouts.now.amagi.tv/BBCStudios-BBCEarthA-hls/playlist1080p.m3u8", type: "hls" },
+  { name: "CBS NEWS", logo: "tv-icon-120x.jpg", url: "https://cbsn-us.cbsnstream.cbsnews.com/out/v1/55a8648e8f134e82a470f83d562deeca/master_24.m3u8", type: "hls" },
+  { name: "DW ENG", logo: "tv-icon-120x.jpg", url: "https://dwamdstream102.akamaized.net/hls/live/2015525/dwstream102/stream05/streamPlaylist.m3u8", type: "hls" },
+  { name: "LOVE NATURE", logo: "tv-icon-120x.jpg", url: "https://aegis-cloudfront-1.tubi.video/6d6d0f24-8445-4b4c-bdf6-44f9e38beaa4/1080p-cc/index.m3u8", type: "hls" },
+  { name: "NATURESCAPE", logo: "tv-icon-120x.jpg", url: "https://lotus.stingray.com/manifest/naturescape-a003-montreal/samsungtvplus/f7ed86a4-b8ac-38e0-a745-710077a95be6/3291200/manifest.m3u8", type: "hls" },
+  { name: "EARTH", logo: "tv-icon-120x.jpg", url: "https://autentic-adventure-earth-1-gb.lg.wurl.tv/playlist.m3u8", type: "hls" },
+  { name: "NATURE TIME", logo: "tv-icon-120x.jpg", url: "https://amg01515-amg01515c13-xiaomi-international-4618.playouts.now.amagi.tv/playlist.m3u8", type: "hls" },
+  { name: "FASHION TV", logo: "tv-icon-120x.jpg", url: "https://cdn-ue1-prod.tsv2.amagi.tv/linear/amg01546-ftv-fashiontv-xiaomi/playlist.m3u8", type: "hls" },
+  { name: "Space Live", logo: "tv-icon-120x.jpg", url: "https://d111bsx9oooqoh.cloudfront.net/playlist_1920x1080.m3u8", type: "hls" },
+//{ name: "Suspilne Pershyi", logo: "tv-icon-120x.jpg", url: "https://www.youtube.com/watch?v=uOntga5OQrs", type: "youtube" }, 
+  { name: "Empty Slot", logo: "tv-icon-120x.jpg", url: "", type: "hls" },
+
 
 
 
