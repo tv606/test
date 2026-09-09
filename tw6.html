@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Twin Peaks Burned-In LUT Camera</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    body {
+      background-color: #050505;
+      color: #e5e5e5;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+      height: 100vh;
+      height: -webkit-fill-available;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+    .viewport {
+      position: relative;
+      width: 100%;
+      flex: 1;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border-bottom-left-radius: 24px;
+      border-bottom-right-radius: 24px;
+    }
+    canvas {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    video { display: none; }
+    .top-bar {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      right: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+    }
+    .badge {
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 11px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: #ffca28;
+    }
+    .btn-icon {
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    .rec-indicator {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      background: rgba(220, 38, 38, 0.85);
+      color: white;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      animation: pulse 1s infinite alternate;
+    }
+    @keyframes pulse { from { opacity: 1; } to { opacity: 0.4; } }
+    .controls {
+      padding: 16px 20px 24px;
+      background: #050505;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .filter-presets {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scrollbar-width: none;
+    }
+    .filter-presets::-webkit-scrollbar { display: none; }
+    .btn-preset {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #aaa;
+      padding: 8px 16px;
+      border-radius: 14px;
+      font-size: 12px;
+      white-space: nowrap;
+      font-weight: 600;
+    }
+    .btn-preset.active {
+      background: #ffca28;
+      color: #000;
+      border-color: #ffca28;
+      font-weight: 800;
+    }
+    .slider-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 8px 14px;
+      border-radius: 12px;
+    }
+    .slider-group label {
+      font-size: 10px;
+      color: #888;
+      width: 60px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .slider-group input { flex: 1; accent-color: #ffca28; }
+    .action-bar { display: flex; align-items: center; justify-content: center; }
+    .btn-record {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: transparent;
+      border: 4px solid #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn-record-inner {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: #dc2626;
+      transition: all 0.2s ease;
+    }
+    .btn-record.recording .btn-record-inner {
+      border-radius: 8px;
+      width: 28px;
+      height: 28px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="viewport">
+    <video id="webcam" autoplay playsinline muted></video>
+    <canvas id="outputCanvas"></canvas>
+
+    <div class="top-bar">
+      <div class="badge" id="presetLabel">Preset: Fuji Vivid</div>
+      <div class="rec-indicator" id="recIndicator">● REC</div>
+      <button class="btn-icon" onclick="toggleCamera()">🔄</button>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="filter-presets">
+      <button class="btn-preset active" onclick="setPreset('fuji_vivid', 'Fuji Vivid', this)">Fuji Vivid</button>
+      <button class="btn-preset" onclick="setPreset('redroom_high', 'Red Room Vivid', this)">Red Room Vivid</button>
+      <button class="btn-preset" onclick="setPreset('neon_woods', 'Snoqualmie Neon', this)">Neon Woods</button>
+      <button class="btn-preset" onclick="setPreset('none', 'Normal', this)">Bypass</button>
+    </div>
+
+    <div class="slider-group">
+      <label>Efekt</label>
+      <input type="range" id="intensity" min="0" max="100" value="100">
+    </div>
+
+    <div class="slider-group">
+      <label>Grain</label>
+      <input type="range" id="grainSlider" min="0" max="100" value="40">
+    </div>
+
+    <div class="action-bar">
+      <button class="btn-record" id="recBtn" onclick="toggleRecord()">
+        <div class="btn-record-inner"></div>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const video = document.getElementById('webcam');
+    const canvas = document.getElementById('outputCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    const intensitySlider = document.getElementById('intensity');
+    const grainSlider = document.getElementById('grainSlider');
+    const presetLabel = document.getElementById('presetLabel');
+    const recIndicator = document.getElementById('recIndicator');
+    const recBtn = document.getElementById('recBtn');
+
+    let currentPreset = 'fuji_vivid';
+    let currentFacingMode = 'environment';
+    let mediaRecorder;
+    let recordedChunks = [];
+    let isRecording = false;
+    let audioStream = null;
+
+    async function initCamera() {
+      if (video.srcObject) {
+        video.srcObject.getTracks().forEach(track => track.stop());
+      }
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: currentFacingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
+          audio: true
+        });
+
+        video.srcObject = stream;
+        audioStream = stream.getAudioTracks()[0];
+        
+        video.onloadedmetadata = () => {
+          canvas.width = video.videoWidth || 1280;
+          canvas.height = video.videoHeight || 720;
+          renderFrame();
+        };
+      } catch (err) {
+        alert('Kamera veya Mikrofon izni reddedildi: ' + err.message);
+      }
+    }
+
+    function toggleCamera() {
+      currentFacingMode = (currentFacingMode === 'environment') ? 'user' : 'environment';
+      initCamera();
+    }
+
+    function getFilterString() {
+      const factor = intensitySlider.value / 100;
+      if (currentPreset === 'fuji_vivid') {
+        return `saturate(${100 + (120 * factor)}%) contrast(${100 + (35 * factor)}%) brightness(${100 + (10 * factor)}%) sepia(${25 * factor}%) hue-rotate(-10deg)`;
+      } else if (currentPreset === 'redroom_high') {
+        return `sepia(${85 * factor}%) hue-rotate(305deg) saturate(${100 + (350 * factor)}%) contrast(${100 + (50 * factor)}%)`;
+      } else if (currentPreset === 'neon_woods') {
+        return `saturate(${100 + (150 * factor)}%) contrast(${100 + (40 * factor)}%) hue-rotate(25deg) brightness(95%)`;
+      }
+      return 'none';
+    }
+
+    function drawGrain() {
+      const grainAmount = grainSlider.value;
+      if (grainAmount <= 0) return;
+
+      const width = canvas.width;
+      const height = canvas.height;
+      const imgData = ctx.getImageData(0, 0, width, height);
+      const data = imgData.data;
+      const alpha = (grainAmount / 100) * 40;
+
+      for (let i = 0; i < data.length; i += 16) {
+        const noise = (Math.random() - 0.5) * alpha;
+        data[i] += noise;
+        data[i+1] += noise;
+        data[i+2] += noise;
+      }
+      ctx.putImageData(imgData, 0, 0);
+    }
+
+    function renderFrame() {
+      if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        ctx.filter = getFilterString();
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        ctx.filter = 'none';
+        drawGrain();
+      }
+      requestAnimationFrame(renderFrame);
+    }
+
+    function setPreset(preset, name, btn) {
+      currentPreset = preset;
+      presetLabel.textContent = `Preset: ${name}`;
+      document.querySelectorAll('.btn-preset').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    function toggleRecord() {
+      if (!isRecording) startRecording();
+      else stopRecording();
+    }
+
+    function startRecording() {
+      recordedChunks = [];
+      const canvasStream = canvas.captureStream(30);
+
+      if (audioStream) {
+        canvasStream.addTrack(audioStream);
+      }
+
+      mediaRecorder = new MediaRecorder(canvasStream, { mimeType: 'video/mp4' });
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) recordedChunks.push(e.data);
+      };
+
+      mediaRecorder.onstop = saveVideo;
+      mediaRecorder.start();
+
+      isRecording = true;
+      recBtn.classList.add('recording');
+      recIndicator.style.display = 'flex';
+    }
+
+    function stopRecording() {
+      mediaRecorder.stop();
+      isRecording = false;
+      recBtn.classList.remove('recording');
+      recIndicator.style.display = 'none';
+    }
+
+    function saveVideo() {
+      const blob = new Blob(recordedChunks, { type: 'video/mp4' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `TwinPeaks_${Date.now()}.mp4`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    initCamera();
+  </script>
+</body>
+</html>
