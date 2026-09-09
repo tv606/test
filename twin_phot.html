@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Twin Peaks Fuji Photo FX</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
+    html, body { 
+      width: 100%; 
+      height: 100dvh; 
+      overflow: hidden; 
+      background-color: #0b0f0d; 
+      font-family: -apple-system, BlinkMacSystemFont, "Georgia", "SF Pro Text", serif; 
+      color: #e2d9cc; 
+    }
+    
+    .app-container {
+      width: 100%;
+      height: 100dvh;
+      max-width: 430px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: env(safe-area-inset-top, 12px) 16px env(safe-area-inset-bottom, 12px) 16px;
+      position: relative;
+    }
+
+    .header {
+      height: 40px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .header h1 { 
+      font-size: 20px; 
+      font-weight: 700; 
+      letter-spacing: 1px; 
+      color: #c93b2b;
+      text-shadow: 0 0 10px rgba(201, 59, 43, 0.4);
+      font-family: "Georgia", serif;
+    }
+    .upload-btn {
+      background: rgba(46, 64, 52, 0.5);
+      border: 1px solid rgba(201, 59, 43, 0.5);
+      backdrop-filter: blur(10px);
+      color: #e2d9cc;
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+    }
+
+    .preview-area {
+      flex: 1;
+      min-height: 0;
+      margin: 8px 0;
+      background: #050706;
+      border-radius: 16px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.8), inset 0 0 15px rgba(0,0,0,0.9);
+      border: 1px solid #1a261f;
+    }
+    canvas { width: 100%; height: 100%; object-fit: contain; }
+    .placeholder { color: #5a6b5e; font-size: 14px; font-family: sans-serif; }
+
+    .loading-overlay {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(11, 15, 13, 0.92);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      z-index: 10;
+      padding: 20px;
+      text-align: center;
+    }
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid rgba(201, 59, 43, 0.2);
+      border-top-color: #c93b2b;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { font-size: 15px; font-weight: 500; color: #e2d9cc; }
+
+    .overlay-share-btn {
+      background: #c93b2b;
+      color: #fff;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 22px;
+      font-size: 15px;
+      font-weight: 600;
+      display: none;
+      box-shadow: 0 4px 12px rgba(201, 59, 43, 0.4);
+      cursor: pointer;
+    }
+
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .filter-bar {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding: 8px 4px;
+    }
+    .filter-bar::-webkit-scrollbar { display: none; }
+
+    .filter-card {
+      flex: 0 0 64px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+    .filter-thumb {
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
+      background: #121a15;
+      border: 2px solid transparent;
+      transition: all 0.2s ease;
+    }
+    .filter-card.active .filter-thumb { 
+      border: 2px solid #c93b2b; 
+      box-shadow: 0 0 12px rgba(201, 59, 43, 0.8);
+      transform: scale(1.08); 
+    }
+    .filter-card span { font-size: 10px; color: #7a8c7e; font-weight: 500; white-space: nowrap; font-family: sans-serif; }
+    .filter-card.active span { color: #e2d9cc; font-weight: 700; }
+
+    .action-btn {
+      width: 100%;
+      height: 46px;
+      border-radius: 23px;
+      background: #c93b2b;
+      border: none;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 15px rgba(201, 59, 43, 0.4);
+      cursor: pointer;
+    }
+    .action-btn:active { transform: scale(0.98); opacity: 0.9; }
+    
+    input[type="file"] { display: none; }
+  </style>
+</head>
+<body>
+
+<div class="app-container">
+  <div class="header">
+    <h1>TWIN PEAKS</h1>
+    <button class="upload-btn" onclick="document.getElementById('fileInput').click()">Select Photo</button>
+    <input type="file" id="fileInput" accept="image/*">
+  </div>
+
+  <div class="preview-area">
+    <span class="placeholder" id="placeholderText">Upload photo</span>
+    <canvas id="canvas" style="display:none;"></canvas>
+    
+    <div class="loading-overlay" id="loadingOverlay">
+      <div class="spinner" id="loadingSpinner"></div>
+      <span class="loading-text" id="loadingText">Developing Photo...</span>
+      <button class="overlay-share-btn" id="overlayShareBtn" onclick="triggerNativeShare()">Share / Save Photo</button>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="filter-bar">
+      <div class="filter-card active" onclick="applyFilter('fuji35', this)">
+        <div class="filter-thumb" style="background: linear-gradient(135deg, #1d3326, #8f3d2e);"></div>
+        <span>Fuji 35mm</span>
+      </div>
+      <div class="filter-card" onclick="applyFilter('laura', this)">
+        <div class="filter-thumb" style="background: linear-gradient(135deg, #2b3a4a, #a67c52);"></div>
+        <span>Laura's Theme</span>
+      </div>
+      <div class="filter-card" onclick="applyFilter('snoqualmie', this)">
+        <div class="filter-thumb" style="background: linear-gradient(135deg, #2d3b32, #7a8278);"></div>
+        <span>Snoqualmie Fog</span>
+      </div>
+      <div class="filter-card" onclick="applyFilter('redroom', this)">
+        <div class="filter-thumb" style="background: linear-gradient(135deg, #600d0d, #110202);"></div>
+        <span>Red Room</span>
+      </div>
+      <div class="filter-card" onclick="applyFilter('blacklodge', this)">
+        <div class="filter-thumb" style="background: linear-gradient(135deg, #0d0d0d, #421616);"></div>
+        <span>Black Lodge</span>
+      </div>
+      <div class="filter-card" onclick="applyFilter('cherry', this)">
+        <div class="filter-thumb" style="background: linear-gradient(135deg, #5c2419, #b87b43);"></div>
+        <span>Warm Cherry</span>
+      </div>
+      <div class="filter-card" onclick="applyFilter('dougie', this)">
+        <div class="filter-thumb" style="background: linear-gradient(135deg, #8a6a29, #29382f);"></div>
+        <span>Dougie Gold</span>
+      </div>
+      <div class="filter-card" onclick="applyFilter('grainonly', this)">
+        <div class="filter-thumb" style="background: repeating-radial-gradient(#333 0 1px, #111 2px 3px);"></div>
+        <span>35mm Grain</span>
+      </div>
+    </div>
+
+    <button class="action-btn" id="shareBtn" onclick="exportPhoto()">Process Photo</button>
+  </div>
+</div>
+
+<script>
+  const fileInput = document.getElementById('fileInput');
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  const placeholder = document.getElementById('placeholderText');
+  const overlay = document.getElementById('loadingOverlay');
+  const loadingSpinner = document.getElementById('loadingSpinner');
+  const loadingText = document.getElementById('loadingText');
+  const overlayShareBtn = document.getElementById('overlayShareBtn');
+  const shareBtn = document.getElementById('shareBtn');
+  
+  let currentFilter = 'fuji35';
+  let loadedImage = null;
+  let processedFile = null;
+
+  fileInput.onchange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const img = new Image();
+    img.onload = () => {
+      loadedImage = img;
+      canvas.width = img.width;
+      canvas.height = img.height;
+      placeholder.style.display = 'none';
+      canvas.style.display = 'block';
+      render();
+    };
+    img.src = URL.createObjectURL(file);
+  };
+
+  function applyFilter(filterType, el) {
+    currentFilter = filterType;
+    document.querySelectorAll('.filter-card').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    if (loadedImage) render();
+  }
+
+  function processPixels() {
+    const w = canvas.width;
+    const h = canvas.height;
+    const imgData = ctx.getImageData(0, 0, w, h);
+    const d = imgData.data;
+
+    const grainAmount = (currentFilter === 'blacklodge') ? 45 : (currentFilter === 'snoqualmie' ? 18 : 28);
+    
+    for (let i = 0; i < d.length; i += 4) {
+      let r = d[i];
+      let g = d[i+1];
+      let b = d[i+2];
+
+      let lum = 0.299 * r + 0.587 * g + 0.114 * b;
+
+      if (currentFilter === 'fuji35') {
+        r = r * 1.1 + 10;
+        g = g * 1.05 + (lum < 128 ? 8 : 0);
+        b = b * 0.85 + (lum < 100 ? 15 : -10);
+      } else if (currentFilter === 'laura') {
+        r = r * 0.95 + 5;
+        g = g * 0.98 + 10;
+        b = b * 1.25 + 20;
+      } else if (currentFilter === 'snoqualmie') {
+        r = (r - 128) * 0.75 + 128 - 10;
+        g = (g - 128) * 0.8 + 128 + 12;
+        b = (b - 128) * 0.75 + 128 + 5;
+      } else if (currentFilter === 'redroom') {
+        r = Math.pow(r / 255, 0.85) * 255 * 1.35;
+        g = g * 0.5;
+        b = b * 0.4;
+      } else if (currentFilter === 'blacklodge') {
+        r = (r - 128) * 1.4 + 128 + 15;
+        g = (g - 128) * 1.2 + 128 - 10;
+        b = (b - 128) * 1.2 + 128 - 15;
+      } else if (currentFilter === 'cherry') {
+        r = r * 1.2 + 20;
+        g = g * 1.0 + 5;
+        b = b * 0.75 - 10;
+      } else if (currentFilter === 'dougie') {
+        r = r * 1.15 + 15;
+        g = g * 1.1 + 10;
+        b = b * 0.65;
+      }
+
+      if (currentFilter !== 'none') {
+        const noise = (Math.random() - 0.5) * grainAmount;
+        r += noise;
+        g += noise;
+        b += noise;
+      }
+
+      d[i]     = Math.max(0, Math.min(255, r));
+      d[i + 1] = Math.max(0, Math.min(255, g));
+      d[i + 2] = Math.max(0, Math.min(255, b));
+    }
+    
+    ctx.putImageData(imgData, 0, 0);
+
+    if (currentFilter === 'blacklodge' || currentFilter === 'redroom') {
+      ctx.globalCompositeOperation = 'screen';
+      ctx.fillStyle = 'rgba(180, 0, 0, 0.05)';
+      ctx.fillRect(2, 0, w, h);
+      ctx.globalCompositeOperation = 'source-over';
+    }
+
+    const gradient = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.3, w / 2, h / 2, Math.max(w, h) * 0.75);
+    gradient.addColorStop(0, 'rgba(0,0,0,0)');
+    gradient.addColorStop(1, 'rgba(5,10,7,0.55)');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, w, h);
+  }
+
+  function render() {
+    if (!loadedImage) return;
+    ctx.drawImage(loadedImage, 0, 0, canvas.width, canvas.height);
+    processPixels();
+  }
+
+  function exportPhoto() {
+    if (!loadedImage) return;
+    
+    overlay.style.display = 'flex';
+    loadingSpinner.style.display = 'block';
+    overlayShareBtn.style.display = 'none';
+    loadingText.innerText = 'Developing Photo...';
+
+    setTimeout(() => {
+      canvas.toBlob((blob) => {
+        processedFile = new File([blob], 'twin-peaks-fuji.jpg', { type: 'image/jpeg' });
+        loadingSpinner.style.display = 'none';
+        loadingText.innerText = 'Photo Ready!';
+        overlayShareBtn.style.display = 'inline-block';
+      }, 'image/jpeg', 0.95);
+    }, 300);
+  }
+
+  async function triggerNativeShare() {
+    if (!processedFile) return;
+
+    if (navigator.canShare && navigator.canShare({ files: [processedFile] })) {
+      try {
+        await navigator.share({
+          files: [processedFile],
+          title: 'Twin Peaks Fuji Photo'
+        });
+      } catch (err) {}
+    } else {
+      const url = URL.createObjectURL(processedFile);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = processedFile.name;
+      a.click();
+    }
+
+    overlay.style.display = 'none';
+  }
+</script>
+</body>
+</html>
