@@ -50,7 +50,7 @@
   <div class="preview-area">
     <span class="placeholder" id="placeholderText">Kamera aç veya video yükle</span>
     <canvas id="canvas" style="display:none;"></canvas>
-    <video id="video" autoplay loop playsinline muted hidden></video>
+    <video id="video" autoplay loop playsinline crossorigin="anonymous"></video>
     <div id="recStatus" class="status-overlay">REC</div>
   </div>
   <div class="controls">
@@ -150,6 +150,7 @@
   let useFrontCamera = false;
   let renderId;
   let lastTime = 0;
+  let audioCtx, sourceNode, destNode;
 
   async function startCamera() {
     try {
@@ -160,6 +161,7 @@
         video: { facingMode: useFrontCamera ? 'user' : 'environment' }, audio: true 
       });
       video.srcObject = stream;
+      video.muted = true;
       video.play();
       isCameraActive = true;
       setupCanvas();
@@ -182,6 +184,7 @@
       video.srcObject = null;
     }
     isCameraActive = false;
+    video.muted = false;
     video.src = URL.createObjectURL(file);
     video.play();
     setupCanvas();
@@ -282,6 +285,24 @@
     if (!canvas.width) return;
     const targetFps = parseInt(document.getElementById('setFps').value) || 24;
     const stream = canvas.captureStream(targetFps);
+
+    if (isCameraActive && video.srcObject) {
+      const audioTracks = video.srcObject.getAudioTracks();
+      if (audioTracks.length > 0) stream.addTrack(audioTracks[0]);
+    } else {
+      try {
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          sourceNode = audioCtx.createMediaElementSource(video);
+          destNode = audioCtx.createMediaStreamDestination();
+          sourceNode.connect(destNode);
+          sourceNode.connect(audioCtx.destination);
+        }
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const audioTracks = destNode.stream.getAudioTracks();
+        if (audioTracks.length > 0) stream.addTrack(audioTracks[0]);
+      } catch (e) {}
+    }
     
     let options = { mimeType: 'video/mp4' };
     if (!MediaRecorder.isTypeSupported('video/mp4')) {
