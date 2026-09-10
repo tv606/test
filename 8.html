@@ -325,7 +325,7 @@
     recordedChunks = [];
     mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
     mediaRecorder.onstop = exportVideo;
-    mediaRecorder.start();
+    mediaRecorder.start(1000);
     
     isRecording = true;
     document.getElementById('mainActionBtn').innerText = "Kaydı Bitir";
