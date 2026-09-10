@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Retro Super 8mm Premium</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
+    html, body { 
+      width: 100%; 
+      height: 100dvh; 
+      overflow: hidden; 
+      background-color: #0b0f0d; 
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; 
+      color: #e2d9cc; 
+    }
+    
+    .app-container {
+      width: 100%;
+      height: 100dvh;
+      max-width: 375px; 
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: env(safe-area-inset-top, 12px) 16px env(safe-area-inset-bottom, 12px) 16px;
+      position: relative;
+    }
+
+    .header {
+      height: 40px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .header h1 { 
+      font-size: 18px; 
+      font-weight: 800; 
+      color: #c93b2b;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .btn-group { display: flex; gap: 8px; }
+    .icon-btn {
+      background: rgba(46, 64, 52, 0.8);
+      border: 1px solid rgba(201, 59, 43, 0.5);
+      color: #e2d9cc;
+      padding: 6px 12px;
+      border-radius: 16px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .preview-area {
+      flex: 1;
+      min-height: 0;
+      margin: 12px 0;
+      background: #000;
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      border: 1px solid #1a261f;
+    }
+    canvas { width: 100%; height: 100%; object-fit: cover; }
+    .placeholder { color: #5a6b5e; font-size: 14px; text-align: center; line-height: 1.5; padding: 20px;}
+
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      flex-shrink: 0;
+      padding-bottom: 10px;
+    }
+
+    .filter-bar {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding: 8px 4px;
+    }
+    .filter-bar::-webkit-scrollbar { display: none; }
+
+    .filter-card {
+      flex: 0 0 68px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+    .filter-thumb {
+      width: 56px;
+      height: 56px;
+      border-radius: 10px;
+      background: #121a15;
+      border: 2px solid transparent;
+      transition: 0.2s;
+    }
+    .filter-card.active .filter-thumb { 
+      border: 2px solid #c93b2b; 
+      transform: scale(1.05); 
+    }
+    .filter-card span { font-size: 10px; color: #7a8c7e; font-weight: 600; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;}
+    .filter-card.active span { color: #e2d9cc; }
+
+    .action-btn {
+      width: 100%;
+      height: 48px;
+      border-radius: 24px;
+      background: #c93b2b;
+      border: none;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .settings-modal {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(5, 7, 6, 0.95);
+      z-index: 50;
+      display: none;
+      flex-direction: column;
+      padding: 40px 20px;
+      backdrop-filter: blur(10px);
+    }
+    .settings-modal h2 { color: #c93b2b; margin-bottom: 20px; font-size: 20px; }
+    .setting-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; font-size: 14px; font-weight: 600;}
+    .setting-row input[type="range"] { width: 140px; }
+    .setting-row input[type="number"] { width: 60px; background: #1a261f; color: #fff; border: 1px solid #c93b2b; border-radius: 6px; padding: 4px; text-align: center;}
+    .close-settings { margin-top: auto; background: #5a6b5e; color: #fff; padding: 12px; border-radius: 20px; text-align: center; font-weight: bold;}
+
+    .status-overlay {
+      position: absolute; top: 10px; right: 10px; background: red; color: white; padding: 4px 8px; border-radius: 8px; font-size: 12px; font-weight: bold; display: none; animation: blink 1s infinite;
+    }
+    @keyframes blink { 50% { opacity: 0.3; } }
+    input[type="file"] { display: none; }
+  </style>
+</head>
+<body>
+
+<div class="app-container">
+  <div class="header">
+    <h1>Super 8 PRO</h1>
+    <div class="btn-group">
+      <button class="icon-btn" onclick="toggleSettings()">Ayarlar</button>
+      <button class="icon-btn" onclick="document.getElementById('fileInput').click()">Dosya</button>
+      <button class="icon-btn" onclick="startCamera()">Kamera</button>
+    </div>
+    <input type="file" id="fileInput" accept="video/*">
+  </div>
+
+  <div class="preview-area">
+    <span class="placeholder" id="placeholderText">Kamera açın veya video yükleyin.</span>
+    <canvas id="canvas" style="display:none;"></canvas>
+    <video id="video" autoplay loop playsinline muted hidden></video>
+    <div id="recStatus" class="status-overlay">REC</div>
+  </div>
+
+  <div class="controls">
+    <div class="filter-bar" id="filterBar"></div>
+    <button class="action-btn" id="mainActionBtn" onclick="toggleRecording()">Kayıt Başlat / Dışa Aktar</button>
+  </div>
+
+  <div class="settings-modal" id="settingsModal">
+    <h2>Gelişmiş Ayarlar</h2>
+    <div class="setting-row">
+      <span>Bit Hızı (Mbps)</span>
+      <input type="number" id="setBitrate" value="12" min="1" max="50">
+    </div>
+    <div class="setting-row">
+      <span>Kayıt FPS</span>
+      <input type="number" id="setFps" value="60" min="24" max="60">
+    </div>
+    <div class="setting-row">
+      <span>Film Kumlanması (Noise)</span>
+      <input type="range" id="setNoise" min="0" max="100" value="70">
+    </div>
+    <div class="setting-row">
+      <span>VHS Çizik Yoğunluğu</span>
+      <input type="range" id="setScratch" min="0" max="100" value="60">
+    </div>
+    <div class="setting-row">
+      <span>Analog Titreme (Flicker)</span>
+      <input type="range" id="setFlicker" min="0" max="50" value="20">
+    </div>
+    <div class="close-settings" onclick="toggleSettings()">Kaydet ve Kapat</div>
+  </div>
+</div>
+
+<script>
+  const filterNames = [
+    "Premium 8mm", "Vintage VHS", "Retro Cam", "Fuji Superia", "Kodak Gold", "Ilford HP5", "Agfa Vista", "Cine 16mm", "Noir Classic", "Sepia Dream",
+    "Polaroid 600", "Lomo LC-A", "Super 8 Gold", "VHS Tracker", "Beta Glitch", "Old Film", "Dusty Lens", "Light Leak", "Grain Master", "Chromatic",
+    "Analog Warmth", "Neon Cyber", "Pastel Dream", "Dark Room", "Bleach Bypass", "Cross Process", "Infrared", "Tritone", "Duo Tone", "Cyanotype",
+    "Gothic Film", "Velvet Red", "Emerald City", "Sapphire Blue", "Golden Hour", "Moonlight", "Sun Kissed", "Acid Trip", "Glitch Art", "Raw Sensor"
+  ];
+
+  const filters = filterNames.map((name, i) => ({
+    id: 'f'+i,
+    name: name,
+    contrast: 1 + (i % 5) * 0.15,
+    saturate: (i % 4 === 0) ? 0.3 : 1 + (i % 4) * 0.2,
+    sepia: (i % 3 === 0) ? 0.6 : 0,
+    hueRotate: (i * 15) % 360,
+    brightness: 1 - (i % 3) * 0.05,
+    scratchActive: i % 2 === 0,
+    vhsActive: i % 3 === 0
+  }));
+
+  const filterBar = document.getElementById('filterBar');
+  let activeFilter = filters[0];
+
+  filters.forEach((f, index) => {
+    const el = document.createElement('div');
+    el.className = `filter-card ${index === 0 ? 'active' : ''}`;
+    el.innerHTML = `<div class="filter-thumb" style="filter: contrast(${f.contrast}) saturate(${f.saturate}) sepia(${f.sepia}) hue-rotate(${f.hueRotate}deg); background: url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22><rect width=%22100%22 height=%22100%22 fill=%22%235a6b5e%22/></svg>') center/cover;"></div><span>${f.name}</span>`;
+    el.onclick = () => {
+      document.querySelectorAll('.filter-card').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+      activeFilter = f;
+    };
+    filterBar.appendChild(el);
+  });
+
+  const video = document.getElementById('video');
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d', { alpha: false });
+  const placeholder = document.getElementById('placeholderText');
+  
+  let mediaRecorder;
+  let recordedChunks = [];
+  let isRecording = false;
+  let isCameraActive = false;
+
+  const noiseCanvas = document.createElement('canvas');
+  const noiseCtx = noiseCanvas.getContext('2d', { alpha: true });
+  noiseCanvas.width = 375; 
+  noiseCanvas.height = 812;
+
+  function generateNoise() {
+    const idata = noiseCtx.createImageData(noiseCanvas.width, noiseCanvas.height);
+    const buffer32 = new Uint32Array(idata.data.buffer);
+    const len = buffer32.length;
+    for (let i = 0; i < len; i++) {
+      if (Math.random() < 0.5) buffer32[i] = 0xff000000 | (Math.random() * 255 << 16) | (Math.random() * 255 << 8) | (Math.random() * 255);
+    }
+    noiseCtx.putImageData(idata, 0, 0);
+  }
+  generateNoise();
+
+  async function startCamera() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } } });
+      video.srcObject = stream;
+      video.play();
+      isCameraActive = true;
+      setupCanvas();
+    } catch (e) {
+      alert("Kamera izni reddedildi.");
+    }
+  }
+
+  document.getElementById('fileInput').onchange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    isCameraActive = false;
+    video.srcObject = null;
+    video.src = URL.createObjectURL(file);
+    video.play();
+    setupCanvas();
+  };
+
+  function setupCanvas() {
+    placeholder.style.display = 'none';
+    canvas.style.display = 'block';
+    const cw = video.videoWidth || 1080;
+    const ch = video.videoHeight || 1920;
+    canvas.width = cw;
+    canvas.height = ch;
+    requestAnimationFrame(renderLoop);
+  }
+  video.onloadedmetadata = setupCanvas;
+
+  function renderLoop() {
+    if (video.paused || video.ended) return requestAnimationFrame(renderLoop);
+    
+    const w = canvas.width;
+    const h = canvas.height;
+    
+    const flicker = document.getElementById('setFlicker').value / 100;
+    let currentBrightness = activeFilter.brightness;
+    if (flicker > 0 && Math.random() < 0.3) currentBrightness -= (Math.random() * flicker);
+
+    ctx.filter = `contrast(${activeFilter.contrast}) saturate(${activeFilter.saturate}) sepia(${activeFilter.sepia}) hue-rotate(${activeFilter.hueRotate}deg) brightness(${currentBrightness})`;
+    ctx.drawImage(video, 0, 0, w, h);
+    ctx.filter = 'none';
+
+    const noiseLvl = document.getElementById('setNoise').value / 100;
+    if (noiseLvl > 0) {
+      ctx.globalCompositeOperation = 'overlay';
+      ctx.globalAlpha = noiseLvl * 0.4;
+      ctx.drawImage(noiseCanvas, (Math.random() * 50) - 25, (Math.random() * 50) - 25, w + 50, h + 50);
+      ctx.globalAlpha = 1.0;
+      ctx.globalCompositeOperation = 'source-over';
+    }
+
+    const scratchLvl = document.getElementById('setScratch').value / 100;
+    if ((activeFilter.scratchActive || activeFilter.vhsActive) && scratchLvl > 0) {
+      if (Math.random() < scratchLvl * 0.5) {
+        ctx.fillStyle = activeFilter.vhsActive ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.5)';
+        const x = Math.random() * w;
+        ctx.fillRect(x, 0, 2 + Math.random() * 4, h);
+      }
+      if (activeFilter.vhsActive && Math.random() < scratchLvl * 0.3) {
+        ctx.fillStyle = 'rgba(255,255,255,0.2)';
+        ctx.fillRect(0, Math.random() * h, w, 10 + Math.random() * 20);
+      }
+    }
+
+    requestAnimationFrame(renderLoop);
+  }
+
+  function toggleSettings() {
+    const modal = document.getElementById('settingsModal');
+    modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
+  }
+
+  function toggleRecording() {
+    if (!isRecording) {
+      startRecording();
+    } else {
+      stopRecording();
+    }
+  }
+
+  function startRecording() {
+    if (!canvas.width) return;
+    const fps = parseInt(document.getElementById('setFps').value) || 60;
+    const bps = parseInt(document.getElementById('setBitrate').value) || 12;
+    const stream = canvas.captureStream(fps);
+    
+    let options = { mimeType: 'video/mp4', videoBitsPerSecond: bps * 1000000 };
+    if (!MediaRecorder.isTypeSupported('video/mp4')) {
+      options = { mimeType: 'video/mp4' }; 
+    }
+
+    try {
+      mediaRecorder = new MediaRecorder(stream, options);
+    } catch(e) {
+      mediaRecorder = new MediaRecorder(stream);
+    }
+
+    recordedChunks = [];
+    mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
+    mediaRecorder.onstop = exportVideo;
+    mediaRecorder.start();
+    
+    isRecording = true;
+    document.getElementById('mainActionBtn').innerText = "Kaydı Bitir";
+    document.getElementById('mainActionBtn').style.background = "#fff";
+    document.getElementById('mainActionBtn').style.color = "#c93b2b";
+    document.getElementById('recStatus').style.display = "block";
+    
+    if (!isCameraActive) {
+      video.currentTime = 0;
+      video.play();
+    }
+  }
+
+  function stopRecording() {
+    mediaRecorder.stop();
+    isRecording = false;
+    document.getElementById('mainActionBtn').innerText = "Kayıt Başlat / Dışa Aktar";
+    document.getElementById('mainActionBtn').style.background = "#c93b2b";
+    document.getElementById('mainActionBtn').style.color = "#fff";
+    document.getElementById('recStatus').style.display = "none";
+  }
+
+  function exportVideo() {
+    const blob = new Blob(recordedChunks, { type: 'video/mp4' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Super8_Premium_${Date.now()}.mp4`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+</script>
+</body>
+</html>
