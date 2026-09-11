@@ -10,22 +10,23 @@
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
     html, body { width: 100%; height: 100dvh; overflow: hidden; background-color: #0b0f0d; font-family: -apple-system, BlinkMacSystemFont, sans-serif; color: #e2d9cc; }
     .app-container { width: 100%; height: 100dvh; max-width: 375px; margin: 0 auto; display: flex; flex-direction: column; justify-content: space-between; padding: env(safe-area-inset-top, 12px) 16px env(safe-area-inset-bottom, 12px) 16px; position: relative; }
-    .header { height: 40px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+    .header { height: 50px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
     .header h1 { font-size: 16px; font-weight: 800; color: #c93b2b; }
-    .btn-group { display: flex; gap: 12px; justify-content: center }
+    .btn-group { display: flex; gap: 10px; justify-content: center }
     .icon-btn { background: rgba(46, 64, 52, 0.8); border: 1px solid rgba(201, 59, 43, 0.5); color: #e2d9cc; padding: 6px 7px; border-radius: 12px; font-size: 11px; font-weight: 700; cursor: pointer; }
-    .preview-area { flex: 1; min-height: 0; margin: 12px 0; background: #000; border-radius: 12px; overflow: hidden; display: flex; align-items: center; justify-content: center; position: relative; border: 1px solid #1a261f; }
+    .icon-btn.active-mode { background: #c93b2b; border-color: #fff; }
+    .preview-area { flex: 1; min-height: 0; margin: 8px 0; background: #000; border-radius: 12px; overflow: hidden; display: flex; align-items: center; justify-content: center; position: relative; border: 1px solid #1a261f; }
     canvas { width: 100%; height: 100%; object-fit: contain; }
     .placeholder { color: #5a6b5e; font-size: 14px; text-align: center; }
-    .controls { display: flex; flex-direction: column; gap: 12px; flex-shrink: 0; padding-bottom: 10px; }
+    .controls { display: flex; flex-direction: column; gap: 10px; flex-shrink: 0; padding-bottom: 10px; }
     
-    .zoom-container { display: flex; align-items: center; gap: 10px; background: #1a261f; padding: 6px 12px; border-radius: 20px; }
-    .zoom-label { font-size: 11px; font-weight: 900; color: #c93b2b; text-transform: uppercase; }
-    #zoomSlider { flex: 1; -webkit-appearance: none; background: #2e4034; height: 16px; border-radius: 8px; outline: none; }
-    #zoomSlider::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; border-radius: 50%; background: #c93b2b; border: 2px solid #fff; cursor: pointer; }
-    .zoom-value { font-size: 11px; font-weight: 800; width: 26px; color: #e2d9cc; text-align: right; }
-    
-    .filter-bar { display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; padding: 8px 4px; }
+    .zoom-container { display: flex; align-items: center; gap: 8px; background: rgba(18, 26, 21, 0.8); padding: 6px 12px; border-radius: 20px; border: 1px solid #1a261f; }
+    .zoom-label { font-size: 10px; font-weight: 800; color: #c93b2b; }
+    .zoom-slider { flex: 1; -webkit-appearance: none; appearance: none; height: 20px; border-radius: 2px; background: #2e4034; outline: none; }
+    .zoom-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 36px; height: 36px; border-radius: 50%; background: #c93b2b; cursor: pointer; border: 2px solid #fff; }
+    .zoom-value { font-size: 10px; font-weight: 700; width: 28px; text-align: right; color: #e2d9cc; }
+
+    .filter-bar { display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; padding: 4px 4px; }
     .filter-bar::-webkit-scrollbar { display: none; }
     .filter-card { flex: 0 0 68px; display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; }
     .filter-thumb { width: 56px; height: 56px; border-radius: 10px; background: #121a15; border: 2px solid transparent; }
@@ -46,11 +47,12 @@
 <div class="app-container">
   <div class="header">
     <div class="btn-group">
-      <button class="icon-btn" id="camBtn">Kamera</button>
-      <button class="icon-btn" id="flipBtn">Çevir</button>
-      <button class="icon-btn" id="aspectBtn">Yatay</button>
-      <button class="icon-btn" onclick="document.getElementById('fileInput').click()">Dosya</button>
-      <button class="icon-btn" onclick="toggleSettings()">Ayarlar</button>
+      <button class="icon-btn" id="camBtn">Cam</button>
+      <button class="icon-btn" id="flipBtn">Turn</button>
+      <button class="icon-btn" id="aspectBtn">4:3</button>
+      <button class="icon-btn active-mode" id="eisBtn">EIS (On)</button>
+      <button class="icon-btn" onclick="document.getElementById('fileInput').click()">File</button>
+      <button class="icon-btn" onclick="toggleSettings()">Set</button>
     </div>
     <input type="file" id="fileInput" accept="video/*">
   </div>
@@ -63,9 +65,10 @@
   <div class="controls">
     <div class="zoom-container">
       <span class="zoom-label">ZOOM</span>
-      <input type="range" id="zoomSlider" min="1" max="4" step="0.1" value="1">
-      <span class="zoom-value" id="zoomVal">1.0x</span>
+      <input type="range" class="zoom-slider" id="zoomSlider" min="1.0" max="3.0" step="0.05" value="1.0">
+      <span class="zoom-value" id="zoomValue">1.0x</span>
     </div>
+
     <div class="filter-bar" id="filterBar"></div>
     <button class="action-btn" id="mainActionBtn" onclick="toggleRecording()">Kayıt Başlat / Aktar</button>
   </div>
@@ -80,7 +83,15 @@
         <option value="30">30 FPS</option>
       </select>
     </div>
-    <div class="setting-row"><span>Bit Hızı (Mbps)</span><input type="number" id="setBitrate" value="15" style="width:50px; background:#1a261f; color:#fff; border:1px solid #c93b2b; text-align:center; border-radius:6px;"></div>
+    <div class="setting-row"><span>Video Bit Hızı (Mbps)</span><input type="number" id="setBitrate" value="15" style="width:50px; background:#1a261f; color:#fff; border:1px solid #c93b2b; text-align:center; border-radius:6px;"></div>
+    <div class="setting-row"><span>Ses Kalitesi</span>
+      <select id="setAudioBitrate" style="background:#1a261f; color:#fff; border:1px solid #c93b2b; padding:4px; border-radius:6px;">
+        <option value="64000">Düşük (64 kbps)</option>
+        <option value="128000">Normal (128 kbps)</option>
+        <option value="192000" selected>Yüksek (192 kbps)</option>
+        <option value="320000">Stüdyo (320 kbps)</option>
+      </select>
+    </div>
     <div class="setting-row"><span>Film Kumlanması</span><input type="range" id="setNoise" min="0" max="100" value="70"></div>
     <div class="setting-row"><span>VHS Çizik</span><input type="range" id="setScratch" min="0" max="100" value="60"></div>
     <div class="close-settings" onclick="toggleSettings()">Kapat</div>
@@ -149,16 +160,41 @@
   let isLandscape = false;
   let renderId;
   let lastTime = 0;
-  
-  let smoothX = 0, smoothY = 0;
 
-  document.getElementById('zoomSlider').addEventListener('input', (e) => {
-    document.getElementById('zoomVal').innerText = parseFloat(e.target.value).toFixed(1) + 'x';
+  let isEisActive = true;
+  let userZoom = 1.0;
+  let targetOffsetX = 0, targetOffsetY = 0;
+  let currentOffsetX = 0, currentOffsetY = 0;
+
+  let audioCtx, audioDestination, audioSourceTrack;
+
+  const zoomSlider = document.getElementById('zoomSlider');
+  zoomSlider.addEventListener('input', (e) => {
+    userZoom = parseFloat(e.target.value);
+    document.getElementById('zoomValue').innerText = userZoom.toFixed(1) + 'x';
+  });
+
+  zoomSlider.addEventListener('pointerdown', () => {
+    if (audioSourceTrack) audioSourceTrack.enabled = false;
+  });
+
+  zoomSlider.addEventListener('pointerup', () => {
+    if (audioSourceTrack) audioSourceTrack.enabled = true;
+  });
+
+  document.getElementById('eisBtn').addEventListener('click', (e) => {
+    isEisActive = !isEisActive;
+    e.target.innerText = isEisActive ? "EIS (On)" : "EIS (Off)";
+    if (isEisActive) {
+      e.target.classList.add('active-mode');
+    } else {
+      e.target.classList.remove('active-mode');
+    }
   });
 
   document.getElementById('aspectBtn').addEventListener('click', (e) => {
     isLandscape = !isLandscape;
-    e.target.innerText = isLandscape ? "Dikey" : "Yatay";
+    e.target.innerText = isLandscape ? "3:4" : "4:3";
     if (video.srcObject || video.src) setupCanvas();
   });
 
@@ -168,12 +204,19 @@
         video.srcObject.getTracks().forEach(track => track.stop());
       }
       const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: useFrontCamera ? 'user' : 'environment' }, audio: true 
+        video: { facingMode: useFrontCamera ? 'user' : 'environment' }, 
+        audio: { echoCancellation: true, noiseSuppression: true } 
       });
       video.srcObject = stream;
       video.muted = true;
       video.play().catch(()=>{});
       isCameraActive = true;
+      
+      const audioTracks = stream.getAudioTracks();
+      if (audioTracks.length > 0) {
+        audioSourceTrack = audioTracks[0];
+      }
+      
       setupCanvas();
     } catch (e) {
       alert("Kamera izni alınamadı.");
@@ -245,16 +288,25 @@
           dy = (ch - dh) / 2;
         }
 
-        let z = parseFloat(document.getElementById('zoomSlider').value);
-        let zw = vw / z;
-        let zh = vh / z;
-        let targetZx = (vw - zw) / 2;
-        let targetZy = (vh - zh) / 2;
+        if (isEisActive) {
+          targetOffsetX = (Math.random() - 0.5) * 6;
+          targetOffsetY = (Math.random() - 0.5) * 6;
+          currentOffsetX += (targetOffsetX - currentOffsetX) * 0.3;
+          currentOffsetY += (targetOffsetY - currentOffsetY) * 0.3;
+        } else {
+          currentOffsetX = 0;
+          currentOffsetY = 0;
+        }
 
-        smoothX += (targetZx - smoothX) * 0.1;
-        smoothY += (targetZy - smoothY) * 0.1;
+        const eisMargin = isEisActive ? 1.08 : 1.0;
+        const totalZoom = userZoom * eisMargin;
+
+        const zw = dw * totalZoom;
+        const zh = dh * totalZoom;
+        const zx = dx - (zw - dw) / 2 + currentOffsetX;
+        const zy = dy - (zh - dh) / 2 + currentOffsetY;
         
-        ctx.drawImage(video, smoothX, smoothY, zw, zh, dx, dy, dw, dh);
+        ctx.drawImage(video, 0, 0, vw, vh, zx, zy, zw, zh);
         processPixels();
       }
     }
@@ -327,27 +379,50 @@
   function startRecording() {
     if (!canvas.width) return;
     const targetFps = parseInt(document.getElementById('setFps').value) || 24;
+    const videoBitrate = (parseInt(document.getElementById('setBitrate').value) || 15) * 1000000;
+    const audioBitrate = parseInt(document.getElementById('setAudioBitrate').value) || 192000;
+
     const stream = canvas.captureStream(targetFps);
 
     try {
-      let aStream = null;
+      let sourceStream = null;
       if (isCameraActive && video.srcObject) {
-        aStream = video.srcObject;
+        sourceStream = video.srcObject;
       } else if (!isCameraActive && video.src) {
-        aStream = video.captureStream ? video.captureStream() : (video.mozCaptureStream ? video.mozCaptureStream() : null);
+        sourceStream = video.captureStream ? video.captureStream() : (video.mozCaptureStream ? video.mozCaptureStream() : null);
       }
-      if (aStream) {
-        aStream.getAudioTracks().forEach(t => stream.addTrack(t));
+
+      if (sourceStream && sourceStream.getAudioTracks().length > 0) {
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+        
+        audioDestination = audioCtx.createMediaStreamDestination();
+        const mediaSource = audioCtx.createMediaStreamSource(sourceStream);
+        mediaSource.connect(audioDestination);
+
+        audioDestination.stream.getAudioTracks().forEach(t => stream.addTrack(t));
       }
     } catch (e) {}
 
-    let options = { mimeType: 'video/mp4' };
+    let options = { 
+      mimeType: 'video/mp4',
+      videoBitsPerSecond: videoBitrate,
+      audioBitsPerSecond: audioBitrate
+    };
+
     if (!MediaRecorder.isTypeSupported('video/mp4')) {
-      options = MediaRecorder.isTypeSupported('video/webm') ? { mimeType: 'video/webm' } : {};
+      options.mimeType = MediaRecorder.isTypeSupported('video/webm') ? 'video/webm' : '';
     }
 
-    try { mediaRecorder = new MediaRecorder(stream, options); } 
-    catch(e) { mediaRecorder = new MediaRecorder(stream); }
+    try { 
+      mediaRecorder = new MediaRecorder(stream, options); 
+    } catch(e) { 
+      mediaRecorder = new MediaRecorder(stream); 
+    }
 
     recordedChunks = [];
     mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
