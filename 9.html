@@ -43,7 +43,7 @@
       <button class="icon-btn" id="camBtn">Kamera</button>
       <button class="icon-btn" id="flipBtn">Çevir</button>
       <button class="icon-btn" id="aspectBtn">Yatay</button>
-      <button class="icon-btn" id="stabBtn">Stblz(Off)</button>
+      <button class="icon-btn" id="stabBtn">Stblz (Off)</button>
       <button class="icon-btn" onclick="document.getElementById('fileInput').click()">Dosya</button>
       <button class="icon-btn" onclick="toggleSettings()">Ayarlar</button>
     </div>
@@ -79,9 +79,9 @@
 
 <script>
   const filtersData = [
-    ["Grain Master", 1.0, 1.0, 1.0, 0, 0, 0]
+    ["Grain Master", 1.0, 1.0, 1.0, 0, 0, 0],
     ["Black Lodge", 1.4, 1.2, 1.2, 15, -10, -15],
-    ["Exposure Redux", 1.15, 1.1, 1.0, 15, 10, -5]
+    ["Exposure Redux", 1.15, 1.1, 1.0, 15, 10, -5],
     ["Vintage VHS", 1.0, 1.2, 1.1, 5, 0, 15],
     ["Retro Cam", 0.9, 1.1, 0.9, 10, 20, 10],
     ["Cine 16mm", 1.05, 1.0, 0.95, 10, 5, -5],
@@ -105,7 +105,7 @@
     ["Super 8 Gold", 1.2, 1.1, 0.7, 30, 20, -10],
     ["Dusty Lens", 0.9, 0.9, 0.85, 15, 15, 10],
     ["Light Leak", 1.4, 1.0, 0.9, 40, 5, -5],
- ];
+  ];
 
   const filters = filtersData.map((d, i) => ({
     name: d[0], rm: d[1], gm: d[2], bm: d[3], ra: d[4], ga: d[5], ba: d[6]
