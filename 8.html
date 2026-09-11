@@ -195,9 +195,9 @@
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: { facingMode: useFrontCamera ? 'user' : 'environment' }, 
         audio: {
-          echoCancellation: false,
-          noiseSuppression: false,
-          autoGainControl: false
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
         } 
       });
       video.srcObject = stream;
