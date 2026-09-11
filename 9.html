@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Super 8 PRO</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
+    html, body { width: 100%; height: 100dvh; overflow: hidden; background-color: #0b0f0d; font-family: -apple-system, BlinkMacSystemFont, sans-serif; color: #e2d9cc; }
+    .app-container { width: 100%; height: 100dvh; max-width: 375px; margin: 0 auto; display: flex; flex-direction: column; justify-content: space-between; padding: env(safe-area-inset-top, 12px) 16px env(safe-area-inset-bottom, 12px) 16px; position: relative; }
+    .header { height: 40px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+    .header h1 { font-size: 16px; font-weight: 800; color: #c93b2b; }
+    .btn-group { display: flex; gap: 6px; justify-content: center }
+    .icon-btn { background: rgba(46, 64, 52, 0.8); border: 1px solid rgba(201, 59, 43, 0.5); color: #e2d9cc; padding: 6px 7px; border-radius: 12px; font-size: 11px; font-weight: 700; cursor: pointer; }
+    .icon-btn.active-mode { background: #c93b2b; border-color: #fff; }
+    .preview-area { flex: 1; min-height: 0; margin: 12px 0; background: #000; border-radius: 12px; overflow: hidden; display: flex; align-items: center; justify-content: center; position: relative; border: 1px solid #1a261f; }
+    canvas { width: 100%; height: 100%; object-fit: contain; }
+    .placeholder { color: #5a6b5e; font-size: 14px; text-align: center; }
+    .controls { display: flex; flex-direction: column; gap: 12px; flex-shrink: 0; padding-bottom: 10px; }
+    .filter-bar { display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; padding: 8px 4px; }
+    .filter-bar::-webkit-scrollbar { display: none; }
+    .filter-card { flex: 0 0 68px; display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; }
+    .filter-thumb { width: 56px; height: 56px; border-radius: 10px; background: #121a15; border: 2px solid transparent; }
+    .filter-card.active .filter-thumb { border: 2px solid #c93b2b; transform: scale(1.05); }
+    .filter-card span { font-size: 10px; color: #7a8c7e; font-weight: 600; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+    .filter-card.active span { color: #e2d9cc; }
+    .action-btn { width: 100%; height: 48px; border-radius: 24px; background: #c93b2b; border: none; color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; }
+    .settings-modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 7, 6, 0.95); z-index: 50; display: none; flex-direction: column; padding: 40px 20px; backdrop-filter: blur(10px); }
+    .settings-modal h2 { color: #c93b2b; margin-bottom: 20px; font-size: 20px; }
+    .setting-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; font-size: 14px; font-weight: 600; }
+    .close-settings { margin-top: auto; background: #5a6b5e; color: #fff; padding: 12px; border-radius: 20px; text-align: center; cursor: pointer; }
+    .status-overlay { position: absolute; top: 10px; right: 10px; background: red; color: white; padding: 4px 8px; border-radius: 8px; font-size: 12px; font-weight: bold; display: none; animation: blink 1s infinite; }
+    @keyframes blink { 50% { opacity: 0.3; } }
+    input[type="file"] { display: none; }
+  </style>
+</head>
+<body>
+<div class="app-container">
+  <div class="header">
+    <div class="btn-group">
+      <button class="icon-btn" id="camBtn">Kamera</button>
+      <button class="icon-btn" id="flipBtn">Çevir</button>
+      <button class="icon-btn" id="aspectBtn">Yatay</button>
+      <button class="icon-btn" id="stabBtn">Stblz(Off)</button>
+      <button class="icon-btn" onclick="document.getElementById('fileInput').click()">Dosya</button>
+      <button class="icon-btn" onclick="toggleSettings()">Ayarlar</button>
+    </div>
+    <input type="file" id="fileInput" accept="video/*">
+  </div>
+  <div class="preview-area">
+    <span class="placeholder" id="placeholderText">Kamera aç veya video yükle</span>
+    <canvas id="canvas" style="display:none;"></canvas>
+    <video id="video" autoplay loop playsinline muted hidden></video>
+    <div id="recStatus" class="status-overlay">REC</div>
+  </div>
+  <div class="controls">
+    <div class="filter-bar" id="filterBar"></div>
+    <button class="action-btn" id="mainActionBtn" onclick="toggleRecording()">Kayıt Başlat / Aktar</button>
+  </div>
+  <div class="settings-modal" id="settingsModal">
+    <h2>Ayarlar</h2>
+    <div class="setting-row"><span>FPS Seçimi</span>
+      <select id="setFps" style="background:#1a261f; color:#fff; border:1px solid #c93b2b; padding:4px; border-radius:6px;">
+        <option value="8" selected>8 FPS (Retro)</option>
+        <option value="12">12 FPS</option>
+        <option value="16">16 FPS</option>
+        <option value="24">24 FPS (Sinema)</option>
+        <option value="30">30 FPS</option>
+      </select>
+    </div>
+    <div class="setting-row"><span>Bit Hızı (Mbps)</span><input type="number" id="setBitrate" value="15" style="width:50px; background:#1a261f; color:#fff; border:1px solid #c93b2b; text-align:center; border-radius:6px;"></div>
+    <div class="setting-row"><span>Film Kumlanması</span><input type="range" id="setNoise" min="0" max="100" value="70"></div>
+    <div class="setting-row"><span>VHS Çizik</span><input type="range" id="setScratch" min="0" max="100" value="60"></div>
+    <div class="close-settings" onclick="toggleSettings()">Kapat</div>
+  </div>
+</div>
+
+<script>
+  const filtersData = [
+    ["Grain Master", 1.0, 1.0, 1.0, 0, 0, 0]
+    ["Black Lodge", 1.4, 1.2, 1.2, 15, -10, -15],
+    ["Exposure Redux", 1.15, 1.1, 1.0, 15, 10, -5]
+    ["Vintage VHS", 1.0, 1.2, 1.1, 5, 0, 15],
+    ["Retro Cam", 0.9, 1.1, 0.9, 10, 20, 10],
+    ["Cine 16mm", 1.05, 1.0, 0.95, 10, 5, -5],
+    ["Noir Classic", 0.9, 0.9, 0.9, 0, 0, 0],
+    ["VHS Tracker", 0.85, 1.3, 1.0, -5, 20, 5],
+    ["Beta Glitch", 1.1, 0.8, 1.4, 10, -15, 30],
+    ["Old Film", 0.8, 0.75, 0.7, 40, 35, 30],
+    ["Premium 8mm", 1.1, 1.05, 0.85, 10, 8, -10],
+    ["Laura Blue", 0.95, 0.98, 1.25, 5, 10, 20],
+    ["Snoqualmie", 0.75, 0.8, 0.75, 20, 30, 25],
+    ["Red Room", 1.35, 0.5, 0.4, 30, 0, 0],
+    ["Cherry Diner", 1.2, 1.0, 0.75, 20, 5, -10],
+    ["Dougie Gold", 1.15, 1.1, 0.65, 15, 10, 0],
+    ["Fuji Superia", 1.05, 1.1, 0.95, 5, 15, -5],
+    ["Kodak Gold", 1.1, 1.05, 0.8, 15, 10, -15],
+    ["Ilford HP5", 0.8, 0.8, 0.8, 20, 20, 20],
+    ["Agfa Vista", 1.15, 0.95, 0.9, 10, -5, -10],
+    ["Sepia Dream", 1.2, 1.0, 0.6, 20, 10, -20],
+    ["Polaroid 600", 0.95, 1.1, 1.2, -10, 15, 25],
+    ["Lomo LC-A", 1.3, 1.1, 0.8, 25, 15, -20],
+    ["Super 8 Gold", 1.2, 1.1, 0.7, 30, 20, -10],
+    ["Dusty Lens", 0.9, 0.9, 0.85, 15, 15, 10],
+    ["Light Leak", 1.4, 1.0, 0.9, 40, 5, -5],
+ ];
+
+  const filters = filtersData.map((d, i) => ({
+    name: d[0], rm: d[1], gm: d[2], bm: d[3], ra: d[4], ga: d[5], ba: d[6]
+  }));
+
+  const filterBar = document.getElementById('filterBar');
+  let activeFilter = filters[0];
+
+  filters.forEach((f, index) => {
+    const el = document.createElement('div');
+    el.className = `filter-card ${index === 0 ? 'active' : ''}`;
+    el.innerHTML = `<div class="filter-thumb" style="background: rgb(${100*f.rm}, ${100*f.gm}, ${100*f.bm})"></div><span>${f.name}</span>`;
+    el.onclick = () => {
+      document.querySelectorAll('.filter-card').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+      activeFilter = f;
+    };
+    filterBar.appendChild(el);
+  });
+
+  const video = document.getElementById('video');
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  const placeholder = document.getElementById('placeholderText');
+  
+  let mediaRecorder;
+  let recordedChunks = [];
+  let isRecording = false;
+  let isCameraActive = false;
+  let useFrontCamera = false;
+  let isLandscape = false;
+  let renderId;
+  let lastTime = 0;
+
+  // EIS / OIS & Gyroscope state
+  let stabilizationMode = 0; // 0: Kapalı, 1: EIS (Yazılımsal/Shake), 2: OIS (Donanımsal Gyro)
+  let gyroX = 0, gyroY = 0;
+  let targetOffsetX = 0, targetOffsetY = 0;
+  let currentOffsetX = 0, currentOffsetY = 0;
+
+  document.getElementById('aspectBtn').addEventListener('click', (e) => {
+    isLandscape = !isLandscape;
+    e.target.innerText = isLandscape ? "Dikey" : "Yatay";
+    if (video.srcObject || video.src) setupCanvas();
+  });
+
+  // Stabilizasyon Modu Değiştirici (Kapalı -> EIS -> OIS -> Kapalı)
+  document.getElementById('stabBtn').addEventListener('click', async (e) => {
+    if (stabilizationMode === 0) {
+      // EIS Moduna Geç
+      stabilizationMode = 1;
+      e.target.innerText = "EIS (Yazılım)";
+      e.target.classList.add('active-mode');
+    } else if (stabilizationMode === 1) {
+      // OIS (Gyro) Moduna Geç - iOS İzin İsteme Kontrolü
+      if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+        try {
+          const response = await DeviceMotionEvent.requestPermission();
+          if (response === 'granted') {
+            enableGyroscope();
+            stabilizationMode = 2;
+            e.target.innerText = "OIS (Gyro)";
+          } else {
+            alert("Gyro izni verilmedi.");
+            stabilizationMode = 0;
+            e.target.innerText = "Stabilizasyon (Kapalı)";
+            e.target.classList.remove('active-mode');
+          }
+        } catch (err) {
+          stabilizationMode = 0;
+          e.target.innerText = "Stabilizasyon (Kapalı)";
+          e.target.classList.remove('active-mode');
+        }
+      } else if (window.DeviceMotionEvent) {
+        enableGyroscope();
+        stabilizationMode = 2;
+        e.target.innerText = "OIS (Gyro)";
+      } else {
+        alert("Bu cihazda Gyro desteği bulunmuyor.");
+        stabilizationMode = 1;
+        e.target.innerText = "EIS (Yazılım)";
+      }
+    } else {
+      // Kapat
+      stabilizationMode = 0;
+      disableGyroscope();
+      e.target.innerText = "Stabilizasyon (Kapalı)";
+      e.target.classList.remove('active-mode');
+    }
+  });
+
+  function handleOrientation(e) {
+    if (stabilizationMode === 2) {
+      // Gyro rotationRate verilerini filtreleyerek offset hedefleri oluştur
+      const rate = e.rotationRate;
+      if (rate) {
+        gyroX = (gyroX * 0.8) + ((rate.beta || 0) * 0.2);
+        gyroY = (gyroY * 0.8) + ((rate.gamma || 0) * 0.2);
+        targetOffsetX -= gyroY * 1.2;
+        targetOffsetY -= gyroX * 1.2;
+      }
+    }
+  }
+
+  function enableGyroscope() {
+    window.addEventListener('devicemotion', handleOrientation);
+  }
+
+  function disableGyroscope() {
+    window.removeEventListener('devicemotion', handleOrientation);
+    gyroX = 0; gyroY = 0; targetOffsetX = 0; targetOffsetY = 0;
+  }
+
+  async function startCamera() {
+    try {
+      if (video.srcObject) {
+        video.srcObject.getTracks().forEach(track => track.stop());
+      }
+      
+      // Native OIS / Donanımsal Sabitleme İsteği (iPhone constraints)
+      const constraints = {
+        video: { 
+          facingMode: useFrontCamera ? 'user' : 'environment',
+          advanced: [{ stabilizationMode: 'cinematic' }] 
+        }, 
+        audio: true 
+      };
+
+      let stream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
+      } catch (err) {
+        stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { facingMode: useFrontCamera ? 'user' : 'environment' }, audio: true 
+        });
+      }
+
+      video.srcObject = stream;
+      video.muted = true;
+      video.play().catch(()=>{});
+      isCameraActive = true;
+      setupCanvas();
+    } catch (e) {
+      alert("Kamera izni alınamadı.");
+    }
+  }
+
+  document.getElementById('camBtn').addEventListener('click', startCamera);
+  document.getElementById('flipBtn').addEventListener('click', () => {
+    useFrontCamera = !useFrontCamera;
+    if (isCameraActive) startCamera();
+  });
+
+  document.getElementById('fileInput').onchange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (video.srcObject) {
+      video.srcObject.getTracks().forEach(track => track.stop());
+      video.srcObject = null;
+    }
+    isCameraActive = false;
+    video.muted = false;
+    video.src = URL.createObjectURL(file);
+    video.play().catch(()=>{});
+    setupCanvas();
+  };
+
+  function setupCanvas() {
+    placeholder.style.display = 'none';
+    canvas.style.display = 'block';
+    
+    const applySize = () => {
+      let w = video.videoWidth || 720;
+      let h = video.videoHeight || 1280;
+      let max = Math.max(w, h);
+      let min = Math.min(w, h);
+      canvas.width = isLandscape ? max : min;
+      canvas.height = isLandscape ? min : max;
+      if (renderId) cancelAnimationFrame(renderId);
+      renderLoop();
+    };
+
+    if (video.readyState >= 1) applySize();
+    video.onloadedmetadata = applySize;
+  }
+
+  function renderLoop(time) {
+    const targetFps = parseInt(document.getElementById('setFps').value) || 24;
+    const interval = 1000 / targetFps;
+
+    if (!lastTime) lastTime = time;
+    const delta = time - lastTime;
+
+    if (delta >= interval) {
+      lastTime = time - (delta % interval);
+      if (!video.paused && !video.ended) {
+        const vw = video.videoWidth || canvas.width;
+        const vh = video.videoHeight || canvas.height;
+        const cw = canvas.width;
+        const ch = canvas.height;
+        const vr = vw / vh;
+        const cr = cw / ch;
+        let dw = cw, dh = ch, dx = 0, dy = 0;
+        
+        if (vr > cr) {
+          dw = ch * vr;
+          dx = (cw - dw) / 2;
+        } else {
+          dh = cw / vr;
+          dy = (ch - dh) / 2;
+        }
+
+        // Stabilizasyon Ofset Hesaplamaları
+        if (stabilizationMode === 1) {
+          // EIS: Hafif rastgele yumuşatılmış sarsıntı sönümleme (Yazılımsal Shake Reduction)
+          targetOffsetX = (Math.random() - 0.5) * 8;
+          targetOffsetY = (Math.random() - 0.5) * 8;
+          currentOffsetX += (targetOffsetX - currentOffsetX) * 0.3;
+          currentOffsetY += (targetOffsetY - currentOffsetY) * 0.3;
+        } else if (stabilizationMode === 2) {
+          // OIS/Gyro: Cihaz ivmesine ters yönde yumuşak kaydırma
+          currentOffsetX += (targetOffsetX - currentOffsetX) * 0.2;
+          currentOffsetY += (targetOffsetY - currentOffsetY) * 0.2;
+          targetOffsetX *= 0.90; // Sönümleme
+          targetOffsetY *= 0.90;
+        } else {
+          currentOffsetX = 0;
+          currentOffsetY = 0;
+        }
+
+        // Çerçeveyi %10 büyüterek (zoom) kenarlardaki boşlukları engelle ve stabilizasyon uygula
+        const zoomFactor = stabilizationMode > 0 ? 1.12 : 1.0;
+        const zw = dw * zoomFactor;
+        const zh = dh * zoomFactor;
+        const zx = dx - (zw - dw) / 2 + currentOffsetX;
+        const zy = dy - (zh - dh) / 2 + currentOffsetY;
+        
+        ctx.drawImage(video, 0, 0, vw, vh, zx, zy, zw, zh);
+        processPixels();
+      }
+    }
+    renderId = requestAnimationFrame(renderLoop);
+  }
+
+  function processPixels() {
+    const w = canvas.width;
+    const h = canvas.height;
+    if (w === 0 || h === 0) return;
+    
+    const imgData = ctx.getImageData(0, 0, w, h);
+    const d = imgData.data;
+    const noiseLvl = document.getElementById('setNoise').value / 100 * 40;
+    const scratchLvl = document.getElementById('setScratch').value / 100;
+
+    const { rm, gm, bm, ra, ga, ba } = activeFilter;
+
+    for (let i = 0; i < d.length; i += 4) {
+      let r = d[i], g = d[i+1], b = d[i+2];
+
+      r = (r * rm) + ra;
+      g = (g * gm) + ga;
+      b = (b * bm) + ba;
+
+      if (noiseLvl > 0) {
+        const noise = (Math.random() - 0.5) * noiseLvl;
+        r += noise; g += noise; b += noise;
+      }
+
+      d[i] = Math.max(0, Math.min(255, r));
+      d[i+1] = Math.max(0, Math.min(255, g));
+      d[i+2] = Math.max(0, Math.min(255, b));
+    }
+    
+    ctx.putImageData(imgData, 0, 0);
+
+    if (scratchLvl > 0) {
+      if (Math.random() < scratchLvl * 0.2) {
+        ctx.fillStyle = 'rgba(255,255,255,0.3)';
+        ctx.fillRect(Math.random() * w, 0, 1 + Math.random() * 3, h);
+      }
+      if (Math.random() < scratchLvl * 0.1) {
+        ctx.fillStyle = 'rgba(0,0,0,0.4)';
+        ctx.fillRect(Math.random() * w, 0, 2, h);
+      }
+      if (Math.random() < scratchLvl * 0.05) {
+        ctx.fillStyle = 'rgba(255,255,255,0.15)';
+        ctx.fillRect(0, Math.random() * h, w, 10 + Math.random() * 20);
+      }
+    }
+    
+    const grad = ctx.createRadialGradient(w/2, h/2, Math.min(w,h)*0.3, w/2, h/2, Math.max(w,h)*0.8);
+    grad.addColorStop(0, 'rgba(0,0,0,0)');
+    grad.addColorStop(1, 'rgba(5,10,7,0.5)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
+  }
+
+  function toggleSettings() {
+    const modal = document.getElementById('settingsModal');
+    modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
+  }
+
+  function toggleRecording() {
+    if (!isRecording) startRecording();
+    else stopRecording();
+  }
+
+  function startRecording() {
+    if (!canvas.width) return;
+    const targetFps = parseInt(document.getElementById('setFps').value) || 24;
+    const stream = canvas.captureStream(targetFps);
+
+    try {
+      let aStream = null;
+      if (isCameraActive && video.srcObject) {
+        aStream = video.srcObject;
+      } else if (!isCameraActive && video.src) {
+        aStream = video.captureStream ? video.captureStream() : (video.mozCaptureStream ? video.mozCaptureStream() : null);
+      }
+      if (aStream) {
+        aStream.getAudioTracks().forEach(t => stream.addTrack(t));
+      }
+    } catch (e) {}
+
+    let options = { mimeType: 'video/mp4' };
+    if (!MediaRecorder.isTypeSupported('video/mp4')) {
+      options = MediaRecorder.isTypeSupported('video/webm') ? { mimeType: 'video/webm' } : {};
+    }
+
+    try { mediaRecorder = new MediaRecorder(stream, options); } 
+    catch(e) { mediaRecorder = new MediaRecorder(stream); }
+
+    recordedChunks = [];
+    mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
+    mediaRecorder.onstop = exportVideo;
+    mediaRecorder.start(1000);
+    
+    isRecording = true;
+    document.getElementById('mainActionBtn').innerText = "Kaydı Bitir";
+    document.getElementById('mainActionBtn').style.background = "#fff";
+    document.getElementById('mainActionBtn').style.color = "#c93b2b";
+    document.getElementById('recStatus').style.display = "block";
+    
+    if (!isCameraActive) {
+      video.currentTime = 0;
+      video.play().catch(()=>{});
+    }
+  }
+
+  function stopRecording() {
+    mediaRecorder.stop();
+    isRecording = false;
+    document.getElementById('mainActionBtn').innerText = "Kayıt Başlat / Aktar";
+    document.getElementById('mainActionBtn').style.background = "#c93b2b";
+    document.getElementById('mainActionBtn').style.color = "#fff";
+    document.getElementById('recStatus').style.display = "none";
+  }
+
+  async function exportVideo() {
+    const ext = mediaRecorder.mimeType && mediaRecorder.mimeType.includes('webm') ? 'webm' : 'mp4';
+    const blob = new Blob(recordedChunks, { type: mediaRecorder.mimeType || 'video/mp4' });
+    const file = new File([blob], `Super8_${Date.now()}.${ext}`, { type: blob.type });
+
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file], title: 'Super 8 Video' });
+        return;
+      } catch (e) {}
+    }
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = file.name;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+</script>
+</body>
+</html>
