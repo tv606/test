@@ -231,8 +231,8 @@
     canvas.style.display = 'block';
     
     const applySize = () => {
-      let w = video.videoWidth || 720;
-      let h = video.videoHeight || 1280;
+      let w = video.videoWidth || 1080;
+      let h = video.videoHeight || 1920;
       let max = Math.max(w, h);
       let min = Math.min(w, h);
       canvas.width = isLandscape ? max : min;
