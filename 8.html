@@ -74,19 +74,10 @@
   </div>
   <div class="settings-modal" id="settingsModal">
     <h2>Ayarlar</h2>
-    <div class="setting-row"><span>Çözünürlük</span>
-      <select id="setResolution" style="background:#1a261f; color:#fff; border:1px solid #c93b2b; padding:4px; border-radius:6px;">
-        <option value="native">Orijinal (Kamera/Dosya)</option>
-        <option value="720">720p (HD)</option>
-        <option value="1080" selected>1080p (Full HD)</option>
-        <option value="1440">1440p (2K)</option>
-        <option value="2160">2160p (4K UHD)</option>
-      </select>
-    </div>
     <div class="setting-row"><span>FPS Seçimi</span>
       <select id="setFps" style="background:#1a261f; color:#fff; border:1px solid #c93b2b; padding:4px; border-radius:6px;">
-        <option value="8" selected>8 FPS (Retro)</option>
-        <option value="12">12 FPS</option>
+        <option value="8">8 FPS (Retro)</option>
+        <option value="12"selected>12 FPS</option>
         <option value="16">16 FPS</option>
         <option value="24">24 FPS (Sinema)</option>
         <option value="30">30 FPS</option>
@@ -102,15 +93,15 @@
       </select>
     </div>
     <div class="setting-row"><span>Film Kumlanması</span><input type="range" id="setNoise" min="0" max="100" value="70"></div>
-    <div class="setting-row"><span>VHS Çizik</span><input type="range" id="setScratch" min="0" max="100" value="60"></div>
+    <div class="setting-row"><span>VHS Çizik</span><input type="range" id="setScratch" min="0" max="100" value="20"></div>
     <div class="close-settings" onclick="toggleSettings()">Kapat</div>
   </div>
 </div>
 
 <script>
   const filtersData = [
-    ["Grain Master", 1.0, 1.0, 1.0, 0, 0, 0],
     ["Black Lodge", 1.4, 1.2, 1.2, 15, -10, -15],
+    ["Grain Master", 1.0, 1.0, 1.0, 0, 0, 0],
     ["Exposure Redux", 1.15, 1.1, 1.0, 15, 10, -5],
     ["Premium 8mm", 1.1, 1.05, 0.85, 10, 8, -10],
     ["Vintage VHS", 1.0, 1.2, 1.1, 5, 0, 15],
@@ -196,41 +187,15 @@
     if (video.srcObject || video.src) setupCanvas();
   });
 
-  document.getElementById('setResolution').addEventListener('change', () => {
-    if (isCameraActive) {
-      startCamera();
-    } else if (video.src || video.srcObject) {
-      setupCanvas();
-    }
-  });
-
   async function startCamera() {
     try {
       if (video.srcObject) {
         video.srcObject.getTracks().forEach(track => track.stop());
       }
-
-      const resVal = document.getElementById('setResolution').value;
-      let videoConstraints = { facingMode: useFrontCamera ? 'user' : 'environment' };
-
-      if (resVal === '2160') {
-        videoConstraints.width = { ideal: 3840 };
-        videoConstraints.height = { ideal: 2160 };
-      } else if (resVal === '1440') {
-        videoConstraints.width = { ideal: 2560 };
-        videoConstraints.height = { ideal: 1440 };
-      } else if (resVal === '1080') {
-        videoConstraints.width = { ideal: 1920 };
-        videoConstraints.height = { ideal: 1080 };
-      } else if (resVal === '720') {
-        videoConstraints.width = { ideal: 1280 };
-        videoConstraints.height = { ideal: 720 };
-      }
-
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: videoConstraints, 
-        audio: true 
-      });
+    const stream = await navigator.mediaDevices.getUserMedia({ 
+      video: { facingMode: useFrontCamera ? 'user' : 'environment' }, 
+      audio: true 
+    });
       video.srcObject = stream;
       video.muted = true;
       video.play().catch(()=>{});
@@ -266,20 +231,8 @@
     canvas.style.display = 'block';
     
     const applySize = () => {
-      const resMode = document.getElementById('setResolution').value;
-      let w = video.videoWidth || 1080;
-      let h = video.videoHeight || 1920;
-
-      if (resMode !== 'native') {
-        const targetShortEdge = parseInt(resMode);
-        const currentShortEdge = Math.min(w, h);
-        if (currentShortEdge > 0) {
-          const scale = targetShortEdge / currentShortEdge;
-          w = Math.round(w * scale);
-          h = Math.round(h * scale);
-        }
-      }
-
+      let w = video.videoWidth || 720;
+      let h = video.videoHeight || 1280;
       let max = Math.max(w, h);
       let min = Math.min(w, h);
       canvas.width = isLandscape ? max : min;
@@ -343,45 +296,19 @@
     renderId = requestAnimationFrame(renderLoop);
   }
 
- // processPixels fonksiyonunun performans optimizasyonlu hali
-function processPixels() {
-  const w = canvas.width;
-  const h = canvas.height;
-  if (w === 0 || h === 0) return;
-  
-  const imgData = ctx.getImageData(0, 0, w, h);
-  const d = imgData.data;
-  const noiseLvl = document.getElementById('setNoise').value / 100 * 40;
-  const scratchLvl = document.getElementById('setScratch').value / 100;
+  function processPixels() {
+    const w = canvas.width;
+    const h = canvas.height;
+    if (w === 0 || h === 0) return;
+    
+    const imgData = ctx.getImageData(0, 0, w, h);
+    const d = imgData.data;
+    const noiseLvl = document.getElementById('setNoise').value / 100 * 40;
+    const scratchLvl = document.getElementById('setScratch').value / 100;
 
-  const { rm, gm, bm, ra, ga, ba } = activeFilter;
-  const len = d.length;
+    const { rm, gm, bm, ra, ga, ba } = activeFilter;
 
-  // Performans darboğazını çözmek için piksel atlama (step) mantığı
-  const step = w > 1920 ? 4 : (w > 1280 ? 2 : 1);
-
-  if (step > 1) {
-    for (let y = 0; y < h; y += step) {
-      for (let x = 0; x < w; x += step) {
-        const i = (y * w + x) * 4;
-        let r = d[i], g = d[i+1], b = d[i+2];
-
-        r = (r * rm) + ra;
-        g = (g * gm) + ga;
-        b = (b * bm) + ba;
-
-        if (noiseLvl > 0) {
-          const noise = (Math.random() - 0.5) * noiseLvl;
-          r += noise; g += noise; b += noise;
-        }
-
-        d[i]   = r > 255 ? 255 : (r < 0 ? 0 : r);
-        d[i+1] = g > 255 ? 255 : (g < 0 ? 0 : g);
-        d[i+2] = b > 255 ? 255 : (b < 0 ? 0 : b);
-      }
-    }
-  } else {
-    for (let i = 0; i < len; i += 4) {
+    for (let i = 0; i < d.length; i += 4) {
       let r = d[i], g = d[i+1], b = d[i+2];
 
       r = (r * rm) + ra;
@@ -393,35 +320,34 @@ function processPixels() {
         r += noise; g += noise; b += noise;
       }
 
-      d[i]   = r > 255 ? 255 : (r < 0 ? 0 : r);
-      d[i+1] = g > 255 ? 255 : (g < 0 ? 0 : g);
-      d[i+2] = b > 255 ? 255 : (b < 0 ? 0 : b);
+      d[i] = Math.max(0, Math.min(255, r));
+      d[i+1] = Math.max(0, Math.min(255, g));
+      d[i+2] = Math.max(0, Math.min(255, b));
     }
-  }
-  
-  ctx.putImageData(imgData, 0, 0);
+    
+    ctx.putImageData(imgData, 0, 0);
 
-  if (scratchLvl > 0) {
-    if (Math.random() < scratchLvl * 0.2) {
-      ctx.fillStyle = 'rgba(255,255,255,0.3)';
-      ctx.fillRect(Math.random() * w, 0, 1 + Math.random() * 3, h);
+    if (scratchLvl > 0) {
+      if (Math.random() < scratchLvl * 0.2) {
+        ctx.fillStyle = 'rgba(255,255,255,0.3)';
+        ctx.fillRect(Math.random() * w, 0, 1 + Math.random() * 3, h);
+      }
+      if (Math.random() < scratchLvl * 0.1) {
+        ctx.fillStyle = 'rgba(0,0,0,0.4)';
+        ctx.fillRect(Math.random() * w, 0, 2, h);
+      }
+      if (Math.random() < scratchLvl * 0.05) {
+        ctx.fillStyle = 'rgba(255,255,255,0.15)';
+        ctx.fillRect(0, Math.random() * h, w, 10 + Math.random() * 20);
+      }
     }
-    if (Math.random() < scratchLvl * 0.1) {
-      ctx.fillStyle = 'rgba(0,0,0,0.4)';
-      ctx.fillRect(Math.random() * w, 0, 2, h);
-    }
-    if (Math.random() < scratchLvl * 0.05) {
-      ctx.fillStyle = 'rgba(255,255,255,0.15)';
-      ctx.fillRect(0, Math.random() * h, w, 10 + Math.random() * 20);
-    }
+    
+    const grad = ctx.createRadialGradient(w/2, h/2, Math.min(w,h)*0.3, w/2, h/2, Math.max(w,h)*0.8);
+    grad.addColorStop(0, 'rgba(0,0,0,0)');
+    grad.addColorStop(1, 'rgba(5,10,7,0.5)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
   }
-  
-  const grad = ctx.createRadialGradient(w/2, h/2, Math.min(w,h)*0.3, w/2, h/2, Math.max(w,h)*0.8);
-  grad.addColorStop(0, 'rgba(0,0,0,0)');
-  grad.addColorStop(1, 'rgba(5,10,7,0.5)');
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, w, h);
-}
 
   function toggleSettings() {
     const modal = document.getElementById('settingsModal');
