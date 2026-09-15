@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ön Kamera Zoom</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #0b0f0d; color: #fff; font-family: -apple-system, sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+    .container { flex: 1; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #000; }
+    video { width: 100%; height: 100%; object-fit: cover; transform-origin: center center; }
+    
+    .controls { padding: 20px; display: flex; justify-content: center; background: #0b0f0d; }
+    .slider-box { display: flex; align-items: center; background: #121915; border-radius: 30px; padding: 8px 16px; width: 100%; max-width: 400px; gap: 12px; border: 1px solid #1e2923; }
+    .label { color: #e54d38; font-weight: 900; font-size: 14px; letter-spacing: 0.5px; }
+    .val { color: #fff; font-weight: 700; font-size: 14px; min-width: 35px; text-align: right; }
+    
+    input[type=range] { -webkit-appearance: none; appearance: none; flex: 1; background: transparent; }
+    input[type=range]:focus { outline: none; }
+    
+    input[type=range]::-webkit-slider-runnable-track { height: 16px; background: #233229; border-radius: 8px; }
+    input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; height: 32px; width: 32px; border-radius: 50%; background: #e54d38; border: 3px solid #ffffff; margin-top: -8px; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.4); }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <video id="webcam" autoplay playsinline></video>
+</div>
+
+<div class="controls">
+  <div class="slider-box">
+    <span class="label">ZOOM</span>
+    <input type="range" id="zoom" min="1" max="5" step="0.1" value="1.0">
+    <span class="val" id="zoomVal">1.0x</span>
+  </div>
+</div>
+
+<script>
+  const video = document.getElementById('webcam');
+  const zoomSlider = document.getElementById('zoom');
+  const zoomVal = document.getElementById('zoomVal');
+
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+    .then(stream => { video.srcObject = stream; })
+    .catch(() => { alert("Kamera izni verilmedi."); });
+
+  zoomSlider.addEventListener('input', (e) => {
+    const val = parseFloat(e.target.value).toFixed(1);
+    zoomVal.textContent = `${val}x`;
+    video.style.transform = `scale(${val})`;
+  });
+</script>
+
+</body>
+</html>
