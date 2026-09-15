@@ -74,6 +74,15 @@
   </div>
   <div class="settings-modal" id="settingsModal">
     <h2>Ayarlar</h2>
+    <div class="setting-row"><span>Çözünürlük</span>
+      <select id="setResolution" style="background:#1a261f; color:#fff; border:1px solid #c93b2b; padding:4px; border-radius:6px;">
+        <option value="native">Orijinal (Kamera/Dosya)</option>
+        <option value="720">720p (HD)</option>
+        <option value="1080" selected>1080p (Full HD)</option>
+        <option value="1440">1440p (2K)</option>
+        <option value="2160">2160p (4K UHD)</option>
+      </select>
+    </div>
     <div class="setting-row"><span>FPS Seçimi</span>
       <select id="setFps" style="background:#1a261f; color:#fff; border:1px solid #c93b2b; padding:4px; border-radius:6px;">
         <option value="8" selected>8 FPS (Retro)</option>
@@ -93,7 +102,7 @@
       </select>
     </div>
     <div class="setting-row"><span>Film Kumlanması</span><input type="range" id="setNoise" min="0" max="100" value="70"></div>
-    <div class="setting-row"><span>VHS Çizik</span><input type="range" id="setScratch" min="0" max="100" value="0"></div>
+    <div class="setting-row"><span>VHS Çizik</span><input type="range" id="setScratch" min="0" max="100" value="60"></div>
     <div class="close-settings" onclick="toggleSettings()">Kapat</div>
   </div>
 </div>
@@ -187,15 +196,41 @@
     if (video.srcObject || video.src) setupCanvas();
   });
 
+  document.getElementById('setResolution').addEventListener('change', () => {
+    if (isCameraActive) {
+      startCamera();
+    } else if (video.src || video.srcObject) {
+      setupCanvas();
+    }
+  });
+
   async function startCamera() {
     try {
       if (video.srcObject) {
         video.srcObject.getTracks().forEach(track => track.stop());
       }
-    const stream = await navigator.mediaDevices.getUserMedia({ 
-      video: { facingMode: useFrontCamera ? 'user' : 'environment' }, 
-      audio: true 
-    });
+
+      const resVal = document.getElementById('setResolution').value;
+      let videoConstraints = { facingMode: useFrontCamera ? 'user' : 'environment' };
+
+      if (resVal === '2160') {
+        videoConstraints.width = { ideal: 3840 };
+        videoConstraints.height = { ideal: 2160 };
+      } else if (resVal === '1440') {
+        videoConstraints.width = { ideal: 2560 };
+        videoConstraints.height = { ideal: 1440 };
+      } else if (resVal === '1080') {
+        videoConstraints.width = { ideal: 1920 };
+        videoConstraints.height = { ideal: 1080 };
+      } else if (resVal === '720') {
+        videoConstraints.width = { ideal: 1280 };
+        videoConstraints.height = { ideal: 720 };
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: videoConstraints, 
+        audio: true 
+      });
       video.srcObject = stream;
       video.muted = true;
       video.play().catch(()=>{});
@@ -231,8 +266,20 @@
     canvas.style.display = 'block';
     
     const applySize = () => {
-      let w = video.videoWidth || 720;
-      let h = video.videoHeight || 1280;
+      const resMode = document.getElementById('setResolution').value;
+      let w = video.videoWidth || 1080;
+      let h = video.videoHeight || 1920;
+
+      if (resMode !== 'native') {
+        const targetShortEdge = parseInt(resMode);
+        const currentShortEdge = Math.min(w, h);
+        if (currentShortEdge > 0) {
+          const scale = targetShortEdge / currentShortEdge;
+          w = Math.round(w * scale);
+          h = Math.round(h * scale);
+        }
+      }
+
       let max = Math.max(w, h);
       let min = Math.min(w, h);
       canvas.width = isLandscape ? max : min;
