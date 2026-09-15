@@ -289,7 +289,13 @@
         const zx = dx - (zw - dw) / 2 + currentOffsetX;
         const zy = dy - (zh - dh) / 2 + currentOffsetY;
         
+        ctx.save();
+        if (useFrontCamera && isCameraActive) {
+          ctx.translate(cw, 0);
+          ctx.scale(-1, 1);
+        }
         ctx.drawImage(video, 0, 0, vw, vh, zx, zy, zw, zh);
+        ctx.restore();
         processPixels();
       }
     }
