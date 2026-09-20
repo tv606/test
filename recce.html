@@ -338,81 +338,118 @@
         }
     }
 
-    async function takeReportScreenshot() {
-        const reportCanvas = document.createElement('canvas');
-        const reportCtx = reportCanvas.getContext('2d');
-        
-        reportCanvas.width = 1280;
-        reportCanvas.height = 960;
+async function takeReportScreenshot() {
+    const reportCanvas = document.createElement('canvas');
+    const reportCtx = reportCanvas.getContext('2d');
+    
+    reportCanvas.width = 1280;
+    reportCanvas.height = 960;
 
-        reportCtx.fillStyle = "#121215";
-        reportCtx.fillRect(0, 0, reportCanvas.width, reportCanvas.height);
+    reportCtx.fillStyle = "#121215";
+    reportCtx.fillRect(0, 0, reportCanvas.width, reportCanvas.height);
 
-        if (isCameraActive && video.videoWidth > 0) {
-            reportCtx.drawImage(video, 0, 0, 1280, 720);
+    const targetWidth = 1280;
+    const targetHeight = 720;
+
+    if (isCameraActive && video.videoWidth > 0) {
+        // Lens simülasyonu zoom oranını al
+        const scaleMatch = video.style.transform.match(/scale\(([^)]+)\)/);
+        const lensScale = scaleMatch ? parseFloat(scaleMatch[1]) : 1;
+
+        // Video ham boyutları
+        const vWidth = video.videoWidth;
+        const vHeight = video.videoHeight;
+
+        // 16:9 alana sığdırmak için (cover mantığı) kırpma hesabı
+        const videoAspect = vWidth / vHeight;
+        const targetAspect = targetWidth / targetHeight;
+
+        let drawWidth = vWidth;
+        let drawHeight = vHeight;
+
+        if (videoAspect > targetAspect) {
+            drawWidth = vHeight * targetAspect;
         } else {
-            reportCtx.fillStyle = "#08080a";
-            reportCtx.fillRect(0, 0, 1280, 720);
-            reportCtx.fillStyle = "#444";
-            reportCtx.font = "bold 30px sans-serif";
-            reportCtx.fillText("KAMERA GÖRÜNTÜSÜ YOK", 460, 360);
+            drawHeight = vWidth / targetAspect;
         }
 
-        // Kılavuz Çizgiler
-        reportCtx.strokeStyle = "rgba(255, 149, 0, 0.3)";
-        reportCtx.lineWidth = 2;
-        reportCtx.beginPath(); reportCtx.moveTo(426, 0); reportCtx.lineTo(426, 720); reportCtx.stroke();
-        reportCtx.beginPath(); reportCtx.moveTo(853, 0); reportCtx.lineTo(853, 720); reportCtx.stroke();
-        reportCtx.beginPath(); reportCtx.moveTo(0, 240); reportCtx.lineTo(1280, 240); reportCtx.stroke();
-        reportCtx.beginPath(); reportCtx.moveTo(0, 480); reportCtx.lineTo(1280, 480); reportCtx.stroke();
+        // Zoom faktörünü kırpma alanına uygula
+        drawWidth /= lensScale;
+        drawHeight /= lensScale;
 
-        // Alt Bilgi Kartı
-        reportCtx.fillStyle = "#16161a";
-        reportCtx.fillRect(0, 720, 1280, 240);
+        // Kırpılacak kaynak alanı merkezle
+        const sx = (vWidth - drawWidth) / 2;
+        const sy = (vHeight - drawHeight) / 2;
 
-        const locationText = document.getElementById('location-name').value || "Bilinmeyen Mekân";
-        
-        reportCtx.fillStyle = "#ff9500";
-        reportCtx.font = "bold 36px -apple-system, sans-serif";
-        reportCtx.fillText(locationText.toUpperCase(), 50, 780);
-
-        reportCtx.fillStyle = "#8e8e93";
-        reportCtx.font = "500 24px -apple-system, sans-serif";
-        reportCtx.fillText(`LENS: ${currentLens} (16:9)`, 50, 830);
-        reportCtx.fillText(`IŞIK: ${currentLux} Lux`, 50, 875);
-
-        reportCtx.fillText(`GÜNEŞ: ${currentSun}`, 650, 830);
-        reportCtx.fillText(`AKUSTİK: ${currentEcho} s (RT60)`, 650, 875);
-
-        reportCtx.fillStyle = "rgba(255, 149, 0, 0.6)";
-        reportCtx.font = "600 16px -apple-system, sans-serif";
-        reportCtx.fillText("RECCE PRO AUTOMATED REPORT", 50, 925);
-
-        // Galeriye Doğrudan Kaydetme / Paylaşma (Web Share API Entegrasyonu)
-        reportCanvas.toBlob(async (blob) => {
-            const fileName = `RECCE_RAPOR_${locationText.replace(/\s+/g, '_')}.png`;
-            const file = new File([blob], fileName, { type: 'image/png' });
-
-            if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                try {
-                    await navigator.share({
-                        files: [file],
-                        title: 'Recce Analiz Raporu',
-                        text: `${locationText} mekân analiz raporu.`
-                    });
-                } catch (err) {
-                    console.log('Paylaşım iptal edildi veya desteklenmiyor:', err);
-                }
-            } else {
-                // Fallback: Doğrudan İndir
-                const link = document.createElement('a');
-                link.download = fileName;
-                link.href = URL.createObjectURL(blob);
-                link.click();
-                URL.revokeObjectURL(link.href);
-            }
-        }, 'image/png');
+        // Oranları bozmadan Canvas'a çiz
+        reportCtx.drawImage(
+            video, 
+            sx, sy, drawWidth, drawHeight, // Kaynaktan kırpılan alan
+            0, 0, targetWidth, targetHeight // Canvas üzerindeki hedef alan
+        );
+    } else {
+        reportCtx.fillStyle = "#08080a";
+        reportCtx.fillRect(0, 0, targetWidth, targetHeight);
+        reportCtx.fillStyle = "#444";
+        reportCtx.font = "bold 30px sans-serif";
+        reportCtx.fillText("KAMERA GÖRÜNTÜSÜ YOK", 460, 360);
     }
+
+    // Kılavuz Çizgiler
+    reportCtx.strokeStyle = "rgba(255, 149, 0, 0.3)";
+    reportCtx.lineWidth = 2;
+    reportCtx.beginPath(); reportCtx.moveTo(426, 0); reportCtx.lineTo(426, 720); reportCtx.stroke();
+    reportCtx.beginPath(); reportCtx.moveTo(853, 0); reportCtx.lineTo(853, 720); reportCtx.stroke();
+    reportCtx.beginPath(); reportCtx.moveTo(0, 240); reportCtx.lineTo(1280, 240); reportCtx.stroke();
+    reportCtx.beginPath(); reportCtx.moveTo(0, 480); reportCtx.lineTo(1280, 480); reportCtx.stroke();
+
+    // Alt Bilgi Kartı
+    reportCtx.fillStyle = "#16161a";
+    reportCtx.fillRect(0, 720, 1280, 240);
+
+    const locationText = document.getElementById('location-name').value || "Bilinmeyen Mekân";
+    
+    reportCtx.fillStyle = "#ff9500";
+    reportCtx.font = "bold 36px -apple-system, sans-serif";
+    reportCtx.fillText(locationText.toUpperCase(), 50, 780);
+
+    reportCtx.fillStyle = "#8e8e93";
+    reportCtx.font = "500 24px -apple-system, sans-serif";
+    reportCtx.fillText(`LENS: ${currentLens} (16:9)`, 50, 830);
+    reportCtx.fillText(`IŞIK: ${currentLux} Lux`, 50, 875);
+
+    reportCtx.fillText(`GÜNEŞ: ${currentSun}`, 650, 830);
+    reportCtx.fillText(`AKUSTİK: ${currentEcho} s (RT60)`, 650, 875);
+
+    reportCtx.fillStyle = "rgba(255, 149, 0, 0.6)";
+    reportCtx.font = "600 16px -apple-system, sans-serif";
+    reportCtx.fillText("RECCE PRO AUTOMATED REPORT", 50, 925);
+
+    // Galeriye Doğrudan Kaydetme / Paylaşma (Web Share API Entegrasyonu)
+    reportCanvas.toBlob(async (blob) => {
+        const fileName = `RECCE_RAPOR_${locationText.replace(/\s+/g, '_')}.png`;
+        const file = new File([blob], fileName, { type: 'image/png' });
+
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            try {
+                await navigator.share({
+                    files: [file],
+                    title: 'Recce Analiz Raporu',
+                    text: `${locationText} mekân analiz raporu.`
+                });
+            } catch (err) {
+                console.log('Paylaşım iptal edildi veya desteklenmiyor:', err);
+            }
+        } else {
+            // Fallback: Doğrudan İndir
+            const link = document.createElement('a');
+            link.download = fileName;
+            link.href = URL.createObjectURL(blob);
+            link.click();
+            URL.revokeObjectURL(link.href);
+        }
+    }, 'image/png');
+}
 
     document.getElementById('btn-camera').addEventListener('click', startCamera);
     btnAudio.addEventListener('click', testAudio);
