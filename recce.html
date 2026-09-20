@@ -3,60 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Akıllı Recce Analiz - Prototip</title>
+    <title>Recce Analiz Pro</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
         body { background-color: #0f0f11; color: #f0f0f0; display: flex; justify-content: center; align-items: center; min-height: 100vh; height: 100vh; overflow: hidden; }
         
-        /* iPhone 13 Mini Tam Ekran Yapısı */
-        .app-container { width: 100%; max-width: 375px; height: 100vh; max-height: 812px; background-color: #1a1a1e; border-radius: 0; border: none; overflow: hidden; position: relative; display: flex; flex-direction: column; }
+        /* Mobil Ekran Yapısı */
+        .app-container { width: 100%; max-width: 375px; height: 100vh; max-height: 812px; background-color: #1a1a1e; border-radius: 0; overflow: hidden; position: relative; display: flex; flex-direction: column; }
         @media (min-width: 380px) {
             .app-container { height: 740px; border-radius: 36px; border: 4px solid #333; box-shadow: 0 20px 50px rgba(0,0,0,0.7); }
         }
 
         .notch { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 120px; height: 20px; background: #000; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; z-index: 100; }
 
-        /* Başlık */
+        /* Başlık ve Düzenlenebilir Mekan Adı */
         .header { background: rgba(26, 26, 30, 0.95); padding: 25px 15px 8px; text-align: center; border-bottom: 1px solid #2a2a30; z-index: 90; flex-shrink: 0; }
-        .header h1 { font-size: 14px; color: #ff9500; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;}
-        .header p { font-size: 10px; color: #8e8e93; }
+        .header h1 { font-size: 13px; color: #ff9500; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;}
+        .location-edit { display: flex; align-items: center; justify-content: center; gap: 4px; margin-top: 2px; }
+        .location-input { background: transparent; border: none; border-bottom: 1px dashed #555; color: #8e8e93; font-size: 11px; text-align: center; width: 80%; outline: none; padding: 1px; }
+        .location-input:focus { color: #fff; border-bottom-color: #ff9500; }
 
-        /* Canlı Kamera Alanı */
-        .camera-section { flex: 1 1 auto; min-height: 140px; position: relative; background: #000; overflow: hidden; display: flex; justify-content: center; align-items: center; }
+        /* 16:9 SİNEMATİK KAMERA ALANI */
+        .camera-wrapper { width: 100%; background: #000; display: flex; justify-content: center; align-items: center; flex-shrink: 0; position: relative; }
+        .camera-section { width: 100%; aspect-ratio: 16 / 9; position: relative; overflow: hidden; background: #111; }
         #video-feed { width: 100%; height: 100%; object-fit: cover; }
         #analysis-canvas { display: none; }
         
-        /* AR/Analiz Katmanı */
-        .ar-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; border: 2px solid rgba(255, 149, 0, 0.4); display: flex; justify-content: center; align-items: center; }
-        .ar-grid { width: 80%; height: 80%; border: 1px solid rgba(255, 149, 0, 0.2); background-image: linear-gradient(rgba(255, 149, 0, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 149, 0, 0.1) 1px, transparent 1px); background-size: 20px 20px; }
-        .reticle { position: absolute; width: 36px; height: 36px; border: 2px solid #ff9500; border-radius: 50%; display: flex; justify-content: center; align-items: center; }
-        .reticle-cross { width: 70%; height: 2px; background: #ff9500; position: absolute; }
-        .reticle-cross.vert { width: 2px; height: 70%; }
-        
+        /* AR/Sinematik Kadraj Kılavuz Çizgileri */
+        .ar-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; box-sizing: border-box; }
+        .grid-guide { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: grid; grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr 1fr; }
+        .grid-cell { border: 0.5px solid rgba(255, 149, 0, 0.25); }
+        .aspect-ratio-badge { position: absolute; top: 8px; left: 8px; background: rgba(0,0,0,0.6); color: #ff9500; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: bold; border: 1px solid rgba(255, 149, 0, 0.4); }
+        .reticle { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 24px; height: 24px; border: 1px solid #ff9500; border-radius: 50%; display: flex; justify-content: center; align-items: center; }
+        .reticle-cross { width: 60%; height: 1px; background: #ff9500; position: absolute; }
+        .reticle-cross.vert { width: 1px; height: 60%; }
+
+        /* Lens & Kadraj Seçici Şerit */
+        .lens-bar { background: #141417; padding: 6px 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2a2a30; flex-shrink: 0; }
+        .lens-title { font-size: 10px; color: #8e8e93; text-transform: uppercase; }
+        .lens-selector { display: flex; gap: 6px; }
+        .lens-btn { background: #24242b; border: 1px solid #3a3a42; color: #ccc; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; cursor: pointer; }
+        .lens-btn.active { background: #ff9500; color: #000; border-color: #ff9500; }
+
         /* Veri Paneli */
-        .data-panel { background: #1a1a1e; padding: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; border-top: 1px solid #2a2a30; flex-shrink: 0; }
-        .card { background: #24242b; border-radius: 10px; padding: 8px 10px; border: 1px solid #2a2a30; }
+        .data-panel { background: #1a1a1e; padding: 8px 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; border-top: 1px solid #2a2a30; flex: 1 1 auto; overflow-y: auto; }
+        .card { background: #24242b; border-radius: 8px; padding: 8px; border: 1px solid #2a2a30; }
         .card-full { grid-column: span 2; }
-        .card-title { font-size: 10px; text-transform: uppercase; color: #8e8e93; letter-spacing: 0.5px; margin-bottom: 4px; }
-        .metric { font-size: 16px; font-weight: bold; color: #fff; display: flex; align-items: baseline; }
-        .unit { font-size: 10px; color: #aaa; margin-left: 4px; font-weight: normal; }
-        .metric-sub { font-size: 10px; color: #30d158; margin-top: 2px; }
+        .card-title { font-size: 9px; text-transform: uppercase; color: #8e8e93; letter-spacing: 0.5px; margin-bottom: 3px; }
+        .metric { font-size: 15px; font-weight: bold; color: #fff; display: flex; align-items: baseline; }
+        .unit { font-size: 9px; color: #aaa; margin-left: 3px; font-weight: normal; }
+        .metric-sub { font-size: 9px; color: #30d158; margin-top: 2px; }
         .metric-sub.warning { color: #ff3b30; }
         .metric-sub.gold { color: #ffca28; }
 
         /* Simülasyon Slider */
         .slider-container { margin-top: 2px; }
-        .slider-label { font-size: 10px; color: #aaa; display: flex; justify-content: space-between; margin-bottom: 2px;}
+        .slider-label { font-size: 9px; color: #aaa; display: flex; justify-content: space-between; margin-bottom: 2px;}
         input[type=range] { width: 100%; height: 4px; -webkit-appearance: none; background: #333; border-radius: 2px; outline: none; accent-color: #ff9500; }
         
-        /* Kontrol Butonları (Sığma Odaklı) */
-        .controls { padding: 10px 10px calc(10px + env(safe-area-inset-bottom)); display: flex; gap: 8px; background: #1a1a1e; flex-shrink: 0; }
-        .btn { flex: 1; padding: 10px 8px; border: none; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; justify-content: center; gap: 4px; white-space: nowrap; }
+        /* Kontrol Butonları */
+        .controls { padding: 8px 10px calc(8px + env(safe-area-inset-bottom)); display: flex; gap: 6px; background: #1a1a1e; flex-shrink: 0; }
+        .btn { flex: 1; padding: 10px 4px; border: none; border-radius: 8px; font-size: 10px; font-weight: bold; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; justify-content: center; gap: 3px; white-space: nowrap; }
         .btn-primary { background: #ff9500; color: #000; }
         .btn-primary:active { background: #e68600; }
+        
+        /* Ses Testi Butonu Özel Durumları */
+        .btn-audio-active { background: #ff9500; color: #000; }
+        .btn-audio-active:active { background: #e68600; }
+        .btn-audio-disabled { background: #333 !important; color: #777 !important; cursor: not-allowed !important; }
+        
         .btn-secondary { background: #333; color: #fff; }
         .btn-secondary:active { background: #444; }
-        .icon { font-size: 14px; }
+        .btn-success { background: #30d158; color: #000; }
+        .btn-success:active { background: #25a244; }
+        .icon { font-size: 12px; }
     </style>
 </head>
 <body>
@@ -66,19 +86,41 @@
     
     <div class="header">
         <h1>RECCE PRO ANALİZ</h1>
-        <p>Tarihi Depo - Maslak (Canlı)</p>
+        <div class="location-edit">
+            <input type="text" id="location-name" class="location-input" value="Tarihi Depo - Maslak" placeholder="Mekân adını giriniz...">
+            <span style="font-size: 10px; color: #8e8e93;">✏️</span>
+        </div>
     </div>
 
-    <div class="camera-section">
-        <video id="video-feed" autoplay playsinline muted></video>
-        <canvas id="analysis-canvas"></canvas>
-        
-        <div class="ar-overlay">
-            <div class="ar-grid"></div>
-            <div class="reticle">
-                <div class="reticle-cross"></div>
-                <div class="reticle-cross vert"></div>
+    <!-- 16:9 ORANLI KAMERA KUTUSU -->
+    <div class="camera-wrapper">
+        <div class="camera-section" id="capture-area">
+            <video id="video-feed" autoplay playsinline muted></video>
+            <canvas id="analysis-canvas"></canvas>
+            
+            <div class="ar-overlay">
+                <div class="aspect-ratio-badge" id="aspect-badge">16:9 | 24mm</div>
+                <div class="grid-guide">
+                    <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
+                    <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
+                    <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
+                </div>
+                <div class="reticle">
+                    <div class="reticle-cross"></div>
+                    <div class="reticle-cross vert"></div>
+                </div>
             </div>
+        </div>
+    </div>
+
+    <!-- LENS SIMÜLASYON ŞERİTİ -->
+    <div class="lens-bar">
+        <span class="lens-title">Lens Simülasyonu:</span>
+        <div class="lens-selector">
+            <button class="lens-btn active" onclick="setLens('24mm')">24mm</button>
+            <button class="lens-btn" onclick="setLens('35mm')">35mm</button>
+            <button class="lens-btn" onclick="setLens('50mm')">50mm</button>
+            <button class="lens-btn" onclick="setLens('85mm')">85mm</button>
         </div>
     </div>
 
@@ -108,8 +150,10 @@
     </div>
 
     <div class="controls">
-        <button class="btn btn-secondary" id="btn-camera"><span class="icon">📷</span> Kamera Aç</button>
-        <button class="btn btn-primary" id="btn-audio"><span class="icon">🎤</span> Ses Testi Yap</button>
+        <button class="btn btn-secondary" id="btn-camera"><span class="icon">📷</span> Kamera</button>
+        <!-- Dinamik Ses Butonu -->
+        <button class="btn btn-audio-active" id="btn-audio"><span class="icon">🎤</span> Ses Testi</button>
+        <button class="btn btn-success" id="btn-screenshot"><span class="icon">📸</span> Rapor Al</button>
     </div>
 </div>
 
@@ -118,17 +162,22 @@
     const canvas = document.getElementById('analysis-canvas');
     const ctx = canvas.getContext('2d');
     const timeSlider = document.getElementById('time-slider');
+    const btnAudio = document.getElementById('btn-audio');
     
     let isCameraActive = false;
     let audioContext;
     let analyser;
+    let currentLens = "24mm";
+    let currentLux = "--";
+    let currentSun = "--";
+    let currentEcho = "--";
 
     async function startCamera() {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
             video.srcObject = stream;
             isCameraActive = true;
-            document.getElementById('btn-camera').innerText = "📷 Kamera Aktif";
+            document.getElementById('btn-camera').innerText = "📷 Aktif";
             canvas.width = 64;
             canvas.height = 64;
             requestAnimationFrame(analyzeFrame);
@@ -137,6 +186,19 @@
             document.getElementById('light-status').innerText = "Kamera İzni Yok";
             document.getElementById('light-status').className = "metric-sub warning";
         }
+    }
+
+    function setLens(lens) {
+        currentLens = lens;
+        document.querySelectorAll('.lens-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.innerText === lens);
+        });
+        document.getElementById('aspect-badge').innerText = `16:9 | ${lens}`;
+        
+        if(lens === '24mm') video.style.transform = "scale(1)";
+        if(lens === '35mm') video.style.transform = "scale(1.25)";
+        if(lens === '50mm') video.style.transform = "scale(1.5)";
+        if(lens === '85mm') video.style.transform = "scale(2)";
     }
 
     function analyzeFrame() {
@@ -158,8 +220,8 @@
         }
 
         const brightness = Math.round(colorSum / (canvas.width * canvas.height));
-        const lux = Math.round(brightness * 4.5); 
-        updateLightUI(lux);
+        currentLux = Math.round(brightness * 4.5); 
+        updateLightUI(currentLux);
 
         requestAnimationFrame(analyzeFrame);
     }
@@ -184,12 +246,14 @@
     function updateSun(val) {
         const hours = Math.floor(val);
         const minutes = (val % 1) === 0.5 ? "30" : "00";
-        document.getElementById('time-val').innerText = `${hours}:${minutes}`;
+        const timeStr = `${hours}:${minutes}`;
+        document.getElementById('time-val').innerText = timeStr;
         
         let angle = Math.round((val - 6) * 12.8);
         if(angle < 0) angle = 0; if(angle > 180) angle = 180;
         
         const direction = (val > 13) ? "KB" : "GD";
+        currentSun = `${angle}° / ${direction} (${timeStr})`;
         document.getElementById('sun-angle').innerHTML = `${angle}° <span class="unit">/ ${direction}</span>`;
         
         const sunStatusEl = document.getElementById('sun-time-status');
@@ -215,6 +279,11 @@
         audioStatusEl.innerText = "Dinleniyor...";
         audioStatusEl.className = "metric-sub";
 
+        // BUTON DURUMUNU GÜNCELLE (PASİF VE GRİ)
+        btnAudio.innerText = "🎤 Dinleniyor...";
+        btnAudio.className = "btn btn-audio-disabled";
+        btnAudio.disabled = true;
+
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
             const source = audioContext.createMediaStreamSource(stream);
@@ -230,16 +299,27 @@
                 for(let i=0; i<bufferLength; i++) { sum += dataArray[i]; }
                 const avgVolume = sum / bufferLength;
 
-                const echoTime = (0.5 + (avgVolume / 255) * 2.5).toFixed(1);
-                updateAudioUI(echoTime);
+                currentEcho = (0.5 + (avgVolume / 255) * 2.5).toFixed(1);
+                updateAudioUI(currentEcho);
                 
                 stream.getTracks().forEach(track => track.stop());
+
+                // BUTON DURUMUNU GERİ AL (AKTİF VE TURUNCU)
+                btnAudio.innerText = "🎤 Ses Testi";
+                btnAudio.className = "btn btn-audio-active";
+                btnAudio.disabled = false;
+
             }, 2000);
 
         } catch (err) {
             console.error("Mikrofon hatası:", err);
             audioStatusEl.innerText = "Mikrofon İzni Yok";
             audioStatusEl.className = "metric-sub warning";
+
+            // HATA DURUMUNDA DA BUTONU GERİ AKTİF ET
+            btnAudio.innerText = "🎤 Ses Testi";
+            btnAudio.className = "btn btn-audio-active";
+            btnAudio.disabled = false;
         }
     }
 
@@ -260,8 +340,53 @@
         }
     }
 
+    function takeReportScreenshot() {
+        const reportCanvas = document.createElement('canvas');
+        const reportCtx = reportCanvas.getContext('2d');
+        reportCanvas.width = 1280;
+        reportCanvas.height = 960;
+        reportCtx.fillStyle = "#1a1a1e";
+        reportCtx.fillRect(0, 0, reportCanvas.width, reportCanvas.height);
+        if (isCameraActive && video.videoWidth > 0) {
+            reportCtx.drawImage(video, 0, 0, 1280, 720);
+        } else {
+            reportCtx.fillStyle = "#111115";
+            reportCtx.fillRect(0, 0, 1280, 720);
+            reportCtx.fillStyle = "#555";
+            reportCtx.font = "bold 30px sans-serif";
+            reportCtx.fillText("KAMERA GÖRÜNTÜSÜ YOK", 460, 360);
+        }
+        reportCtx.strokeStyle = "rgba(255, 149, 0, 0.4)";
+        reportCtx.lineWidth = 2;
+        reportCtx.beginPath(); reportCtx.moveTo(426, 0); reportCtx.lineTo(426, 720); reportCtx.stroke();
+        reportCtx.beginPath(); reportCtx.moveTo(853, 0); reportCtx.lineTo(853, 720); reportCtx.stroke();
+        reportCtx.beginPath(); reportCtx.moveTo(0, 240); reportCtx.lineTo(1280, 240); reportCtx.stroke();
+        reportCtx.beginPath(); reportCtx.moveTo(0, 480); reportCtx.lineTo(1280, 480); reportCtx.stroke();
+        reportCtx.fillStyle = "rgba(20, 20, 23, 0.95)";
+        reportCtx.fillRect(0, 720, 1280, 240);
+        const locationText = document.getElementById('location-name').value || "Bilinmeyen Mekân";
+        reportCtx.fillStyle = "#ff9500";
+        reportCtx.font = "bold 36px sans-serif";
+        reportCtx.fillText(locationText.toUpperCase(), 40, 775);
+        reportCtx.fillStyle = "#aaa";
+        reportCtx.font = "24px sans-serif";
+        reportCtx.fillText(`LENS: ${currentLens} (16:9)`, 40, 820);
+        reportCtx.fillText(`IŞIK: ${currentLux} Lux`, 40, 860);
+        reportCtx.fillText(`GÜNEŞ: ${currentSun}`, 640, 820);
+        reportCtx.fillText(`AKUSTİK: ${currentEcho} s (RT60)`, 640, 860);
+        reportCtx.fillStyle = "#ff9500";
+        reportCtx.font = "18px sans-serif";
+        reportCtx.fillText("RECCE PRO AUTOMATED REPORT", 40, 920);
+        const image = reportCanvas.toDataURL("image/png");
+        const link = document.createElement('a');
+        link.download = `RECCE_RAPOR_${locationText.replace(/\s+/g, '_')}.png`;
+        link.href = image;
+        link.click();
+    }
+
     document.getElementById('btn-camera').addEventListener('click', startCamera);
-    document.getElementById('btn-audio').addEventListener('click', testAudio);
+    btnAudio.addEventListener('click', testAudio); // Değiştirildi
+    document.getElementById('btn-screenshot').addEventListener('click', takeReportScreenshot);
     timeSlider.addEventListener('input', (e) => updateSun(parseFloat(e.target.value)));
 
     updateSun(14);
