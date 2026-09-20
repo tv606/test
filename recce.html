@@ -2,58 +2,61 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Akıllı Recce Analiz - Prototip</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-        body { background-color: #0f0f11; color: #f0f0f0; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
+        body { background-color: #0f0f11; color: #f0f0f0; display: flex; justify-content: center; align-items: center; min-height: 100vh; height: 100vh; overflow: hidden; }
         
-        /* Mobil Ekran Çerçevesi */
-        .app-container { width: 360px; height: 740px; background-color: #1a1a1e; border-radius: 36px; border: 4px solid #333; overflow: hidden; position: relative; display: flex; flex-direction: column; box-shadow: 0 20px 50px rgba(0,0,0,0.7); }
-        .notch { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 150px; height: 25px; background: #000; border-bottom-left-radius: 15px; border-bottom-right-radius: 15px; z-index: 100; }
+        /* iPhone 13 Mini Tam Ekran Yapısı */
+        .app-container { width: 100%; max-width: 375px; height: 100vh; max-height: 812px; background-color: #1a1a1e; border-radius: 0; border: none; overflow: hidden; position: relative; display: flex; flex-direction: column; }
+        @media (min-width: 380px) {
+            .app-container { height: 740px; border-radius: 36px; border: 4px solid #333; box-shadow: 0 20px 50px rgba(0,0,0,0.7); }
+        }
 
-        /* Başlık ve Durum */
-        .header { background: rgba(26, 26, 30, 0.9); padding: 35px 20px 10px; text-align: center; border-bottom: 1px solid #2a2a30; z-index: 90; }
-        .header h1 { font-size: 16px; color: #ff9500; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;}
-        .header p { font-size: 11px; color: #8e8e93; }
+        .notch { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 120px; height: 20px; background: #000; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; z-index: 100; }
+
+        /* Başlık */
+        .header { background: rgba(26, 26, 30, 0.95); padding: 25px 15px 8px; text-align: center; border-bottom: 1px solid #2a2a30; z-index: 90; flex-shrink: 0; }
+        .header h1 { font-size: 14px; color: #ff9500; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;}
+        .header p { font-size: 10px; color: #8e8e93; }
 
         /* Canlı Kamera Alanı */
-        .camera-section { flex-grow: 1; position: relative; background: #000; overflow: hidden; display: flex; justify-content: center; align-items: center; }
+        .camera-section { flex: 1 1 auto; min-height: 140px; position: relative; background: #000; overflow: hidden; display: flex; justify-content: center; align-items: center; }
         #video-feed { width: 100%; height: 100%; object-fit: cover; }
         #analysis-canvas { display: none; }
         
         /* AR/Analiz Katmanı */
         .ar-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; border: 2px solid rgba(255, 149, 0, 0.4); display: flex; justify-content: center; align-items: center; }
         .ar-grid { width: 80%; height: 80%; border: 1px solid rgba(255, 149, 0, 0.2); background-image: linear-gradient(rgba(255, 149, 0, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 149, 0, 0.1) 1px, transparent 1px); background-size: 20px 20px; }
-        .reticle { position: absolute; width: 40px; height: 40px; border: 2px solid #ff9500; border-radius: 50%; display: flex; justify-content: center; align-items: center; }
+        .reticle { position: absolute; width: 36px; height: 36px; border: 2px solid #ff9500; border-radius: 50%; display: flex; justify-content: center; align-items: center; }
         .reticle-cross { width: 70%; height: 2px; background: #ff9500; position: absolute; }
         .reticle-cross.vert { width: 2px; height: 70%; }
         
-        /* Veri Paneli (Kartlar) */
-        .data-panel { background: #1a1a1e; padding: 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; border-top: 1px solid #2a2a30; }
-        .card { background: #24242b; border-radius: 12px; padding: 12px; border: 1px solid #2a2a30; }
+        /* Veri Paneli */
+        .data-panel { background: #1a1a1e; padding: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; border-top: 1px solid #2a2a30; flex-shrink: 0; }
+        .card { background: #24242b; border-radius: 10px; padding: 8px 10px; border: 1px solid #2a2a30; }
         .card-full { grid-column: span 2; }
-        .card-title { font-size: 11px; text-transform: uppercase; color: #8e8e93; letter-spacing: 0.5px; margin-bottom: 6px; }
-        .metric { font-size: 20px; font-weight: bold; color: #fff; display: flex; align-items: baseline; }
-        .unit { font-size: 12px; color: #aaa; margin-left: 4px; font-weight: normal; }
-        .metric-sub { font-size: 11px; color: #30d158; margin-top: 3px; }
+        .card-title { font-size: 10px; text-transform: uppercase; color: #8e8e93; letter-spacing: 0.5px; margin-bottom: 4px; }
+        .metric { font-size: 16px; font-weight: bold; color: #fff; display: flex; align-items: baseline; }
+        .unit { font-size: 10px; color: #aaa; margin-left: 4px; font-weight: normal; }
+        .metric-sub { font-size: 10px; color: #30d158; margin-top: 2px; }
         .metric-sub.warning { color: #ff3b30; }
         .metric-sub.gold { color: #ffca28; }
 
         /* Simülasyon Slider */
-        .slider-container { margin-top: 10px; }
-        .slider-label { font-size: 11px; color: #aaa; display: flex; justify-content: space-between; margin-bottom: 4px;}
-        input[type=range] { width: 100%; height: 6px; -webkit-appearance: none; background: #333; border-radius: 3px; outline: none; accent-color: #ff9500; }
+        .slider-container { margin-top: 2px; }
+        .slider-label { font-size: 10px; color: #aaa; display: flex; justify-content: space-between; margin-bottom: 2px;}
+        input[type=range] { width: 100%; height: 4px; -webkit-appearance: none; background: #333; border-radius: 2px; outline: none; accent-color: #ff9500; }
         
-        /* Kontrol Butonları */
-        .controls { padding: 15px; display: flex; gap: 10px; background: #1a1a1e; }
-        .btn { flex: 1; padding: 12px; border: none; border-radius: 10px; font-size: 13px; font-weight: bold; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; justify-content: center; gap: 5px;}
+        /* Kontrol Butonları (Sığma Odaklı) */
+        .controls { padding: 10px 10px calc(10px + env(safe-area-inset-bottom)); display: flex; gap: 8px; background: #1a1a1e; flex-shrink: 0; }
+        .btn { flex: 1; padding: 10px 8px; border: none; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; justify-content: center; gap: 4px; white-space: nowrap; }
         .btn-primary { background: #ff9500; color: #000; }
         .btn-primary:active { background: #e68600; }
         .btn-secondary { background: #333; color: #fff; }
         .btn-secondary:active { background: #444; }
-        .icon { font-size: 16px; }
-
+        .icon { font-size: 14px; }
     </style>
 </head>
 <body>
@@ -66,12 +69,10 @@
         <p>Tarihi Depo - Maslak (Canlı)</p>
     </div>
 
-    <!-- 1. CANLI KAMERA VE ANALİZ KATMANI -->
     <div class="camera-section">
         <video id="video-feed" autoplay playsinline muted></video>
         <canvas id="analysis-canvas"></canvas>
         
-        <!-- AR Grafikleri -->
         <div class="ar-overlay">
             <div class="ar-grid"></div>
             <div class="reticle">
@@ -81,38 +82,31 @@
         </div>
     </div>
 
-    <!-- 2. VERİ VE ANALİZ PANELİ -->
     <div class="data-panel">
-        
-        <!-- Işık Analizi (Kameradan Canlı) -->
         <div class="card">
-            <div class="card-title">Kamera Işık Analizi</div>
-            <div class="metric" id="light-val">-- <span class="unit">Lux (Tahmini)</span></div>
+            <div class="card-title">Işık Analizi</div>
+            <div class="metric" id="light-val">-- <span class="unit">Lux</span></div>
             <div class="metric-sub" id="light-status">Bekleniyor...</div>
         </div>
 
-        <!-- Güneş Açısı (Simülasyon) -->
         <div class="card">
             <div class="card-title">Güneş Konumu</div>
             <div class="metric" id="sun-angle">--° <span class="unit">/ --</span></div>
             <div class="metric-sub gold" id="sun-time-status">Aktif</div>
         </div>
 
-        <!-- Simülasyon Kontrolü -->
         <div class="card card-full slider-container">
             <div class="slider-label">Zaman Simülasyonu <span id="time-val">14:00</span></div>
             <input type="range" id="time-slider" min="6" max="20" value="14" step="0.5">
         </div>
 
-        <!-- Akustik Analiz (Mikrofondan Gerçek) -->
         <div class="card card-full">
             <div class="card-title">Akustik Yankı</div>
-            <div class="metric" id="echo-val">-- <span class="unit">s (Tahmini RT60)</span></div>
+            <div class="metric" id="echo-val">-- <span class="unit">s (RT60)</span></div>
             <div class="metric-sub warning" id="echo-status">Test Gerekli</div>
         </div>
     </div>
 
-    <!-- 3. KONTROL BUTONLARI -->
     <div class="controls">
         <button class="btn btn-secondary" id="btn-camera"><span class="icon">📷</span> Kamera Aç</button>
         <button class="btn btn-primary" id="btn-audio"><span class="icon">🎤</span> Ses Testi Yap</button>
@@ -125,24 +119,22 @@
     const ctx = canvas.getContext('2d');
     const timeSlider = document.getElementById('time-slider');
     
-    // Uygulama Durumu
     let isCameraActive = false;
     let audioContext;
     let analyser;
 
-    // --- KAMERA VE IŞIK ANALİZİ ---
     async function startCamera() {
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: { facinemode: 'environment' }, audio: false });
+            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
             video.srcObject = stream;
             isCameraActive = true;
             document.getElementById('btn-camera').innerText = "📷 Kamera Aktif";
-            canvas.width = 64; // Analiz için düşük çözünürlük yeterli
+            canvas.width = 64;
             canvas.height = 64;
             requestAnimationFrame(analyzeFrame);
         } catch (err) {
-            console.error("Kamera erişim hatası:", err);
-            document.getElementById('light-status').innerText = "Hata: Kamera İzni Yok";
+            console.error("Kamera hatası:", err);
+            document.getElementById('light-status').innerText = "Kamera İzni Yok";
             document.getElementById('light-status').className = "metric-sub warning";
         }
     }
@@ -157,19 +149,15 @@
         let r, g, b, avg;
         let colorSum = 0;
 
-        // Tüm piksellerin parlaklığını topla
         for(let i = 0, len = data.length; i < len; i+=4) {
             r = data[i];
             g = data[i+1];
             b = data[i+2];
-            // Parlaklık formülü (Human perception)
             avg = (0.299 * r + 0.587 * g + 0.114 * b);
             colorSum += avg;
         }
 
         const brightness = Math.round(colorSum / (canvas.width * canvas.height));
-        
-        // Basit Parlaklık -> Lux dönüşüm simülasyonu
         const lux = Math.round(brightness * 4.5); 
         updateLightUI(lux);
 
@@ -179,51 +167,44 @@
     function updateLightUI(lux) {
         const lightValEl = document.getElementById('light-val');
         const lightStatusEl = document.getElementById('light-status');
-        lightValEl.innerHTML = `${lux} <span class="unit">Lux (Tahmini)</span>`;
+        lightValEl.innerHTML = `${lux} <span class="unit">Lux</span>`;
 
         if (lux < 150) {
-            lightStatusEl.innerText = "Çok Düşük (Yapay Işık Şart)";
+            lightStatusEl.innerText = "Düşük (Işık Şart)";
             lightStatusEl.className = "metric-sub warning";
         } else if (lux < 600) {
-            lightStatusEl.innerText = "Düşük/Orta (Anlamlı Doğal)";
+            lightStatusEl.innerText = "Orta (Yeterli)";
             lightStatusEl.className = "metric-sub warning";
         } else {
-            lightStatusEl.innerText = "Yüksek (İdeal Doğal Işık)";
+            lightStatusEl.innerText = "Yüksek (İdeal)";
             lightStatusEl.className = "metric-sub";
         }
     }
 
-
-    // --- GÜNEŞ VE ZAMAN SİMÜLASYONU ---
     function updateSun(val) {
-        // Saati formatla (örn: 14.5 -> 14:30)
         const hours = Math.floor(val);
         const minutes = (val % 1) === 0.5 ? "30" : "00";
         document.getElementById('time-val').innerText = `${hours}:${minutes}`;
         
-        // Basit açı ve yön simülasyonu
-        let angle = Math.round((val - 6) * 12.8); // 6:00=0°, 20:00=180°
+        let angle = Math.round((val - 6) * 12.8);
         if(angle < 0) angle = 0; if(angle > 180) angle = 180;
         
         const direction = (val > 13) ? "KB" : "GD";
         document.getElementById('sun-angle').innerHTML = `${angle}° <span class="unit">/ ${direction}</span>`;
         
-        // Altın Saat Kontrolü
         const sunStatusEl = document.getElementById('sun-time-status');
         if((val >= 6 && val <= 7.5) || (val >= 18.5 && val <= 20)) {
-            sunStatusEl.innerText = "Altın Saat (İdeal)";
+            sunStatusEl.innerText = "Altın Saat";
             sunStatusEl.className = "metric-sub gold";
         } else if (val < 6.5 || val > 19.5) {
-            sunStatusEl.innerText = "Gece/Geçiş";
+            sunStatusEl.innerText = "Gece";
             sunStatusEl.className = "metric-sub warning";
         } else {
-            sunStatusEl.innerText = "Gündüz (Normal)";
+            sunStatusEl.innerText = "Gündüz";
             sunStatusEl.className = "metric-sub";
         }
     }
 
-
-    // --- AKUSTİK ANALİZ (MİKROFON SİMÜLASYONU) ---
     async function testAudio() {
         if (!audioContext) {
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -231,7 +212,7 @@
         }
 
         const audioStatusEl = document.getElementById('echo-status');
-        audioStatusEl.innerText = "Dinleniyor... (Sessiz Olun)";
+        audioStatusEl.innerText = "Dinleniyor...";
         audioStatusEl.className = "metric-sub";
 
         try {
@@ -240,28 +221,24 @@
             source.connect(analyser);
             analyser.fftSize = 256;
             
-            // 2 saniye dinle ve analiz et
             setTimeout(() => {
                 const bufferLength = analyser.frequencyBinCount;
                 const dataArray = new Uint8Array(bufferLength);
                 analyser.getByteFrequencyData(dataArray);
                 
-                // Basit yankı simülasyonu (ortalama gürültüye göre)
                 let sum = 0;
                 for(let i=0; i<bufferLength; i++) { sum += dataArray[i]; }
                 const avgVolume = sum / bufferLength;
 
-                // Tahmini yankı süresi (ortalama ses şiddetine göre uydurulmuş)
                 const echoTime = (0.5 + (avgVolume / 255) * 2.5).toFixed(1);
                 updateAudioUI(echoTime);
                 
-                // Kaynağı kapat
                 stream.getTracks().forEach(track => track.stop());
             }, 2000);
 
         } catch (err) {
-            console.error("Mikrofon erişim hatası:", err);
-            audioStatusEl.innerText = "Hata: Mikrofon İzni Yok";
+            console.error("Mikrofon hatası:", err);
+            audioStatusEl.innerText = "Mikrofon İzni Yok";
             audioStatusEl.className = "metric-sub warning";
         }
     }
@@ -269,29 +246,25 @@
     function updateAudioUI(echo) {
         const echoValEl = document.getElementById('echo-val');
         const echoStatusEl = document.getElementById('echo-status');
-        echoValEl.innerHTML = `${echo} <span class="unit">s (Tahmini RT60)</span>`;
+        echoValEl.innerHTML = `${echo} <span class="unit">s (RT60)</span>`;
 
         if(echo > 1.3) {
-            echoStatusEl.innerText = "Yüksek Yankı (Yalıtım Önerilir)";
+            echoStatusEl.innerText = "Yüksek Yankı";
             echoStatusEl.className = "metric-sub warning";
         } else if (echo > 0.8) {
-            echoStatusEl.innerText = "Orta Yankı (Diolog İçin Sınır)";
+            echoStatusEl.innerText = "Orta Yankı";
             echoStatusEl.className = "metric-sub warning";
         } else {
-            echoStatusEl.innerText = "İdeal Ses Ortamı";
+            echoStatusEl.innerText = "İdeal Ses";
             echoStatusEl.className = "metric-sub";
         }
     }
 
-
-    // --- EVENT LISTENERS ---
     document.getElementById('btn-camera').addEventListener('click', startCamera);
     document.getElementById('btn-audio').addEventListener('click', testAudio);
     timeSlider.addEventListener('input', (e) => updateSun(parseFloat(e.target.value)));
 
-    // Başlangıç Değerleri
     updateSun(14);
-
 </script>
 
 </body>
