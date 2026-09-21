@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Military Walkie Talkie</title>
+  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+  <style>
+    * { box-sizing: border-box; user-select: none; -webkit-user-select: none; margin: 0; padding: 0; }
+    body {
+      width: 100vw; height: 100vh; background: #0a0c0a;
+      display: flex; justify-content: center; align-items: flex-start;
+      font-family: 'Courier New', monospace; overflow: hidden;
+    }
+    
+    /* Cihaz Gövdesi */
+    .walkie-talkie {
+      width: 100vw; height: 100vh; max-width: 390px; max-height: 780px;
+      background: linear-gradient(135deg, #4b533d, #2c3322);
+      border: 4px solid #1c2116; border-top: none; border-radius: 0 0 28px 28px; padding: 16px;
+      display: flex; flex-direction: column; justify-content: space-between;
+      align-items: center; box-shadow: inset 0 0 15px rgba(0,0,0,0.8), 0 12px 30px rgba(0,0,0,0.9);
+      position: relative;
+    }
+
+    /* Üst Hoparlör/Izgara */
+    .speaker-box {
+      width: 100%; height: 60px; background: #22271c; border-radius: 12px;
+      border: 2px solid #161a12; display: flex; justify-content: space-around;
+      align-items: center; padding: 0 20px; box-shadow: inset 0 2px 6px #000;
+    }
+    .speaker-vent { width: 14px; height: 38px; background: #11140e; border-radius: 7px; border: 1px solid #333a2a; }
+
+    /* Ana Ekran Modülü */
+    .screen-module {
+      width: 100%; background: #1a1e15; border: 3px solid #11140e;
+      border-radius: 10px; padding: 10px; display: flex; gap: 10px; align-items: center;
+    }
+    .lcd-screen {
+      flex: 2; background: #5a6648; border: 2px solid #2d3324;
+      border-radius: 4px; padding: 8px; color: #0d1208; font-weight: bold;
+      box-shadow: inset 0 0 8px rgba(0,0,0,0.6); font-size: 11px;
+    }
+    .lcd-line { display: flex; justify-content: space-between; margin-bottom: 4px; }
+    .lcd-input { width: 60px; background: #6b7856; border: 1px solid #1d2216; font-family: inherit; font-size: 10px; text-align: center; color: #000; }
+    
+    /* Gösterge Kadranı (Analog Metre) */
+    .vu-meter {
+      flex: 1; height: 50px; background: #d3c49e; border: 2px solid #222;
+      border-radius: 4px; position: relative; overflow: hidden;
+    }
+    .vu-needle {
+      width: 2px; height: 35px; background: #d9381e; position: absolute;
+      bottom: -10px; left: 50%; transform-origin: bottom center;
+      transform: rotate(-25deg); transition: transform 0.2s;
+    }
+    .vu-label { font-size: 7px; text-align: center; margin-top: 4px; font-weight: bold; color: #333; }
+
+    /* Orta Kontrol Paneli */
+    .controls-panel {
+      width: 100%; display: flex; justify-content: space-between; align-items: center;
+      background: #252b1e; padding: 10px; border-radius: 10px; border: 2px solid #171b13;
+    }
+    .channel-dial {
+      width: 80px; height: 80px; background: radial-gradient(#3a4231, #151811);
+      border-radius: 50%; border: 4px solid #0f120c; position: relative;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.7);
+    }
+    .dial-indicator {
+      width: 4px; height: 28px; background: #e0a96d; position: absolute;
+      top: 6px; left: 50%; transform: translateX(-50%); border-radius: 2px;
+    }
+    .switches { display: flex; flex-direction: column; gap: 6px; width: 130px; }
+    .switch-row { display: flex; justify-content: space-between; align-items: center; font-size: 9px; color: #a3b092; font-weight: bold; }
+    .btn-action {
+      background: #38422d; color: #d4e0c4; border: 1px solid #1c2216;
+      padding: 4px 8px; border-radius: 4px; font-size: 9px; cursor: pointer; font-family: inherit;
+    }
+    .btn-action:active { background: #536143; }
+
+    /* Dev Kırmızı PTT (Bas-Konuş) Butonu */
+    .ptt-wrapper {
+      width: 200px; height: 200px; background: #161a12; border-radius: 50%;
+      display: flex; justify-content: center; align-items: center;
+      border: 6px solid #0d100b; box-shadow: 0 8px 20px rgba(0,0,0,0.8);
+      position: relative;
+    }
+    .ptt-button {
+      width: 165px; height: 165px; border-radius: 50%; border: none;
+      background: radial-gradient(#d9381e, #801808); color: #fff;
+      font-family: inherit; font-weight: bold; text-align: center;
+      box-shadow: 0 8px 0 #4a0d04, 0 12px 15px rgba(0,0,0,0.6);
+      cursor: pointer; -webkit-tap-highlight-color: transparent;
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+    }
+    .ptt-button:active {
+      transform: translateY(5px);
+      box-shadow: 0 3px 0 #4a0d04, 0 6px 8px rgba(0,0,0,0.6);
+      background: radial-gradient(#2ecc71, #157a3e);
+    }
+    .ptt-title { font-size: 15px; margin-bottom: 2px; }
+    .ptt-sub { font-size: 9px; opacity: 0.8; }
+
+    /* Alt Durum Ekranı */
+    .status-display {
+      width: 100%; background: #0e110a; color: #40ff40; text-align: center;
+      padding: 8px; font-size: 12px; border-radius: 6px; border: 1px solid #222b19;
+      letter-spacing: 1px; font-weight: bold;
+    }
+
+    /* Vida Detayları */
+    .screw {
+      width: 8px; height: 8px; background: #555; border-radius: 50%;
+      position: absolute; border: 1px solid #222;
+    }
+    .screw-bl { bottom: 8px; left: 8px; }
+    .screw-br { bottom: 8px; right: 8px; }
+  </style>
+</head>
+<body>
+
+  <div class="walkie-talkie">
+    <div class="screw screw-bl"></div><div class="screw screw-br"></div>
+
+    <!-- Hoparlör -->
+    <div class="speaker-box">
+      <div class="speaker-vent"></div>
+      <div class="speaker-vent"></div>
+      <div class="speaker-vent"></div>
+    </div>
+
+    <!-- LCD + Analog Gösterge -->
+    <div class="screen-module">
+      <div class="lcd-screen">
+        <div class="lcd-line"><span>ID: <b id="my-id">...</b></span></div>
+        <div class="lcd-line">
+          <span>HEDEF:</span>
+          <input type="text" id="peer-id" class="lcd-input" placeholder="ID Gir">
+        </div>
+      </div>
+      <div class="vu-meter">
+        <div class="vu-label">SIGNAL</div>
+        <div class="vu-needle" id="needle"></div>
+      </div>
+    </div>
+
+    <!-- Kontrol Paneli -->
+    <div class="controls-panel">
+      <div class="channel-dial">
+        <div class="dial-indicator"></div>
+      </div>
+      <div class="switches">
+        <div class="switch-row">
+          <span>PWR</span>
+          <button class="btn-action" onclick="connect()">BAĞLAN</button>
+        </div>
+        <div class="switch-row">
+          <span>LINK</span>
+          <button class="btn-action" onclick="copyLink()">KOPYALA</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PTT Butonu -->
+    <div class="ptt-wrapper">
+      <button class="ptt-button" id="talkBtn">
+        <span class="ptt-title">BAS KONUŞ</span>
+        <span class="ptt-sub">PRESS TO TALK</span>
+      </button>
+    </div>
+
+    <!-- Durum Çubuğu -->
+    <div class="status-display" id="status">BEKLEMEDE...</div>
+  </div>
+
+  <script>
+    let localStream, peer = new Peer(), targetId = window.location.hash.substring(1);
+
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(s => {
+      localStream = s; localStream.getAudioTracks()[0].enabled = false;
+    });
+
+    peer.on('open', id => {
+      document.getElementById('my-id').innerText = id;
+      if (targetId && targetId !== id) connectTo(targetId);
+    });
+
+    peer.on('call', call => {
+      call.answer(localStream);
+      call.on('stream', playStream);
+      setStatus("BAĞLANDI");
+      setNeedle(15);
+    });
+
+    function connect() {
+      const id = document.getElementById('peer-id').value;
+      if (id) connectTo(id);
+    }
+
+    function connectTo(id) {
+      const call = peer.call(id, localStream);
+      call.on('stream', playStream);
+      setStatus("BAĞLANDI");
+      setNeedle(15);
+    }
+
+    function playStream(s) {
+      const a = new Audio(); a.srcObject = s; a.play();
+    }
+
+    function copyLink() {
+      const url = `${window.location.origin}${window.location.pathname}#${peer.id}`;
+      navigator.clipboard.writeText(url);
+      setStatus("LİNK KOPYALANDI");
+    }
+
+    function setStatus(txt) { document.getElementById('status').innerText = txt; }
+    
+    function setNeedle(deg) { document.getElementById('needle').style.transform = `rotate(${deg}deg)`; }
+
+    const btn = document.getElementById('talkBtn');
+    const start = e => {
+      e.preventDefault();
+      if (localStream) localStream.getAudioTracks()[0].enabled = true;
+      setStatus("YAYINDA (TRANSMITTING)");
+      setNeedle(30);
+    };
+    const stop = e => {
+      e.preventDefault();
+      if (localStream) localStream.getAudioTracks()[0].enabled = false;
+      setStatus("BAĞLANDI");
+      setNeedle(15);
+    };
+
+    btn.addEventListener('touchstart', start); btn.addEventListener('touchend', stop);
+    btn.addEventListener('mousedown', start); btn.addEventListener('mouseup', stop);
+  </script>
+</body>
+</html>
