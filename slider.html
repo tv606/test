@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Slider Kamera HD</title>
+<title>Slider & Dolly Zoom Kamera</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
   
@@ -67,7 +67,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: rgba(0,0,0,0.6);
+    background: rgba(0,0,0,0.65);
     padding: 10px 16px;
     border-radius: 20px;
     backdrop-filter: blur(12px);
@@ -100,30 +100,30 @@
     pointer-events: auto;
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    background: rgba(0,0,0,0.65);
+    gap: 10px;
+    background: rgba(0,0,0,0.7);
     padding: 16px;
     border-radius: 24px;
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
   }
 
-  .speed-selector {
+  .control-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 10px;
   }
 
-  .speed-selector label {
+  .control-row label {
     font-size: 13px;
     font-weight: 600;
   }
 
-  .speed-selector select {
+  .control-row select {
     background: #2c2c2e;
     color: #fff;
-    border: none;
+    border: 1px solid #444;
     padding: 8px 12px;
     border-radius: 10px;
     font-size: 13px;
@@ -141,6 +141,16 @@
     font-size: 14px;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
+  }
+
+  .btn-secondary {
+    background: #2c2c2e;
+    color: #fff;
+  }
+
+  .btn-active {
+    background: #30d158;
+    color: #000;
   }
 
   .info-text {
@@ -164,12 +174,12 @@
         <div id="rec-dot" class="dot"></div>
         <span id="rec-status">HAZIR</span>
       </div>
-      <div id="mode-text" style="font-size: 12px;">Mod: Döngüsel Zoom</div>
+      <div id="mode-text" style="font-size: 12px;">Mod: Normal Zoom Loop</div>
     </div>
 
     <div class="controls">
-      <div class="speed-selector">
-        <label for="speed-select">Zoom Süresi (Tek Yön):</label>
+      <div class="control-row">
+        <label for="speed-select">Zoom Hızı (Süre):</label>
         <select id="speed-select">
           <option value="10000">10 Saniye</option>
           <option value="15000" selected>15 Saniye</option>
@@ -177,8 +187,9 @@
           <option value="30000">30 Saniye</option>
         </select>
       </div>
+      <button id="dolly-btn" class="btn btn-secondary">Dolly Zoom Efekti: Pasif</button>
       <button id="record-btn" class="btn">Kaydı Başlat</button>
-      <div class="info-text">HD Kalite. Zoom In/Out döngüsü. Kayıt sonrası Galeriye kaydet.</div>
+      <div class="info-text">Ses senkronize edilmiştir. Zoom In/Out döngüsü aktiftir.</div>
     </div>
   </div>
 </div>
@@ -189,11 +200,14 @@
   const ctx = canvas.getContext('2d');
   
   const recordBtn = document.getElementById('record-btn');
+  const dollyBtn = document.getElementById('dolly-btn');
   const speedSelect = document.getElementById('speed-select');
+  const modeText = document.getElementById('mode-text');
   const recDot = document.getElementById('rec-dot');
   const recStatus = document.getElementById('rec-status');
   
   let isRecording = false;
+  let isDolly = false;
   let mediaRecorder = null;
   let recordedChunks = [];
   let videoStream = null;
@@ -201,10 +215,23 @@
   let currentScale = 1.0;
   let zoomStartTime = null;
   let zoomDuration = 15000;
-  const MAX_SCALE = 1.35;
+  const MAX_SCALE = 1.40;
 
   speedSelect.addEventListener('change', (e) => {
     zoomDuration = parseInt(e.target.value);
+  });
+
+  dollyBtn.addEventListener('click', () => {
+    isDolly = !isDolly;
+    if (isDolly) {
+      dollyBtn.textContent = 'Dolly Zoom Efekti: Aktif';
+      dollyBtn.classList.add('btn-active');
+      modeText.textContent = 'Mod: Vertigo / Dolly Zoom';
+    } else {
+      dollyBtn.textContent = 'Dolly Zoom Efekti: Pasif';
+      dollyBtn.classList.remove('btn-active');
+      modeText.textContent = 'Mod: Normal Zoom Loop';
+    }
   });
 
   async function startCamera() {
@@ -222,7 +249,6 @@
       video.play();
       
       video.onloadedmetadata = () => {
-        // Yüksek kalite için yüksek çözünürlüklü Canvas
         canvas.width = video.videoWidth || 1920;
         canvas.height = video.videoHeight || 1080;
         renderFrame();
@@ -237,14 +263,13 @@
       if (!zoomStartTime) zoomStartTime = timestamp;
       
       const elapsed = (timestamp - zoomStartTime) % (zoomDuration * 2);
-      
+      let progress = 0;
+
       if (elapsed < zoomDuration) {
-        // Zoom In aşaması
-        const progress = elapsed / zoomDuration;
+        progress = elapsed / zoomDuration;
         currentScale = 1.0 + (progress * (MAX_SCALE - 1.0));
       } else {
-        // Zoom Out aşaması
-        const progress = (elapsed - zoomDuration) / zoomDuration;
+        progress = (elapsed - zoomDuration) / zoomDuration;
         currentScale = MAX_SCALE - (progress * (MAX_SCALE - 1.0));
       }
     } else {
@@ -255,7 +280,15 @@
     ctx.save();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    // Merkeze Hizala
     ctx.translate(canvas.width / 2, canvas.height / 2);
+
+    // Dolly Zoom Yapay Algoritması (Arka plan genişlerken odağı sarsma)
+    if (isDolly && isRecording) {
+      const dollyOffset = (currentScale - 1.0) * 40;
+      ctx.translate(0, dollyOffset);
+    }
+
     ctx.scale(currentScale, currentScale);
 
     // Ön Kamera Ayna Etkisi
@@ -278,15 +311,21 @@
   function startRecording() {
     recordedChunks = [];
     
+    // Canvas görüntüsü al
     const canvasStream = canvas.captureStream(30);
-    const audioTrack = videoStream.getAudioTracks()[0];
-    if (audioTrack) {
-      canvasStream.addTrack(audioTrack);
+    
+    // Doğrudan mikrofon ses kanalını ekle
+    const audioTracks = videoStream.getAudioTracks();
+    if (audioTracks.length > 0) {
+      canvasStream.addTrack(audioTracks[0]);
     }
 
     let options = { mimeType: 'video/mp4;codecs=avc1', videoBitsPerSecond: 12000000 };
     if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-      options = { mimeType: 'video/webm;codecs=vp9', videoBitsPerSecond: 12000000 };
+      options = { mimeType: 'video/mp4' };
+    }
+    if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+      options = { mimeType: 'video/webm' };
     }
 
     try {
@@ -318,13 +357,13 @@
 
   async function saveVideo() {
     const blob = new Blob(recordedChunks, { type: mediaRecorder.mimeType || 'video/mp4' });
-    const file = new File([blob], `slider_hd_${Date.now()}.mp4`, { type: 'video/mp4' });
+    const file = new File([blob], `slider_dolly_${Date.now()}.mp4`, { type: 'video/mp4' });
 
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       try {
         await navigator.share({
           files: [file],
-          title: 'HD Slider Kamera Kaydı'
+          title: 'Slider & Dolly Kamera Kaydı'
         });
       } catch (err) {
         fallbackDownload(blob);
@@ -339,7 +378,7 @@
     const a = document.createElement('a');
     a.style.display = 'none';
     a.href = url;
-    a.download = `slider_hd_${Date.now()}.mp4`;
+    a.download = `slider_dolly_${Date.now()}.mp4`;
     document.body.appendChild(a);
     a.click();
     setTimeout(() => {
