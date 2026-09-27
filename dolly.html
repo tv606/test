@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Slider & Dolly Zoom Kamera</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
+  
+  html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: #000;
+    color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  #app-container {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #000;
+  }
+
+  #viewfinder {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  #camera-feed, #canvas-render {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  #camera-feed {
+    display: none;
+  }
+
+  .overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 2;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: calc(env(safe-area-inset-top) + 12px) 16px calc(env(safe-area-inset-bottom) + 16px) 16px;
+  }
+
+  .status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(0,0,0,0.65);
+    padding: 10px 16px;
+    border-radius: 20px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .rec-indicator {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: bold;
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    background: #8e8e93;
+    border-radius: 50%;
+  }
+
+  .dot.recording {
+    background: #ff3b30;
+    animation: blink 1s infinite;
+  }
+
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .controls {
+    pointer-events: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: rgba(0,0,0,0.7);
+    padding: 16px;
+    border-radius: 24px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .control-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .control-row label {
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .control-row select {
+    background: #2c2c2e;
+    color: #fff;
+    border: 1px solid #444;
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-size: 13px;
+    outline: none;
+  }
+
+  .btn {
+    width: 100%;
+    background: #ff3b30;
+    color: #fff;
+    border: none;
+    padding: 14px;
+    border-radius: 14px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .btn-secondary {
+    background: #2c2c2e;
+    color: #fff;
+  }
+
+  .btn-active {
+    background: #30d158;
+    color: #000;
+  }
+
+  .info-text {
+    font-size: 11px;
+    color: #aaa;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<div id="app-container">
+  <div id="viewfinder">
+    <video id="camera-feed" autoplay playsinline muted></video>
+    <canvas id="canvas-render"></canvas>
+  </div>
+  
+  <div class="overlay">
+    <div class="status-bar">
+      <div class="rec-indicator">
+        <div id="rec-dot" class="dot"></div>
+        <span id="rec-status">HAZIR</span>
+      </div>
+      <div id="mode-text" style="font-size: 12px;">Mod: Normal Zoom Loop</div>
+    </div>
+
+    <div class="controls">
+      <div class="control-row">
+        <label for="speed-select">Zoom Hızı (Süre):</label>
+        <select id="speed-select">
+          <option value="10000">10 Saniye</option>
+          <option value="15000" selected>15 Saniye</option>
+          <option value="20000">20 Saniye</option>
+          <option value="30000">30 Saniye</option>
+        </select>
+      </div>
+      <button id="dolly-btn" class="btn btn-secondary">Dolly Zoom Efekti: Pasif</button>
+      <button id="record-btn" class="btn">Kaydı Başlat</button>
+      <div class="info-text">Ses senkronize edilmiştir. Zoom In/Out döngüsü aktiftir.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const video = document.getElementById('camera-feed');
+  const canvas = document.getElementById('canvas-render');
+  const ctx = canvas.getContext('2d');
+  
+  const recordBtn = document.getElementById('record-btn');
+  const dollyBtn = document.getElementById('dolly-btn');
+  const speedSelect = document.getElementById('speed-select');
+  const modeText = document.getElementById('mode-text');
+  const recDot = document.getElementById('rec-dot');
+  const recStatus = document.getElementById('rec-status');
+  
+  let isRecording = false;
+  let isDolly = false;
+  let mediaRecorder = null;
+  let recordedChunks = [];
+  let videoStream = null;
+
+  let currentScale = 1.0;
+  let zoomStartTime = null;
+  let zoomDuration = 15000;
+  const MAX_SCALE = 1.40;
+
+  speedSelect.addEventListener('change', (e) => {
+    zoomDuration = parseInt(e.target.value);
+  });
+
+  dollyBtn.addEventListener('click', () => {
+    isDolly = !isDolly;
+    if (isDolly) {
+      dollyBtn.textContent = 'Dolly Zoom Efekti: Aktif';
+      dollyBtn.classList.add('btn-active');
+      modeText.textContent = 'Mod: Vertigo / Dolly Zoom';
+    } else {
+      dollyBtn.textContent = 'Dolly Zoom Efekti: Pasif';
+      dollyBtn.classList.remove('btn-active');
+      modeText.textContent = 'Mod: Normal Zoom Loop';
+    }
+  });
+
+  async function startCamera() {
+    try {
+      videoStream = await navigator.mediaDevices.getUserMedia({ 
+        video: { 
+          facingMode: 'user', 
+          width: { ideal: 1920 }, 
+          height: { ideal: 1080 },
+          frameRate: { ideal: 30 }
+        }, 
+        audio: true 
+      });
+      video.srcObject = videoStream;
+      video.play();
+      
+      video.onloadedmetadata = () => {
+        canvas.width = video.videoWidth || 1920;
+        canvas.height = video.videoHeight || 1080;
+        renderFrame();
+      };
+    } catch (e) {
+      alert('Kamera veya mikrofon erişimi reddedildi.');
+    }
+  }
+
+  function renderFrame(timestamp) {
+    if (isRecording) {
+      if (!zoomStartTime) zoomStartTime = timestamp;
+      
+      const elapsed = (timestamp - zoomStartTime) % (zoomDuration * 2);
+      let progress = 0;
+
+      if (elapsed < zoomDuration) {
+        progress = elapsed / zoomDuration;
+        currentScale = 1.0 + (progress * (MAX_SCALE - 1.0));
+      } else {
+        progress = (elapsed - zoomDuration) / zoomDuration;
+        currentScale = MAX_SCALE - (progress * (MAX_SCALE - 1.0));
+      }
+    } else {
+      currentScale = 1.0;
+      zoomStartTime = null;
+    }
+
+    ctx.save();
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Merkeze Hizala
+    ctx.translate(canvas.width / 2, canvas.height / 2);
+
+    // Dolly Zoom Yapay Algoritması (Arka plan genişlerken odağı sarsma)
+    if (isDolly && isRecording) {
+      const dollyOffset = (currentScale - 1.0) * 40;
+      ctx.translate(0, dollyOffset);
+    }
+
+    ctx.scale(currentScale, currentScale);
+
+    // Ön Kamera Ayna Etkisi
+    ctx.scale(-1, 1);
+
+    ctx.drawImage(video, -canvas.width / 2, -canvas.height / 2, canvas.width, canvas.height);
+    ctx.restore();
+
+    requestAnimationFrame(renderFrame);
+  }
+
+  recordBtn.addEventListener('click', () => {
+    if (!isRecording) {
+      startRecording();
+    } else {
+      stopRecording();
+    }
+  });
+
+  function startRecording() {
+    recordedChunks = [];
+    
+    // Canvas görüntüsü al
+    const canvasStream = canvas.captureStream(30);
+    
+    // Doğrudan mikrofon ses kanalını ekle
+    const audioTracks = videoStream.getAudioTracks();
+    if (audioTracks.length > 0) {
+      canvasStream.addTrack(audioTracks[0]);
+    }
+
+    let options = { mimeType: 'video/mp4;codecs=avc1', videoBitsPerSecond: 12000000 };
+    if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+      options = { mimeType: 'video/mp4' };
+    }
+    if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+      options = { mimeType: 'video/webm' };
+    }
+
+    try {
+      mediaRecorder = new MediaRecorder(canvasStream, options);
+    } catch (e) {
+      mediaRecorder = new MediaRecorder(canvasStream);
+    }
+
+    mediaRecorder.ondataavailable = (e) => {
+      if (e.data.size > 0) recordedChunks.push(e.data);
+    };
+
+    mediaRecorder.onstop = saveVideo;
+    mediaRecorder.start(1000);
+
+    isRecording = true;
+    recordBtn.textContent = 'Kaydı Bitir';
+    recDot.classList.add('recording');
+    recStatus.textContent = 'KAYITTA';
+  }
+
+  function stopRecording() {
+    mediaRecorder.stop();
+    isRecording = false;
+    recordBtn.textContent = 'Kaydı Başlat';
+    recDot.classList.remove('recording');
+    recStatus.textContent = 'HAZIR';
+  }
+
+  async function saveVideo() {
+    const blob = new Blob(recordedChunks, { type: mediaRecorder.mimeType || 'video/mp4' });
+    const file = new File([blob], `slider_dolly_${Date.now()}.mp4`, { type: 'video/mp4' });
+
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({
+          files: [file],
+          title: 'Slider & Dolly Kamera Kaydı'
+        });
+      } catch (err) {
+        fallbackDownload(blob);
+      }
+    } else {
+      fallbackDownload(blob);
+    }
+  }
+
+  function fallbackDownload(blob) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+    a.download = `slider_dolly_${Date.now()}.mp4`;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    }, 100);
+  }
+
+  startCamera();
+</script>
+
+</body>
+</html>
