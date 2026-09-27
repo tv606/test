@@ -49,12 +49,14 @@
     max-height: 100vh;
   }
 
-  #camera-feed {
+  #camera-feed, #canvas-render {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transform-origin: 50% 50%;
-    transition: transform 2.5s cubic-bezier(0.4, 0.0, 0.2, 1);
+  }
+
+  #camera-feed {
+    display: none;
   }
 
   .overlay {
@@ -153,6 +155,7 @@
 <div id="app-container">
   <div id="viewfinder">
     <video id="camera-feed" autoplay playsinline muted></video>
+    <canvas id="canvas-render"></canvas>
   </div>
   
   <div class="overlay">
@@ -170,7 +173,7 @@
         <button id="aspect-btn" class="btn">16:9 Mod</button>
       </div>
       <button id="record-btn" class="btn btn-rec">Kaydı Başlat</button>
-      <div class="info-text">Merkez odaklı akıcı hareketler ve yüksek kaliteli kayıt.</div>
+      <div class="info-text">Ayna modlu akıcı hareketler ve sorunsuz kayıt.</div>
     </div>
   </div>
 </div>
@@ -178,6 +181,9 @@
 <script>
   const viewfinder = document.getElementById('viewfinder');
   const video = document.getElementById('camera-feed');
+  const canvas = document.getElementById('canvas-render');
+  const ctx = canvas.getContext('2d');
+  
   const toggleBtn = document.getElementById('toggle-btn');
   const aspectBtn = document.getElementById('aspect-btn');
   const recordBtn = document.getElementById('record-btn');
@@ -188,36 +194,80 @@
   let isActive = false;
   let is169 = false;
   let isRecording = false;
-  let intervalId = null;
   let mediaRecorder = null;
   let recordedChunks = [];
-  let stream = null;
+  let videoStream = null;
+
+  // Hedef ve mevcut animasyon değerleri (Akıcılık için Lerp)
+  let currentTransform = { scale: 1, tx: 0, ty: 0, rotate: 0 };
+  let targetTransform = { scale: 1, tx: 0, ty: 0, rotate: 0 };
 
   async function startCamera() {
     try {
-      stream = await navigator.mediaDevices.getUserMedia({ 
+      videoStream = await navigator.mediaDevices.getUserMedia({ 
         video: { 
           facingMode: 'user', 
-          width: { ideal: 1920 }, 
-          height: { ideal: 1080 },
-          frameRate: { ideal: 60 }
+          width: { ideal: 1280 }, 
+          height: { ideal: 720 },
+          frameRate: { ideal: 30 }
         }, 
         audio: true 
       });
-      video.srcObject = stream;
+      video.srcObject = videoStream;
+      video.play();
+      
+      video.onloadedmetadata = () => {
+        canvas.width = video.videoWidth || 1280;
+        canvas.height = video.videoHeight || 720;
+        renderFrame();
+      };
     } catch (e) {
       alert('Kamera veya mikrofon erişimi reddedildi.');
     }
   }
 
-  function applyRandomTransform() {
-    if (!isActive) return;
-    const scale = (1.15 + Math.random() * 0.25).toFixed(2);
-    const translateX = (-1 * (Math.random() * 24 - 12)).toFixed(1);
-    const translateY = (Math.random() * 24 - 12).toFixed(1);
-    const rotate = (Math.random() * 4 - 2).toFixed(1);
-    
-    video.style.transform = `scale(${scale}) translate(${translateX}px, ${translateY}px) rotate(${rotate}deg)`;
+  function lerp(start, end, amt) {
+    return (1 - amt) * start + amt * end;
+  }
+
+  function updateTargets() {
+    if (!isActive) {
+      targetTransform = { scale: 1, tx: 0, ty: 0, rotate: 0 };
+      return;
+    }
+    targetTransform = {
+      scale: 1.15 + Math.random() * 0.25,
+      tx: (Math.random() * 40 - 20),
+      ty: (Math.random() * 40 - 20),
+      rotate: (Math.random() * 4 - 2)
+    };
+  }
+
+  let transformInterval = null;
+
+  function renderFrame() {
+    // Yumuşak geçişler (Lerp)
+    currentTransform.scale = lerp(currentTransform.scale, targetTransform.scale, 0.03);
+    currentTransform.tx = lerp(currentTransform.tx, targetTransform.tx, 0.03);
+    currentTransform.ty = lerp(currentTransform.ty, targetTransform.ty, 0.03);
+    currentTransform.rotate = lerp(currentTransform.rotate, targetTransform.rotate, 0.03);
+
+    ctx.save();
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Merkeze taşı, transform uygula, geri taşı
+    ctx.translate(canvas.width / 2, canvas.height / 2);
+    ctx.scale(currentTransform.scale, currentTransform.scale);
+    ctx.translate(currentTransform.tx, currentTransform.ty);
+    ctx.rotate((currentTransform.rotate * Math.PI) / 180);
+
+    // Ayna etkisi (Ayna modu için -1 scaleX)
+    ctx.scale(-1, 1);
+
+    ctx.drawImage(video, -canvas.width / 2, -canvas.height / 2, canvas.width, canvas.height);
+    ctx.restore();
+
+    requestAnimationFrame(renderFrame);
   }
 
   toggleBtn.addEventListener('click', () => {
@@ -226,14 +276,14 @@
       toggleBtn.textContent = 'Hareketi Durdur';
       toggleBtn.classList.add('btn-active');
       modeText.textContent = 'Mod: Dinamik Kameraman';
-      applyRandomTransform();
-      intervalId = setInterval(applyRandomTransform, 2800);
+      updateTargets();
+      transformInterval = setInterval(updateTargets, 2500);
     } else {
       toggleBtn.textContent = 'Rastgele Hareket';
       toggleBtn.classList.remove('btn-active');
       modeText.textContent = 'Mod: Sabit';
-      clearInterval(intervalId);
-      video.style.transform = 'scale(1) translate(0px, 0px) rotate(0deg)';
+      clearInterval(transformInterval);
+      targetTransform = { scale: 1, tx: 0, ty: 0, rotate: 0 };
     }
   });
 
@@ -258,17 +308,23 @@
 
   function startRecording() {
     recordedChunks = [];
-    const mimeType = MediaRecorder.isTypeSupported('video/mp4;codecs=avc1') 
-      ? 'video/mp4;codecs=avc1' 
-      : 'video/webm;codecs=vp9';
+    
+    // Canvas görüntüsü ile mikrofon sesini birleştir
+    const canvasStream = canvas.captureStream(30);
+    const audioTrack = videoStream.getAudioTracks()[0];
+    if (audioTrack) {
+      canvasStream.addTrack(audioTrack);
+    }
+
+    let options = { mimeType: 'video/webm' };
+    if (MediaRecorder.isTypeSupported('video/mp4')) {
+      options = { mimeType: 'video/mp4' };
+    }
 
     try {
-      mediaRecorder = new MediaRecorder(stream, {
-        mimeType: mimeType,
-        videoBitsPerSecond: 8000000
-      });
+      mediaRecorder = new MediaRecorder(canvasStream, options);
     } catch (e) {
-      mediaRecorder = new MediaRecorder(stream);
+      mediaRecorder = new MediaRecorder(canvasStream);
     }
 
     mediaRecorder.ondataavailable = (e) => {
@@ -276,7 +332,7 @@
     };
 
     mediaRecorder.onstop = saveVideo;
-    mediaRecorder.start();
+    mediaRecorder.start(1000);
 
     isRecording = true;
     recordBtn.textContent = 'Kaydı Bitir';
@@ -293,12 +349,12 @@
   }
 
   function saveVideo() {
-    const blob = new Blob(recordedChunks, { type: mediaRecorder.mimeType });
+    const blob = new Blob(recordedChunks, { type: mediaRecorder.mimeType || 'video/mp4' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.style.display = 'none';
     a.href = url;
-    a.download = `video_${Date.now()}.mp4`;
+    a.download = `kayit_${Date.now()}.mp4`;
     document.body.appendChild(a);
     a.click();
     setTimeout(() => {
