@@ -43,9 +43,10 @@
     transition: all 0.3s ease;
   }
 
-  #viewfinder.aspect-16-9 {
+  /* 16:9 Yatay (Horizontal) Mod */
+  #viewfinder.aspect-16-9-horizontal {
     width: 100vw;
-    height: calc(100vw * 16 / 9);
+    height: calc(100vw * 9 / 16);
     max-height: 100vh;
   }
 
@@ -170,10 +171,10 @@
     <div class="controls">
       <div class="btn-group">
         <button id="toggle-btn" class="btn">Rastgele Hareket</button>
-        <button id="aspect-btn" class="btn">16:9 Mod</button>
+        <button id="aspect-btn" class="btn">16:9 Yatay Mod</button>
       </div>
       <button id="record-btn" class="btn btn-rec">Kaydı Başlat</button>
-      <div class="info-text">Ayna modlu akıcı hareketler ve sorunsuz kayıt.</div>
+      <div class="info-text">Sadece Pan & Rotation. Kayıt sonrası Galerine kaydetme seçeneği çıkar.</div>
     </div>
   </div>
 </div>
@@ -198,9 +199,9 @@
   let recordedChunks = [];
   let videoStream = null;
 
-  // Hedef ve mevcut animasyon değerleri (Akıcılık için Lerp)
-  let currentTransform = { scale: 1, tx: 0, ty: 0, rotate: 0 };
-  let targetTransform = { scale: 1, tx: 0, ty: 0, rotate: 0 };
+  // Zoom kaldırıldı: scale sabit 1.0 (kenar taşmalarını önlemek için sabit 1.05 kullanılabilir)
+  let currentTransform = { tx: 0, ty: 0, rotate: 0 };
+  let targetTransform = { tx: 0, ty: 0, rotate: 0 };
 
   async function startCamera() {
     try {
@@ -232,22 +233,19 @@
 
   function updateTargets() {
     if (!isActive) {
-      targetTransform = { scale: 1, tx: 0, ty: 0, rotate: 0 };
+      targetTransform = { tx: 0, ty: 0, rotate: 0 };
       return;
     }
     targetTransform = {
-      scale: 1.15 + Math.random() * 0.25,
-      tx: (Math.random() * 40 - 20),
-      ty: (Math.random() * 40 - 20),
-      rotate: (Math.random() * 4 - 2)
+      tx: (Math.random() * 50 - 25),
+      ty: (Math.random() * 50 - 25),
+      rotate: (Math.random() * 6 - 3)
     };
   }
 
   let transformInterval = null;
 
   function renderFrame() {
-    // Yumuşak geçişler (Lerp)
-    currentTransform.scale = lerp(currentTransform.scale, targetTransform.scale, 0.03);
     currentTransform.tx = lerp(currentTransform.tx, targetTransform.tx, 0.03);
     currentTransform.ty = lerp(currentTransform.ty, targetTransform.ty, 0.03);
     currentTransform.rotate = lerp(currentTransform.rotate, targetTransform.rotate, 0.03);
@@ -255,13 +253,11 @@
     ctx.save();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Merkeze taşı, transform uygula, geri taşı
     ctx.translate(canvas.width / 2, canvas.height / 2);
-    ctx.scale(currentTransform.scale, currentTransform.scale);
     ctx.translate(currentTransform.tx, currentTransform.ty);
     ctx.rotate((currentTransform.rotate * Math.PI) / 180);
 
-    // Ayna etkisi (Ayna modu için -1 scaleX)
+    // Ayna Modu
     ctx.scale(-1, 1);
 
     ctx.drawImage(video, -canvas.width / 2, -canvas.height / 2, canvas.width, canvas.height);
@@ -283,18 +279,18 @@
       toggleBtn.classList.remove('btn-active');
       modeText.textContent = 'Mod: Sabit';
       clearInterval(transformInterval);
-      targetTransform = { scale: 1, tx: 0, ty: 0, rotate: 0 };
+      targetTransform = { tx: 0, ty: 0, rotate: 0 };
     }
   });
 
   aspectBtn.addEventListener('click', () => {
     is169 = !is169;
     if (is169) {
-      viewfinder.classList.add('aspect-16-9');
+      viewfinder.classList.add('aspect-16-9-horizontal');
       aspectBtn.textContent = 'Tam Ekran Mod';
     } else {
-      viewfinder.classList.remove('aspect-16-9');
-      aspectBtn.textContent = '16:9 Mod';
+      viewfinder.classList.remove('aspect-16-9-horizontal');
+      aspectBtn.textContent = '16:9 Yatay Mod';
     }
   });
 
@@ -309,7 +305,6 @@
   function startRecording() {
     recordedChunks = [];
     
-    // Canvas görüntüsü ile mikrofon sesini birleştir
     const canvasStream = canvas.captureStream(30);
     const audioTrack = videoStream.getAudioTracks()[0];
     if (audioTrack) {
@@ -348,8 +343,27 @@
     recStatus.textContent = 'HAZIR';
   }
 
-  function saveVideo() {
+  async function saveVideo() {
     const blob = new Blob(recordedChunks, { type: mediaRecorder.mimeType || 'video/mp4' });
+    const file = new File([blob], `video_${Date.now()}.mp4`, { type: 'video/mp4' });
+
+    // iOS Fotoğraflar (Galeri) uygulamasına kaydetmek için paylaşım menüsünü tetikle
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({
+          files: [file],
+          title: 'Kamera Kaydı',
+          text: 'Rastgele Kameraman Kaydı'
+        });
+      } catch (err) {
+        fallbackDownload(blob);
+      }
+    } else {
+      fallbackDownload(blob);
+    }
+  }
+
+  function fallbackDownload(blob) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.style.display = 'none';
