@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Slider Kamera</title>
+<title>Slider Kamera HD</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
   
@@ -32,17 +32,14 @@
     background: #000;
   }
 
-  /* Standart 16:9 Sinematik Kadraj Kapsayıcısı */
   #viewfinder {
-    width: 100vw;
-    height: calc(100vw * 9 / 16);
-    max-height: 100vh;
+    width: 100%;
+    height: 100%;
     position: relative;
     overflow: hidden;
     display: flex;
     justify-content: center;
     align-items: center;
-    background: #000;
   }
 
   #camera-feed, #canvas-render {
@@ -103,12 +100,34 @@
     pointer-events: auto;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
     background: rgba(0,0,0,0.65);
     padding: 16px;
     border-radius: 24px;
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
+  }
+
+  .speed-selector {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .speed-selector label {
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .speed-selector select {
+    background: #2c2c2e;
+    color: #fff;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-size: 13px;
+    outline: none;
   }
 
   .btn {
@@ -145,12 +164,21 @@
         <div id="rec-dot" class="dot"></div>
         <span id="rec-status">HAZIR</span>
       </div>
-      <div id="mode-text" style="font-size: 12px;">Mod: 15s Slider Zoom</div>
+      <div id="mode-text" style="font-size: 12px;">Mod: Döngüsel Zoom</div>
     </div>
 
     <div class="controls">
+      <div class="speed-selector">
+        <label for="speed-select">Zoom Süresi (Tek Yön):</label>
+        <select id="speed-select">
+          <option value="10000">10 Saniye</option>
+          <option value="15000" selected>15 Saniye</option>
+          <option value="20000">20 Saniye</option>
+          <option value="30000">30 Saniye</option>
+        </select>
+      </div>
       <button id="record-btn" class="btn">Kaydı Başlat</button>
-      <div class="info-text">16:9 Kadraj. 15 saniyelik pürüzsüz Slider Zoom In etkisi uygular.</div>
+      <div class="info-text">HD Kalite. Zoom In/Out döngüsü. Kayıt sonrası Galeriye kaydet.</div>
     </div>
   </div>
 </div>
@@ -161,6 +189,7 @@
   const ctx = canvas.getContext('2d');
   
   const recordBtn = document.getElementById('record-btn');
+  const speedSelect = document.getElementById('speed-select');
   const recDot = document.getElementById('rec-dot');
   const recStatus = document.getElementById('rec-status');
   
@@ -169,19 +198,22 @@
   let recordedChunks = [];
   let videoStream = null;
 
-  // Zoom Değişkenleri (1.00 -> 1.30 arası 15 saniyede çok yavaş)
   let currentScale = 1.0;
   let zoomStartTime = null;
-  const ZOOM_DURATION = 15000; // 15 Saniye
-  const MAX_SCALE = 1.30;
+  let zoomDuration = 15000;
+  const MAX_SCALE = 1.35;
+
+  speedSelect.addEventListener('change', (e) => {
+    zoomDuration = parseInt(e.target.value);
+  });
 
   async function startCamera() {
     try {
       videoStream = await navigator.mediaDevices.getUserMedia({ 
         video: { 
           facingMode: 'user', 
-          width: { ideal: 1280 }, 
-          height: { ideal: 720 },
+          width: { ideal: 1920 }, 
+          height: { ideal: 1080 },
           frameRate: { ideal: 30 }
         }, 
         audio: true 
@@ -190,8 +222,9 @@
       video.play();
       
       video.onloadedmetadata = () => {
-        canvas.width = video.videoWidth || 1280;
-        canvas.height = video.videoHeight || 720;
+        // Yüksek kalite için yüksek çözünürlüklü Canvas
+        canvas.width = video.videoWidth || 1920;
+        canvas.height = video.videoHeight || 1080;
         renderFrame();
       };
     } catch (e) {
@@ -202,11 +235,18 @@
   function renderFrame(timestamp) {
     if (isRecording) {
       if (!zoomStartTime) zoomStartTime = timestamp;
-      const elapsed = timestamp - zoomStartTime;
-      const progress = Math.min(elapsed / ZOOM_DURATION, 1.0);
       
-      // Lineer pürüzsüz Slider İlerlemesi
-      currentScale = 1.0 + (progress * (MAX_SCALE - 1.0));
+      const elapsed = (timestamp - zoomStartTime) % (zoomDuration * 2);
+      
+      if (elapsed < zoomDuration) {
+        // Zoom In aşaması
+        const progress = elapsed / zoomDuration;
+        currentScale = 1.0 + (progress * (MAX_SCALE - 1.0));
+      } else {
+        // Zoom Out aşaması
+        const progress = (elapsed - zoomDuration) / zoomDuration;
+        currentScale = MAX_SCALE - (progress * (MAX_SCALE - 1.0));
+      }
     } else {
       currentScale = 1.0;
       zoomStartTime = null;
@@ -215,7 +255,6 @@
     ctx.save();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Merkeze hizalama ve Zoom İn
     ctx.translate(canvas.width / 2, canvas.height / 2);
     ctx.scale(currentScale, currentScale);
 
@@ -245,9 +284,9 @@
       canvasStream.addTrack(audioTrack);
     }
 
-    let options = { mimeType: 'video/webm' };
-    if (MediaRecorder.isTypeSupported('video/mp4')) {
-      options = { mimeType: 'video/mp4' };
+    let options = { mimeType: 'video/mp4;codecs=avc1', videoBitsPerSecond: 12000000 };
+    if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+      options = { mimeType: 'video/webm;codecs=vp9', videoBitsPerSecond: 12000000 };
     }
 
     try {
@@ -279,13 +318,13 @@
 
   async function saveVideo() {
     const blob = new Blob(recordedChunks, { type: mediaRecorder.mimeType || 'video/mp4' });
-    const file = new File([blob], `slider_kayit_${Date.now()}.mp4`, { type: 'video/mp4' });
+    const file = new File([blob], `slider_hd_${Date.now()}.mp4`, { type: 'video/mp4' });
 
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       try {
         await navigator.share({
           files: [file],
-          title: 'Slider Kamera Kaydı'
+          title: 'HD Slider Kamera Kaydı'
         });
       } catch (err) {
         fallbackDownload(blob);
@@ -300,7 +339,7 @@
     const a = document.createElement('a');
     a.style.display = 'none';
     a.href = url;
-    a.download = `slider_kayit_${Date.now()}.mp4`;
+    a.download = `slider_hd_${Date.now()}.mp4`;
     document.body.appendChild(a);
     a.click();
     setTimeout(() => {
