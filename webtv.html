@@ -7,225 +7,255 @@
     <link rel="apple-touch-icon" sizes="180x180" href="IMG_1030.jpeg">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='10' y='25' width='80' height='60' rx='10' fill='%23333'/><rect x='18' y='33' width='64' height='44' rx='4' fill='%2300d2ff'/><polyline points='35,10 50,25 65,10' stroke='%23333' stroke-width='6' stroke-linecap='round' fill='none'/></svg>">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="WEB TV">
     <title>WEB TV</title>
     
     <!-- Video.js CSS -->
     <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-            -webkit-tap-highlight-color: transparent;
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+        background-color: #000000;
+        color: #ffffff;
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        overflow: hidden;
+    }
+
+    html {
+        scrollbar-color: #ffe600 #0a0a0a;
+        background-color: #000000;
+    }
+
+    .player-section {
+        width: 100%;
+        background-color: #000000;
+        position: relative;
+        z-index: 10;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9);
+        display: flex;
+        flex-direction: column-reverse;
+    }
+
+    .player-wrapper {
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        background: #000000;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .iframe-crop-container {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        overflow: hidden;
+        display: none;
+    }
+
+    .iframe-crop-container iframe {
+        width: 100%;
+        height: 350%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        border: none;
+    }
+
+    .video-js {
+        width: 100% !important;
+        height: 100% !important;
+    }
+
+    /* Eğik Üst Bar Stili */
+    .info-bar {
+        background: #ffe600;
+        padding: 0 24px 0 0;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        overflow: hidden;
+        position: relative;
+        border-bottom: none;
+    }
+
+    .info-bar h1 {
+        font-size: 1rem;
+        font-weight: 900;
+        letter-spacing: 1px;
+        color: #ffe600;
+        text-transform: uppercase;
+        background: #111111;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        padding: 0 35px 0 20px;
+        clip-path: polygon(0 0, 100% 0, 80% 100%, 0 100%);
+    }
+
+    .current-badge {
+        font-size: 0.95rem;
+        color: #000000;
+        background-color: transparent;
+        padding: 0;
+        border-radius: 0;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+    }
+
+    /* Kanal Listesi Alanı */
+    .content-section {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px 16px;
+        background: #0a0a0a;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .section-title {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        color: #666666;
+        margin-bottom: 16px;
+        padding-left: 8px;
+        font-weight: 800;
+    }
+
+    .channel-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding-bottom: 40px;
+    }
+
+    /* Kanal Kartları (Eğik Kesim Uygulandı) */
+    .channel-card {
+        display: flex;
+        align-items: center;
+        padding: 14px 22px;
+        background: #141414;
+        border: none !important;
+        cursor: pointer;
+        outline: none;
+        transition: all 0.2s ease;
+        clip-path: polygon(0 0, 100% 0, 95% 100%, 0 100%);
+    }
+
+    .channel-card:hover,
+    .channel-card:focus {
+        background: #1f1f1f;
+        transform: translateX(4px);
+    }
+
+    /* Seçili Kanal Kartı */
+    .channel-card.active {
+        background: #ffe600 !important;
+        clip-path: polygon(0 0, 100% 0, 95% 100%, 0 100%);
+    }
+
+    .logo-container {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #444444;
+        margin-right: 16px;
+        flex-shrink: 0;
+        padding: 0;
+        border: none;
+        transition: all 0.2s ease;
+    }
+
+    .channel-logo {
+        display: none;
+    }
+
+    .channel-card:hover .logo-container,
+    .channel-card:focus .logo-container {
+        background: #ffffff;
+    }
+
+    .channel-card.active .logo-container {
+        background: #000000 !important;
+        transform: scale(1.2);
+    }
+
+    .channel-details {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .channel-name {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #eeeeee;
+        letter-spacing: 0.5px;
+    }
+
+    .channel-type {
+        font-size: 0.7rem;
+        color: #666666;
+        margin-top: 3px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .channel-card.active .channel-name {
+        color: #000000 !important;
+    }
+
+    .channel-card.active .channel-type {
+        color: #222222 !important;
+    }
+
+    @media (min-width: 992px) {
+        body { 
+            flex-direction: row-reverse;
         }
 
-        body {
-            background-color: #080b11;
-            color: #f3f4f6;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
+        .player-section { 
+            flex: 1; 
+            height: 100vh; 
+            padding: 0; 
+            background: #000000;
+            box-shadow: none;
+            flex-direction: column-reverse;
         }
 
-        html {
-            scrollbar-color: #8b5cf6 #1e1b4b;
-            background-color: #080b11;
-        }
-
-        .player-section {
-            width: 100%;
-            background-color: #000;
-            position: relative;
-            z-index: 10;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
-            display: flex;
-            flex-direction: column;
-        }
-
-        .player-wrapper {
-            width: 100%;
-            aspect-ratio: 16 / 9;
-            background: #000;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .iframe-crop-container {
-            width: 100%;
-            height: 100%;
-            position: absolute;
-            top: 0;
-            left: 0;
-            overflow: hidden;
-            display: none;
-        }
-
-        .iframe-crop-container iframe {
-            width: 100%;
-            height: 350%;
-            position: absolute;
-            top: 0;
-            left: 0;
-            border: none;
-        }
-
-        .video-js {
-            width: 100% !important;
-            height: 100% !important;
-        }
-
-        .info-bar {
-            background: #0d1321;
-            padding: 12px 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .info-bar h1 {
-            font-size: 1rem;
-            font-weight: 700;
-            background: linear-gradient(90deg, #fff, #fff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .current-badge {
-            font-size: 1.2rem;
-           
-           
-            color: #fff;
-            padding: 4px 10px;
-           
-            font-weight: 600;
-        }
-
-        .content-section {
+        .player-wrapper { 
             flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-            -webkit-overflow-scrolling: touch;
+            height: calc(100vh - 50px);
+            aspect-ratio: auto;
         }
 
-        .section-title {
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            color: #4b5563;
-            margin-bottom: 15px;
-            font-weight: 700;
+        .info-bar { 
+            height: 50px;
         }
 
-        .channel-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            padding-bottom: 40px;
+        .content-section { 
+            width: 340px; 
+            max-width: 340px; 
+            height: 100vh;
+            background: #0a0a0a; 
+            border-right: 1px solid #1a1a1a; 
+            border-left: none;
         }
-
-        .channel-card {
-            display: flex;
-            align-items: center;
-            padding: 12px;
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 14px;
-            cursor: pointer;
-            outline: none;
-            transition: all 0.2s ease;
-        }
-
-        .channel-card:focus {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: #ffffff;
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
-            transform: scale(1.02);
-        }
-
-        .channel-card.active {
-            background: linear-gradient(90deg, rgba(30, 58, 138, 0.6) 0%, rgba(17, 24, 39, 0.8) 100%);
-            border-color: #3b82f6;
-        }
-
-        .logo-container {
-            width: 48px;
-            height: 48px;
-            border-radius: 10px;
-            background: #000;
-            padding: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 16px;
-            flex-shrink: 0;
-        }
-
-        .channel-logo {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-        }
-
-        .channel-name {
-            font-size: 0.95rem;
-            font-weight: 600;
-        }
-
-        .channel-type {
-            font-size: 0.75rem;
-            color: #6b7280;
-            margin-top: 2px;
-        }
-
-        @media (min-width: 992px) {
-            body { 
-                flex-direction: row-reverse;
-            }
-
-
- 
-
-            .player-section { 
-                flex: 1; 
-                height: 100vh; 
-                padding: 0; 
-                background: #000;
-                box-shadow: none;
-            }
-
-            .player-wrapper { 
-                flex: 1;
-                height: calc(100vh - 55px);
-                aspect-ratio: auto;
-            }
-
-            .info-bar { 
-                height: 55px;
-                background: #06080c; 
-                border-top: 1px solid rgba(255, 255, 255, 0.05);
-                border-bottom: none;
-            }
-
-            .content-section { 
-                width: 380px; 
-                max-width: 380px; 
-                height: 100vh;
-                background: #0d1321; 
-                border-right: 1px solid rgba(255, 255, 255, 0.05); 
-                border-left: none;
-            }
-
-            .channel-card:hover {
-                background: rgba(255, 255, 255, 0.05);
-                border-color: rgba(255, 255, 255, 0.15);
-            }
-        }
-    </style>
+    }
+</style>
 </head>
 <body>
 
