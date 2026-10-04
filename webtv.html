@@ -13,6 +13,7 @@
     
     <!-- Video.js CSS -->
     <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
+    
 <style>
     * {
         margin: 0;
@@ -29,7 +30,8 @@
         flex-direction: column;
         height: 100vh;
         overflow: hidden;
-        padding-top: env(safe-area-inset-top);
+        /* iOS PWA çentiği ve istenen 20px üst siyah alan */
+        padding-top: max(20px, env(safe-area-inset-top));
     }
 
     html {
@@ -37,6 +39,7 @@
         background-color: #000000;
     }
 
+    /* Player Alanı */
     .player-section {
         width: 100%;
         background-color: #000000;
@@ -55,6 +58,7 @@
         overflow: hidden;
     }
 
+    /* iframe Hizalama Düzeltmesi */
     .iframe-crop-container {
         width: 100%;
         height: 100%;
@@ -67,11 +71,12 @@
 
     .iframe-crop-container iframe {
         width: 100%;
-        height: 350%;
+        height: 100%;
         position: absolute;
         top: 0;
         left: 0;
         border: none;
+        object-fit: cover;
     }
 
     .video-js {
@@ -90,9 +95,7 @@
         overflow: hidden;
         position: relative;
         border-bottom: none;
-        -webkit-backface-visibility: hidden;
-        backface-visibility: hidden;
-        transform: translateZ(0);
+        flex-shrink: 0;
     }
 
     .info-bar h1 {
@@ -146,7 +149,6 @@
         padding-bottom: 40px;
     }
 
-    /* Kanal Kartları (Eğik Kesim Uygulandı) */
     .channel-card {
         display: flex;
         align-items: center;
@@ -165,7 +167,6 @@
         transform: translateX(4px);
     }
 
-    /* Seçili Kanal Kartı */
     .channel-card.active {
         background: #ffe600 !important;
         clip-path: polygon(0 0, 100% 0, 95% 100%, 0 100%);
@@ -226,9 +227,11 @@
         color: #222222 !important;
     }
 
-    @media (min-width: 992px) {
+    /* Masaüstü ve Yan Çevrilmiş Ekran (Landscape) Modu */
+    @media (min-width: 992px), (orientation: landscape) {
         body { 
             flex-direction: row-reverse;
+            padding-top: 0;
         }
 
         .player-section { 
@@ -257,6 +260,12 @@
             background: #0a0a0a; 
             border-right: 1px solid #1a1a1a; 
             border-left: none;
+        }
+
+        /* Yan çevrildiğinde iframe kaplamasını tam ekrana oturt */
+        .iframe-crop-container iframe {
+            height: 100%;
+            top: 0;
         }
     }
 </style>
