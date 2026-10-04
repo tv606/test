@@ -13,7 +13,6 @@
     
     <!-- Video.js CSS -->
     <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
-    
 <style>
     * {
         margin: 0;
@@ -30,16 +29,14 @@
         flex-direction: column;
         height: 100vh;
         overflow: hidden;
-        /* iOS PWA çentiği ve istenen 20px üst siyah alan */
-        padding-top: max(20px, env(safe-area-inset-top));
+        padding-top: max(15px, env(safe-area-inset-top));
     }
 
     html {
-        scrollbar-color: #ffe600 #0a0a0a;
+        scrollbar-color: #0a0a0a #0a0a0a;
         background-color: #000000;
     }
 
-    /* Player Alanı */
     .player-section {
         width: 100%;
         background-color: #000000;
@@ -58,7 +55,6 @@
         overflow: hidden;
     }
 
-    /* iframe Hizalama Düzeltmesi */
     .iframe-crop-container {
         width: 100%;
         height: 100%;
@@ -71,12 +67,11 @@
 
     .iframe-crop-container iframe {
         width: 100%;
-        height: 100%;
+        height: 350%;
         position: absolute;
         top: 0;
         left: 0;
         border: none;
-        object-fit: cover;
     }
 
     .video-js {
@@ -86,7 +81,7 @@
 
     /* Eğik Üst Bar Stili */
     .info-bar {
-        background: #ffe600;
+        background: #000000;
         padding: 0 24px 0 0;
         height: 50px;
         display: flex;
@@ -95,14 +90,13 @@
         overflow: hidden;
         position: relative;
         border-bottom: none;
-        flex-shrink: 0;
     }
 
     .info-bar h1 {
         font-size: 1rem;
         font-weight: 900;
         letter-spacing: 1px;
-        color: #ffe600;
+        color: #8d8d8d;
         text-transform: uppercase;
         background: #111111;
         height: 100%;
@@ -114,7 +108,7 @@
 
     .current-badge {
         font-size: 0.95rem;
-        color: #000000;
+        color: #8d8d8d;
         background-color: transparent;
         padding: 0;
         border-radius: 0;
@@ -149,6 +143,7 @@
         padding-bottom: 40px;
     }
 
+    /* Kanal Kartları (Eğik Kesim Uygulandı) */
     .channel-card {
         display: flex;
         align-items: center;
@@ -167,8 +162,9 @@
         transform: translateX(4px);
     }
 
+    /* Seçili Kanal Kartı */
     .channel-card.active {
-        background: #ffe600 !important;
+        background: #292929 !important;
         clip-path: polygon(0 0, 100% 0, 95% 100%, 0 100%);
     }
 
@@ -206,7 +202,7 @@
     .channel-name {
         font-size: 0.95rem;
         font-weight: 700;
-        color: #eeeeee;
+        color: #8d8d8d;
         letter-spacing: 0.5px;
     }
 
@@ -220,18 +216,16 @@
     }
 
     .channel-card.active .channel-name {
-        color: #000000 !important;
+        color: #8d8d8d !important;
     }
 
     .channel-card.active .channel-type {
-        color: #222222 !important;
+        color: #9b9b9b  !important;
     }
 
-    /* Masaüstü ve Yan Çevrilmiş Ekran (Landscape) Modu */
-    @media (min-width: 992px), (orientation: landscape) {
+    @media (min-width: 992px) {
         body { 
             flex-direction: row-reverse;
-            padding-top: 0;
         }
 
         .player-section { 
@@ -260,12 +254,6 @@
             background: #0a0a0a; 
             border-right: 1px solid #1a1a1a; 
             border-left: none;
-        }
-
-        /* Yan çevrildiğinde iframe kaplamasını tam ekrana oturt */
-        .iframe-crop-container iframe {
-            height: 100%;
-            top: 0;
         }
     }
 </style>
@@ -306,17 +294,17 @@
           { name: "TRT BELGESEL", logo: "IMG_1030.jpeg", url: "https://tv-trtbelgesel.medya.trt.com.tr/master.m3u8", type: "hls" },
           { name: "GZT", logo: "IMG_1030.jpeg", url: "https://gzttv-live.lg.mncdn.com/gzttv-live/gzttv/720p.m3u8", type: "hls" },
           { name: "TRT SPOR", logo: "IMG_1030.jpeg", url: "https://tv-trtspor1.medya.trt.com.tr/master.m3u8", type: "hls" },
-          { name: "Halk TV", logo: "IMG_1030.jpeg", url: "https://halktv-live.daioncdn.net/halktv/halktv_720p.m3u8", type: "hls" },
-          { name: "Kabel Eins", logo: "IMG_1030.jpeg", url: "https://dash4.antik.sk/live/test_kabel_eins_tizen/playlist.m3u8", type: "hls" },
-          { name: "BritBox M", logo: "IMG_1030.jpeg", url: "https://aegis-cloudfront-1.tubi.video/c95700f8-e51c-4a36-ad46-56f70fc9f1d9/playlist_1920x1080.m3u8", type: "hls" },
-          { name: "Getfa UK", logo: "IMG_1030.jpeg", url: "https://d1nhni5l2n8hjt.cloudfront.net/gf_720.m3u8", type: "hls" },
+          { name: "HALK TV", logo: "IMG_1030.jpeg", url: "https://halktv-live.daioncdn.net/halktv/halktv_720p.m3u8", type: "hls" },
+          { name: "KABEL EINS", logo: "IMG_1030.jpeg", url: "https://dash4.antik.sk/live/test_kabel_eins_tizen/playlist.m3u8", type: "hls" },
+          { name: "BRITBOX M", logo: "IMG_1030.jpeg", url: "https://aegis-cloudfront-1.tubi.video/c95700f8-e51c-4a36-ad46-56f70fc9f1d9/playlist_1920x1080.m3u8", type: "hls" },
+          { name: "GETFA UK", logo: "IMG_1030.jpeg", url: "https://d1nhni5l2n8hjt.cloudfront.net/gf_720.m3u8", type: "hls" },
           { name: "ARTE HD", logo: "IMG_1030.jpeg", url: "https://dash4.antik.sk/live/test_arte_avc_25p/playlist.m3u8", type: "hls" },
           { name: "PRO 7", logo: "IMG_1030.jpeg", url: "https://dash4.antik.sk/live/test_pro_sieben_tizen/playlist.m3u8", type: "hls" },
           { name: "SAT 1 GOLD", logo: "IMG_1030.jpeg", url: "https://dash4.antik.sk/live/test_sat_eins_gold_tizen/playlist.m3u8", type: "hls" },
-          { name: "Into Crime", logo: "IMG_1030.jpeg", url: "https://amg00711-zylo-amg00711c10-rakuten-fr-6731.playouts.now.amagi.tv/playlist1080p.m3u8", type: "hls" },
-          { name: "InWild", logo: "IMG_1030.jpeg", url: "https://amg00861-amg00861c7-stirr-us-8227.playouts.now.amagi.tv/1080p-en/index.m3u8", type: "hls" },
-          { name: "Atlas", logo: "IMG_1030.jpeg", url: "https://cdn.whiplash.cc/whiplash-atlas/tracks-v1a1/mono.m3u8", type: "hls" },
-          { name: "The Nest", logo: "IMG_1030.jpeg", url: "https://fast-channels.sinclairstoryline.com/THENEST/index_1.m3u8", type: "hls" },
+          { name: "INTO CRIME", logo: "IMG_1030.jpeg", url: "https://amg00711-zylo-amg00711c10-rakuten-fr-6731.playouts.now.amagi.tv/playlist1080p.m3u8", type: "hls" },
+          { name: "INWILD", logo: "IMG_1030.jpeg", url: "https://amg00861-amg00861c7-stirr-us-8227.playouts.now.amagi.tv/1080p-en/index.m3u8", type: "hls" },
+          { name: "ATLAS", logo: "IMG_1030.jpeg", url: "https://cdn.whiplash.cc/whiplash-atlas/tracks-v1a1/mono.m3u8", type: "hls" },
+          { name: "THE NEST", logo: "IMG_1030.jpeg", url: "https://fast-channels.sinclairstoryline.com/THENEST/index_1.m3u8", type: "hls" },
           { name: "FRANCE 24", logo: "IMG_1030.jpeg", url: "https://live.france24.com/hls/live/2037218-b/F24_EN_HI_HLS/master_5000.m3u8", type: "hls" },
           { name: "BBC NEWS", logo: "IMG_1030.jpeg", url: "https://vs-hls-push-ww-live.akamaized.net/x=4/i=urn:bbc:pips:service:bbc_news_channel_hd/t=3840/v=pv14/b=5070016/main.m3u8", type: "hls" },
           { name: "BBC EARTH", logo: "IMG_1030.jpeg", url: "https://amg00793-amg00793c6-xumo-us-2669.playouts.now.amagi.tv/BBCStudios-BBCEarthA-hls/playlist1080p.m3u8", type: "hls" },
@@ -327,8 +315,8 @@
           { name: "EARTH", logo: "IMG_1030.jpeg", url: "https://autentic-adventure-earth-1-gb.lg.wurl.tv/playlist.m3u8", type: "hls" },
           { name: "NATURE TIME", logo: "IMG_1030.jpeg", url: "https://amg01515-amg01515c13-xiaomi-international-4618.playouts.now.amagi.tv/playlist.m3u8", type: "hls" },
           { name: "FASHION TV", logo: "IMG_1030.jpeg", url: "https://cdn-ue1-prod.tsv2.amagi.tv/linear/amg01546-ftv-fashiontv-xiaomi/playlist.m3u8", type: "hls" },
-          { name: "Space Live", logo: "IMG_1030.jpeg", url: "https://d111bsx9oooqoh.cloudfront.net/playlist_1920x1080.m3u8", type: "hls" },
-          { name: "Empty Slot", logo: "IMG_1030.jpeg", url: "", type: "hls" },
+          { name: "SPACE LIVE", logo: "IMG_1030.jpeg", url: "https://d111bsx9oooqoh.cloudfront.net/playlist_1920x1080.m3u8", type: "hls" },
+
         ];
 
         let activeFocusIndex = 0;
