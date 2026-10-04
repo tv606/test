@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Radio Vostok Player</title>
+    <style>
+        :root {
+            --bg-dark: #090d16;
+            --card-bg: rgba(30, 41, 59, 0.5);
+            --accent-glow: rgba(59, 130, 246, 0.15);
+            --text-main: #f8fafc;
+            --text-dim: #64748b;
+        }
+
+
+         html {
+             scrollbar-color: #8b5cf6 #1e1b4b;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            /* Arka planda hafif bir neon derinlik hissi */
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(139, 92, 246, 0.08) 0%, transparent 40%);
+        }
+
+        .player-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            padding: 3rem 2rem;
+            border-radius: 24px;
+            text-align: center;
+            width: 340px;
+            max-width: 90%;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4),
+                        0 0 50px var(--accent-glow);
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Dairesel Logo ve Ekolayzır Alanı */
+        .visualizer-container {
+            width: 180px;
+            height: 180px;
+            margin: 0 auto 2rem;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Ekolayzırın çizileceği Canvas */
+        #visualizerCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            z-index: 1;
+        }
+
+        .logo-inner {
+            width: 110px;
+            height: 110px;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2.8rem;
+            z-index: 2;
+            box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.05);
+            transition: transform 0.5s ease;
+        }
+
+        /* Müzik çalarken logonun hafifçe titremesi/canlanması */
+        .playing .logo-inner {
+            animation: pulse 2s infinite ease-in-out;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.04); }
+        }
+
+        h1 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin: 0 0 0.4rem 0;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #fff 30%, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .status {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            margin-bottom: 2.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        /* Yeni Oynatma Butonu */
+        .play-btn {
+            background: #ffffff;
+            color: #000000;
+            border: none;
+            width: 76px;
+            height: 76px;
+            border-radius: 50%;
+            font-size: 1.6rem;
+            cursor: pointer;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 25px rgba(255, 255, 255, 0.2);
+            outline: none;
+        }
+
+        .play-btn:hover {
+            transform: scale(1.08);
+            box-shadow: 0 10px 30px rgba(255, 255, 255, 0.35);
+        }
+
+        .play-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Çalarken butonun stili */
+        .playing .play-btn {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: #ffffff;
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+        }
+
+        /* Ses Kontrol Grubu */
+        .volume-group {
+            margin-top: 2.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            opacity: 0.7;
+            transition: opacity 0.3s ease;
+        }
+
+        .volume-group:hover {
+            opacity: 1;
+        }
+
+        .volume-slider {
+            -webkit-appearance: none;
+            width: 110px;
+            height: 4px;
+            border-radius: 2px;
+            background: #334155;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #ffffff;
+            cursor: pointer;
+            transition: transform 0.1s ease;
+        }
+
+        .volume-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .volume-icon {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            user-select: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="player-card" id="playerCard">
+        <div class="visualizer-container">
+            <canvas id="visualizerCanvas"></canvas>
+            <div class="logo-inner">📻</div>
+        </div>
+
+        <h1>Radio Vostok</h1>
+        <div class="status" id="statusText">Stream Ready</div>
+
+        <audio id="radioPlayer" crossorigin="anonymous" preload="none">
+            <source src="https://radiovostok.ice.infomaniak.ch/radiovostok.aac" type="audio/aac">
+        </audio>
+
+        <button class="play-btn" id="playBtn" onclick="togglePlay()">▶</button>
+
+        <div class="volume-group">
+            <span class="volume-icon">🔈</span>
+            <input type="range" class="volume-slider" id="volumeSlider" min="0" max="1" step="0.05" value="0.2" oninput="changeVolume(this.value)">
+            <span class="volume-icon">🔊</span>
+        </div>
+    </div>
+
+    <script>
+        const player = document.getElementById('radioPlayer');
+        const playBtn = document.getElementById('playBtn');
+        const statusText = document.getElementById('statusText');
+        const playerCard = document.getElementById('playerCard');
+        const canvas = document.getElementById('visualizerCanvas');
+        const canvasCtx = canvas.getContext('2d');
+
+        // 👇 BAŞLANGIÇ SES SEVİYESİNİ KAYDIRICI DEĞERİNE EŞİTLEMEK İÇİN BU SATIRI EKLEYİN
+        player.volume = document.getElementById('volumeSlider').value;
+        
+        let audioCtx;
+        let analyser;
+        let source;
+        let animationId;
+
+        // Canvas boyutlarını ayarlama
+        function resizeCanvas() {
+            canvas.width = canvas.clientWidth * window.devicePixelRatio;
+            canvas.height = canvas.clientHeight * window.devicePixelRatio;
+        }
+        resizeCanvas();
+
+        // Web Audio API kurulumu (Sadece kullanıcı ilk tıkladığında tetiklenir)
+        function initAudioAnalyzer() {
+            if (audioCtx) return; // Zaten kurulduysa tekrar kurma
+
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            analyser = audioCtx.createAnalyser();
+            
+            // Audio etiketini ses analiz merkezine bağlıyoruz
+            source = audioCtx.createMediaElementSource(player);
+            source.connect(analyser);
+            analyser.connect(audioCtx.destination);
+
+            // Analizör hassasiyeti
+            analyser.fftSize = 64; // Ne kadar küçük olursa o kadar sade ve şık barlar oluşur
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+
+            // Dairesel Ekolayzır Çizim Döngüsü
+            function draw() {
+                animationId = requestAnimationFrame(draw);
+                analyser.getByteFrequencyData(dataArray);
+
+                canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                const radius = (canvas.width / 2) - 15; // Logonun hemen dışından başlaması için
+                const barCount = bufferLength;
+
+                for (let i = 0; i < barCount; i++) {
+                    const value = dataArray[i];
+                    // Ritime göre uzayan bar boyu
+                    const barHeight = (value / 255) * 20; 
+
+                    // Daire etrafındaki açıyı hesapla
+                    const angle = (i / barCount) * Math.PI * 2;
+
+                    // Başlangıç noktası (Logonun çeperi)
+                    const xStart = centerX + Math.cos(angle) * radius;
+                    const yStart = centerY + Math.sin(angle) * radius;
+
+                    // Bitiş noktası (Dışarı doğru uzayan barlar)
+                    const xEnd = centerX + Math.cos(angle) * (radius + barHeight);
+                    const yEnd = centerY + Math.sin(angle) * (radius + barHeight);
+
+                    // Dinamik renk geçişi (Gelen ses seviyesine göre mavi-mor arası değişir)
+                    const hue = 210 + (value / 255) * 60; // 210 (Mavi) - 270 (Mor)
+                    
+                    canvasCtx.strokeStyle = `hsla(${hue}, 85%, 60%, 0.85)`;
+                    canvasCtx.lineWidth = 4;
+                    canvasCtx.lineCap = 'round';
+
+                    canvasCtx.beginPath();
+                    canvasCtx.moveTo(xStart, yStart);
+                    canvasCtx.lineTo(xEnd, yEnd);
+                    canvasCtx.stroke();
+                }
+            }
+            draw();
+        }
+
+        function togglePlay() {
+            // Tarayıcı güvenlikleri nedeniyle AudioContext'i kullanıcı etkileşiminde başlatmalıyız
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            if (player.paused) {
+                player.load(); // Gecikmesiz canlı yayın için sıfırdan yükle
+                
+                player.play()
+                    .then(() => {
+                        initAudioAnalyzer(); // Analizörü aktif et
+                        playerCard.classList.add('playing');
+                        playBtn.innerHTML = "⏸";
+                        statusText.innerHTML = "🟢 LIVE STREAM";
+                        statusText.style.color = "#3b82f6";
+                    })
+                    .catch(error => {
+                        console.error("Hata:", error);
+                        statusText.innerHTML = "NETWORK ERROR!";
+                    });
+            } else {
+                player.pause();
+                playerCard.classList.remove('playing');
+                playBtn.innerHTML = "▶";
+                statusText.innerHTML = "STREAM STOPPED";
+                statusText.style.color = "#64748b";
+            }
+        }
+
+        function changeVolume(val) {
+            player.volume = val;
+        }
+    </script>
+</body>
+</html>
