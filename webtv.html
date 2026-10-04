@@ -144,7 +144,6 @@
             justify-content: center;
             margin-right: 16px;
             flex-shrink: 0;
-            display:none !important;
         }
 
         .channel-logo {
@@ -154,7 +153,7 @@
         }
 
         .channel-name {
-            font-size: 1.35rem;
+            font-size: 0.95rem;
             font-weight: 600;
         }
 
@@ -245,143 +244,173 @@
 
     <script>
         const channels = [
-  { name: "WELCOME", logo: "IMG_1030.jpeg", url: "https://lotus.stingray.com/manifest/ose-122ads-montreal/samsungtvplus/master.m3u8", type: "hls" },
-             
 
-  { name: "FX TR", logo: "IMG_1030.jpeg", url: "https://saran-live.ercdn.net/fx/index.m3u8", type: "hls" },
-  { name: "CNBC-E", logo: "IMG_1030.jpeg", url: "https://hnpsechtsc.turknet.ercdn.net/xpnvudnlsv/cnbc-e/cnbc-e_720p.m3u8", type: "hls" },
-  { name: "TRT1", logo: "IMG_1030.jpeg", url: "https://tv-trt1.medya.trt.com.tr/master_1080.m3u8", type: "hls" },
-  { name: "TRT2", logo: "IMG_1030.jpeg", url: "https://tv-trt2.medya.trt.com.tr/master_1080.m3u8", type: "hls" },
-  { name: "TRT BELGESEL", logo: "tv-icon-120x.jpg", url: "https://tv-trtbelgesel.medya.trt.com.tr/master.m3u8", type: "hls" },
-  { name: "GZT", logo: "tv-icon-120x.jpg", url: "https://gzttv-live.lg.mncdn.com/gzttv-live/gzttv/720p.m3u8", type: "hls" },
-  { name: "TRT SPOR", logo: "tv-icon-120x.jpg", url: "https://tv-trtspor1.medya.trt.com.tr/master.m3u8", type: "hls" },
-  { name: "Halk TV", logo: "tv-icon-120x.jpg", url: "https://halktv-live.daioncdn.net/halktv/halktv_720p.m3u8", type: "hls" },
-  { name: "Kabel Eins", logo: "tv-icon-120x.jpg", url: "https://dash4.antik.sk/live/test_kabel_eins_tizen/playlist.m3u8", type: "hls" },
-  { name: "BritBox M", logo: "tv-icon-120x.jpg", url: "https://aegis-cloudfront-1.tubi.video/c95700f8-e51c-4a36-ad46-56f70fc9f1d9/playlist_1920x1080.m3u8", type: "hls" },
-  { name: "Getfa UK", logo: "tv-icon-120x.jpg", url: "https://d1nhni5l2n8hjt.cloudfront.net/gf_720.m3u8", type: "hls" },
-  { name: "ARTE HD", logo: "tv-icon-120x.jpg", url: "https://dash4.antik.sk/live/test_arte_avc_25p/playlist.m3u8", type: "hls" },
-  { name: "PRO 7", logo: "tv-icon-120x.jpg", url: "https://dash4.antik.sk/live/test_pro_sieben_tizen/playlist.m3u8", type: "hls" },
-  { name: "SAT 1 GOLD", logo: "tv-icon-120x.jpg", url: "https://dash4.antik.sk/live/test_sat_eins_gold_tizen/playlist.m3u8", type: "hls" },
-  { name: "Into Crime", logo: "tv-icon-120x.jpg", url: "https://amg00711-zylo-amg00711c10-rakuten-fr-6731.playouts.now.amagi.tv/playlist1080p.m3u8", type: "hls" },
-  { name: "InWild", logo: "tv-icon-120x.jpg", url: "https://amg00861-amg00861c7-stirr-us-8227.playouts.now.amagi.tv/1080p-en/index.m3u8", type: "hls" },
-  { name: "Atlas", logo: "tv-icon-120x.jpg", url: "https://cdn.whiplash.cc/whiplash-atlas/tracks-v1a1/mono.m3u8", type: "hls" },
-  { name: "The Nest", logo: "tv-icon-120x.jpg", url: "https://fast-channels.sinclairstoryline.com/THENEST/index_1.m3u8", type: "hls" },
-  { name: "FRANCE 24", logo: "tv-icon-120x.jpg", url: "https://live.france24.com/hls/live/2037218-b/F24_EN_HI_HLS/master_5000.m3u8", type: "hls" },
-  { name: "BBC NEWS", logo: "tv-icon-120x.jpg", url: "https://vs-hls-push-ww-live.akamaized.net/x=4/i=urn:bbc:pips:service:bbc_news_channel_hd/t=3840/v=pv14/b=5070016/main.m3u8", type: "hls" },
-  { name: "BBC EARTH", logo: "tv-icon-120x.jpg", url: "https://amg00793-amg00793c6-xumo-us-2669.playouts.now.amagi.tv/BBCStudios-BBCEarthA-hls/playlist1080p.m3u8", type: "hls" },
-  { name: "CBS NEWS", logo: "tv-icon-120x.jpg", url: "https://cbsn-us.cbsnstream.cbsnews.com/out/v1/55a8648e8f134e82a470f83d562deeca/master_24.m3u8", type: "hls" },
-  { name: "DW ENG", logo: "tv-icon-120x.jpg", url: "https://dwamdstream102.akamaized.net/hls/live/2015525/dwstream102/stream05/streamPlaylist.m3u8", type: "hls" },
-  { name: "LOVE NATURE", logo: "tv-icon-120x.jpg", url: "https://aegis-cloudfront-1.tubi.video/6d6d0f24-8445-4b4c-bdf6-44f9e38beaa4/1080p-cc/index.m3u8", type: "hls" },
-  { name: "NATURESCAPE", logo: "tv-icon-120x.jpg", url: "https://lotus.stingray.com/manifest/naturescape-a003-montreal/samsungtvplus/f7ed86a4-b8ac-38e0-a745-710077a95be6/3291200/manifest.m3u8", type: "hls" },
-  { name: "EARTH", logo: "tv-icon-120x.jpg", url: "https://autentic-adventure-earth-1-gb.lg.wurl.tv/playlist.m3u8", type: "hls" },
-  { name: "NATURE TIME", logo: "tv-icon-120x.jpg", url: "https://amg01515-amg01515c13-xiaomi-international-4618.playouts.now.amagi.tv/playlist.m3u8", type: "hls" },
-  { name: "FASHION TV", logo: "tv-icon-120x.jpg", url: "https://cdn-ue1-prod.tsv2.amagi.tv/linear/amg01546-ftv-fashiontv-xiaomi/playlist.m3u8", type: "hls" },
-  { name: "Space Live", logo: "tv-icon-120x.jpg", url: "https://d111bsx9oooqoh.cloudfront.net/playlist_1920x1080.m3u8", type: "hls" },
-//{ name: "Suspilne Pershyi", logo: "tv-icon-120x.jpg", url: "https://www.youtube.com/watch?v=uOntga5OQrs", type: "youtube" }, 
-  { name: "Empty Slot", logo: "tv-icon-120x.jpg", url: "", type: "hls" },
+            
+          { name: "WELCOME", logo: "IMG_1030.jpeg", url: "https://lotus.stingray.com/manifest/ose-122ads-montreal/samsungtvplus/master.m3u8", type: "hls" },
+          { name: "TLC TR", logo: "IMG_1030.jpeg", url: "https://www.tlctv.com.tr/canli-izle", type: "iframe" },           
+
+          { name: "FX TR", logo: "IMG_1030.jpeg", url: "https://saran-live.ercdn.net/fx/index.m3u8", type: "hls" },
+          { name: "CNBC-E", logo: "IMG_1030.jpeg", url: "https://hnpsechtsc.turknet.ercdn.net/xpnvudnlsv/cnbc-e/cnbc-e_720p.m3u8", type: "hls" },
+          { name: "TRT1", logo: "IMG_1030.jpeg", url: "https://tv-trt1.medya.trt.com.tr/master_1080.m3u8", type: "hls" },
+          { name: "TRT2", logo: "IMG_1030.jpeg", url: "https://tv-trt2.medya.trt.com.tr/master_1080.m3u8", type: "hls" },
+          { name: "TRT BELGESEL", logo: "tv-icon-120x.jpg", url: "https://tv-trtbelgesel.medya.trt.com.tr/master.m3u8", type: "hls" },
+          { name: "GZT", logo: "tv-icon-120x.jpg", url: "https://gzttv-live.lg.mncdn.com/gzttv-live/gzttv/720p.m3u8", type: "hls" },
+          { name: "TRT SPOR", logo: "tv-icon-120x.jpg", url: "https://tv-trtspor1.medya.trt.com.tr/master.m3u8", type: "hls" },
+          { name: "Halk TV", logo: "tv-icon-120x.jpg", url: "https://halktv-live.daioncdn.net/halktv/halktv_720p.m3u8", type: "hls" },
+          { name: "Kabel Eins", logo: "tv-icon-120x.jpg", url: "https://dash4.antik.sk/live/test_kabel_eins_tizen/playlist.m3u8", type: "hls" },
+          { name: "BritBox M", logo: "tv-icon-120x.jpg", url: "https://aegis-cloudfront-1.tubi.video/c95700f8-e51c-4a36-ad46-56f70fc9f1d9/playlist_1920x1080.m3u8", type: "hls" },
+          { name: "Getfa UK", logo: "tv-icon-120x.jpg", url: "https://d1nhni5l2n8hjt.cloudfront.net/gf_720.m3u8", type: "hls" },
+          { name: "ARTE HD", logo: "tv-icon-120x.jpg", url: "https://dash4.antik.sk/live/test_arte_avc_25p/playlist.m3u8", type: "hls" },
+          { name: "PRO 7", logo: "tv-icon-120x.jpg", url: "https://dash4.antik.sk/live/test_pro_sieben_tizen/playlist.m3u8", type: "hls" },
+          { name: "SAT 1 GOLD", logo: "tv-icon-120x.jpg", url: "https://dash4.antik.sk/live/test_sat_eins_gold_tizen/playlist.m3u8", type: "hls" },
+          { name: "Into Crime", logo: "tv-icon-120x.jpg", url: "https://amg00711-zylo-amg00711c10-rakuten-fr-6731.playouts.now.amagi.tv/playlist1080p.m3u8", type: "hls" },
+          { name: "InWild", logo: "tv-icon-120x.jpg", url: "https://amg00861-amg00861c7-stirr-us-8227.playouts.now.amagi.tv/1080p-en/index.m3u8", type: "hls" },
+          { name: "Atlas", logo: "tv-icon-120x.jpg", url: "https://cdn.whiplash.cc/whiplash-atlas/tracks-v1a1/mono.m3u8", type: "hls" },
+          { name: "The Nest", logo: "tv-icon-120x.jpg", url: "https://fast-channels.sinclairstoryline.com/THENEST/index_1.m3u8", type: "hls" },
+          { name: "FRANCE 24", logo: "tv-icon-120x.jpg", url: "https://live.france24.com/hls/live/2037218-b/F24_EN_HI_HLS/master_5000.m3u8", type: "hls" },
+          { name: "BBC NEWS", logo: "tv-icon-120x.jpg", url: "https://vs-hls-push-ww-live.akamaized.net/x=4/i=urn:bbc:pips:service:bbc_news_channel_hd/t=3840/v=pv14/b=5070016/main.m3u8", type: "hls" },
+          { name: "BBC EARTH", logo: "tv-icon-120x.jpg", url: "https://amg00793-amg00793c6-xumo-us-2669.playouts.now.amagi.tv/BBCStudios-BBCEarthA-hls/playlist1080p.m3u8", type: "hls" },
+          { name: "CBS NEWS", logo: "tv-icon-120x.jpg", url: "https://cbsn-us.cbsnstream.cbsnews.com/out/v1/55a8648e8f134e82a470f83d562deeca/master_24.m3u8", type: "hls" },
+          { name: "DW ENG", logo: "tv-icon-120x.jpg", url: "https://dwamdstream102.akamaized.net/hls/live/2015525/dwstream102/stream05/streamPlaylist.m3u8", type: "hls" },
+          { name: "LOVE NATURE", logo: "tv-icon-120x.jpg", url: "https://aegis-cloudfront-1.tubi.video/6d6d0f24-8445-4b4c-bdf6-44f9e38beaa4/1080p-cc/index.m3u8", type: "hls" },
+          { name: "NATURESCAPE", logo: "tv-icon-120x.jpg", url: "https://lotus.stingray.com/manifest/naturescape-a003-montreal/samsungtvplus/f7ed86a4-b8ac-38e0-a745-710077a95be6/3291200/manifest.m3u8", type: "hls" },
+          { name: "EARTH", logo: "tv-icon-120x.jpg", url: "https://autentic-adventure-earth-1-gb.lg.wurl.tv/playlist.m3u8", type: "hls" },
+          { name: "NATURE TIME", logo: "tv-icon-120x.jpg", url: "https://amg01515-amg01515c13-xiaomi-international-4618.playouts.now.amagi.tv/playlist.m3u8", type: "hls" },
+          { name: "FASHION TV", logo: "tv-icon-120x.jpg", url: "https://cdn-ue1-prod.tsv2.amagi.tv/linear/amg01546-ftv-fashiontv-xiaomi/playlist.m3u8", type: "hls" },
+          { name: "Space Live", logo: "tv-icon-120x.jpg", url: "https://d111bsx9oooqoh.cloudfront.net/playlist_1920x1080.m3u8", type: "hls" },
+        //{ name: "Suspilne Pershyi", logo: "tv-icon-120x.jpg", url: "https://www.youtube.com/watch?v=uOntga5OQrs", type: "youtube" }, 
+          { name: "Empty Slot", logo: "tv-icon-120x.jpg", url: "", type: "hls" },
 
 
-
-
-          
         ];
 
-       let activeFocusIndex = 0;
+        let activeFocusIndex = 0;
+        let player = null;
+        let iframeEl = null;
 
-const player = videojs('main-tv-player', {
-    fluid: false, 
-    fill: true,   
-    techOrder: ["html5", "youtube"],
-    youtube: { "iv_load_policy": 3, "modestbranding": 1 }
-});
+        const gridContainer = document.getElementById('channelGrid');
+        const currentTrackBadge = document.getElementById('currentTrack');
+        const wrapper = document.querySelector('.player-wrapper');
 
-const gridContainer = document.getElementById('channelGrid');
-const currentTrackBadge = document.getElementById('currentTrack');
+        function initApp() {
+            // Iframe elementini bir kere oluşturup gizleyelim
+            iframeEl = document.createElement('iframe');
+            iframeEl.style.width = '100%';
+            iframeEl.style.height = '100%';
+            iframeEl.style.border = 'none';
+            iframeEl.style.display = 'none';
+            wrapper.appendChild(iframeEl);
 
-function initApp() {
-    channels.forEach((channel, idx) => {
-        const card = document.createElement('div');
-        card.className = `channel-card ${idx === 0 ? 'active' : ''}`;
-        card.setAttribute('tabindex', '0'); 
-        card.setAttribute('data-index', idx);
+            // Video.js sabit kalsın
+            player = videojs('main-tv-player', {
+                fluid: false, 
+                fill: true,   
+                techOrder: ["html5", "youtube"],
+                youtube: { "iv_load_policy": 3, "modestbranding": 1 }
+            });
 
-        card.innerHTML = `
-            <div class="logo-container">
-                <img src="${channel.logo}" class="channel-logo" alt="${channel.name}" onerror="this.src='https://via.placeholder.com/50?text=TV'">
-            </div>
-            <div class="channel-details">
-                <div class="channel-name">${channel.name}</div>
-                <div class="channel-type">${channel.type === 'youtube' ? 'YouTube' : 'Live Stream'}</div>
-            </div>
-        `;
+            channels.forEach((channel, idx) => {
+                const card = document.createElement('div');
+                card.className = `channel-card ${idx === 0 ? 'active' : ''}`;
+                card.setAttribute('tabindex', '0'); 
+                card.setAttribute('data-index', idx);
 
-        card.addEventListener('click', () => { selectChannel(idx); });
-        card.addEventListener('focus', () => { activeFocusIndex = idx; });
-        gridContainer.appendChild(card);
-    });
+                card.innerHTML = `
+                    <div class="logo-container">
+                        <img src="${channel.logo}" class="channel-logo" alt="${channel.name}" onerror="this.onerror=null;this.src='https://via.placeholder.com/50?text=TV'">
+                    </div>
+                    <div class="channel-details">
+                        <div class="channel-name">${channel.name}</div>
+                        <div class="channel-type">${channel.type === 'youtube' ? 'YouTube' : channel.type === 'iframe' ? 'Web Site' : 'Live Stream'}</div>
+                    </div>
+                `;
 
-    // İlk açılışta ilk kanalı yükle ama OYNATMA (false gönderdik)
-    if(channels.length > 0) playStream(channels[0], false);
-    
-    setTimeout(() => {
-        const initialFocus = document.querySelector('.channel-card');
-        if(initialFocus) initialFocus.focus();
-    }, 500);
-}
+                card.addEventListener('click', () => { selectChannel(idx); });
+                card.addEventListener('focus', () => { activeFocusIndex = idx; });
+                gridContainer.appendChild(card);
+            });
 
-function selectChannel(idx) {
-    document.querySelectorAll('.channel-card').forEach(c => c.classList.remove('active'));
-    const cards = document.querySelectorAll('.channel-card');
-    if(cards[idx]) {
-        cards[idx].classList.add('active');
-        playStream(channels[idx], true); // Kullanıcı seçince OYNAT (true gönderdik)
-    }
-}
+            if (channels.length > 0) playStream(channels[0], false);
+            
+            setTimeout(() => {
+                const initialFocus = document.querySelector('.channel-card');
+                if (initialFocus) initialFocus.focus();
+            }, 500);
+        }
 
-function playStream(channel, shouldPlay = true) {
-    currentTrackBadge.innerText = channel.name;
-    if (channel.type === "youtube") {
-        player.src({ src: channel.url, type: "video/youtube" });
-    } else {
-        player.src({ src: channel.url, type: "application/x-mpegURL" });
-    }
-    
-    // Sadece true gelirse otomatik oynatmayı dener
-    if (shouldPlay) {
-        player.ready(() => {
-            player.play().catch(() => console.log("Oynatma başlatılamadı"));
+        function selectChannel(idx) {
+            document.querySelectorAll('.channel-card').forEach(c => c.classList.remove('active'));
+            const cards = document.querySelectorAll('.channel-card');
+            if (cards[idx]) {
+                cards[idx].classList.add('active');
+                playStream(channels[idx], true);
+            }
+        }
+
+        function playStream(channel, shouldPlay = true) {
+            currentTrackBadge.innerText = channel.name;
+
+            const playerEl = document.getElementById('main-tv-player');
+
+            if (channel.type === "iframe") {
+                // Video.js'i durdur ve gizle
+                player.pause();
+                if (playerEl) playerEl.style.display = 'none';
+                
+                // Iframe'i yükle ve göster
+                iframeEl.src = channel.url;
+                iframeEl.style.display = 'block';
+                return;
+            }
+
+            // Iframe'i gizle ve temizle
+            iframeEl.style.display = 'none';
+            iframeEl.src = 'about:blank';
+
+            // Video.js'i görünür yap
+            if (playerEl) playerEl.style.display = 'block';
+
+            if (channel.type === "youtube") {
+                player.src({ src: channel.url, type: "video/youtube" });
+            } else {
+                player.src({ src: channel.url, type: "application/x-mpegURL" });
+            }
+
+            if (shouldPlay) {
+                player.ready(() => {
+                    player.play().catch(() => console.log("Oynatma başlatılamadı"));
+                });
+            }
+        }
+
+        document.addEventListener('keydown', function(e) {
+            const cards = document.querySelectorAll('.channel-card');
+            switch(e.key) {
+                case 'ArrowDown':
+                    e.preventDefault();
+                    if (activeFocusIndex < cards.length - 1) {
+                        activeFocusIndex++;
+                        cards[activeFocusIndex].focus();
+                        cards[activeFocusIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }
+                    break;
+                case 'ArrowUp':
+                    e.preventDefault();
+                    if (activeFocusIndex > 0) {
+                        activeFocusIndex--;
+                        cards[activeFocusIndex].focus();
+                        cards[activeFocusIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }
+                    break;
+                case 'Enter':
+                    e.preventDefault();
+                    selectChannel(activeFocusIndex);
+                    break;
+            }
         });
-    }
-}
 
-// TV Kumandası Tuş Kombinasyonları
-document.addEventListener('keydown', function(e) {
-    const cards = document.querySelectorAll('.channel-card');
-    switch(e.key) {
-        case 'ArrowDown':
-            e.preventDefault();
-            if (activeFocusIndex < cards.length - 1) {
-                activeFocusIndex++;
-                cards[activeFocusIndex].focus();
-                cards[activeFocusIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
-            break;
-        case 'ArrowUp':
-            e.preventDefault();
-            if (activeFocusIndex > 0) {
-                activeFocusIndex--;
-                cards[activeFocusIndex].focus();
-                cards[activeFocusIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
-            break;
-        case 'Enter':
-            e.preventDefault();
-            selectChannel(activeFocusIndex);
-            break;
-    }
-});
-
-document.addEventListener('DOMContentLoaded', initApp);
+        document.addEventListener('DOMContentLoaded', initApp);
     </script>
+
 </body>
 </html>
