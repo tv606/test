@@ -31,8 +31,8 @@
             overflow: hidden;
         }
 
-         html {
-             scrollbar-color: #8b5cf6 #1e1b4b;
+        html {
+            scrollbar-color: #8b5cf6 #1e1b4b;
         }
 
         .player-section {
@@ -67,7 +67,7 @@
             width: 100%;
             height: 350%;
             position: absolute;
-            top: -220px;
+            top: 0;
             left: 0;
             border: none;
         }
@@ -249,7 +249,7 @@
     <script>
         const channels = [
           { name: "WELCOME", logo: "IMG_1030.jpeg", url: "https://lotus.stingray.com/manifest/ose-122ads-montreal/samsungtvplus/master.m3u8", type: "hls" },
-          { name: "TLC TR", logo: "IMG_1030.jpeg", url: "https://www.tlctv.com.tr/canli-izle", type: "iframe" },            
+          { name: "TLC TR", logo: "IMG_1030.jpeg", url: "https://www.tlctv.com.tr/canli-izle", type: "iframe", cropTop: "-220px" },            
           { name: "FX TR", logo: "IMG_1030.jpeg", url: "https://saran-live.ercdn.net/fx/index.m3u8", type: "hls" },
           { name: "CNBC-E", logo: "IMG_1030.jpeg", url: "https://hnpsechtsc.turknet.ercdn.net/xpnvudnlsv/cnbc-e/cnbc-e_720p.m3u8", type: "hls" },
           { name: "TRT1", logo: "IMG_1030.jpeg", url: "https://tv-trt1.medya.trt.com.tr/master_1080.m3u8", type: "hls" },
@@ -346,6 +346,7 @@
                 if (playerEl) playerEl.style.display = 'none';
                 
                 iframeEl.src = channel.url;
+                iframeEl.style.top = channel.cropTop || "0px";
                 iframeContainer.style.display = 'block';
                 return;
             }
