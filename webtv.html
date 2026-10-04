@@ -237,6 +237,13 @@
             flex-direction: column-reverse;
         }
 
+
+     @media screen and (orientation: landscape) and (max-height: 500px) {
+            .iframe-crop-container iframe {
+                transform: translateY(-200px);
+            }
+        }
+
         .player-wrapper { 
             flex: 1;
             height: calc(100vh - 50px);
