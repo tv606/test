@@ -35,7 +35,6 @@
              scrollbar-color: #8b5cf6 #1e1b4b;
         }
 
-        /* 1. MOBİL İÇİN VİDEO BÖLÜMÜ (Masaüstünde flex-direction değişecek) */
         .player-section {
             width: 100%;
             background-color: #000;
@@ -50,6 +49,27 @@
             width: 100%;
             aspect-ratio: 16 / 9;
             background: #000;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .iframe-crop-container {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            overflow: hidden;
+            display: none;
+        }
+
+        .iframe-crop-container iframe {
+            width: 100%;
+            height: 350%;
+            position: absolute;
+            top: -260px;
+            left: 0;
+            border: none;
         }
 
         .video-js {
@@ -84,7 +104,6 @@
             font-weight: 600;
         }
 
-        /* 2. KANAL LİSTESİ BÖLÜMÜ */
         .content-section {
             flex: 1;
             overflow-y: auto;
@@ -130,7 +149,6 @@
         .channel-card.active {
             background: linear-gradient(90deg, rgba(30, 58, 138, 0.6) 0%, rgba(17, 24, 39, 0.8) 100%);
             border-color: #3b82f6;
-            
         }
 
         .logo-container {
@@ -163,15 +181,11 @@
             margin-top: 2px;
         }
 
-        /* ==========================================================================
-           MASAÜSTÜ AYARLARI (Yenilenmiş Sinematik Tam Ekran Düzeni)
-           ========================================================================== */
         @media (min-width: 992px) {
             body { 
-                flex-direction: row-reverse; /* Listeyi sağa, videoyu sola dev ekran olarak yaslar */
+                flex-direction: row-reverse;
             }
 
-            /* Video Alanı: Artık ufacık değil, listenin dışındaki tüm dev alanı kaplar */
             .player-section { 
                 flex: 1; 
                 height: 100vh; 
@@ -180,11 +194,10 @@
                 box-shadow: none;
             }
 
-            /* Video kutusu tüm ekranı dolduracak şekilde esnetildi */
             .player-wrapper { 
                 flex: 1;
-                height: calc(100vh - 55px); /* Bilgi çubuğu yüksekliği düşüldü */
-                aspect-ratio: auto; /* Sabit 16:9 oran zorlamasını kaldırıp tam ekran yaptık */
+                height: calc(100vh - 55px);
+                aspect-ratio: auto;
             }
 
             .info-bar { 
@@ -194,7 +207,6 @@
                 border-bottom: none;
             }
 
-            /* Kanal Listesi: Sol veya sağ tarafta sabit 380px sütun olarak kalır */
             .content-section { 
                 width: 380px; 
                 max-width: 380px; 
@@ -209,23 +221,16 @@
                 border-color: rgba(255, 255, 255, 0.15);
             }
         }
-
-
-          
-
-    
-
-
-
-
     </style>
 </head>
 <body>
 
-    <!-- Oynatıcı Alanı (Masaüstünde Dev Ekran) -->
     <div class="player-section">
         <div class="player-wrapper">
             <video id="main-tv-player" class="video-js vjs-default-skin vjs-big-play-centered" controls preload="auto" playsinline></video>
+            <div class="iframe-crop-container" id="iframeCropContainer">
+                <iframe id="tvIframe" scrolling="no"></iframe>
+            </div>
         </div>
         <div class="info-bar">
             <h1>WEB TV</h1>
@@ -233,7 +238,6 @@
         </div>
     </div>
 
-    <!-- Yan Menü Kanal Listesi -->
     <div class="content-section">
         <div class="section-title">Kanallar</div>
         <div class="channel-grid" id="channelGrid"></div>
@@ -244,11 +248,8 @@
 
     <script>
         const channels = [
-
-            
           { name: "WELCOME", logo: "IMG_1030.jpeg", url: "https://lotus.stingray.com/manifest/ose-122ads-montreal/samsungtvplus/master.m3u8", type: "hls" },
-          { name: "TLC TR", logo: "IMG_1030.jpeg", url: "https://www.tlctv.com.tr/canli-izle", type: "iframe" },           
-
+          { name: "TLC TR", logo: "IMG_1030.jpeg", url: "https://www.tlctv.com.tr/canli-izle", type: "iframe" },            
           { name: "FX TR", logo: "IMG_1030.jpeg", url: "https://saran-live.ercdn.net/fx/index.m3u8", type: "hls" },
           { name: "CNBC-E", logo: "IMG_1030.jpeg", url: "https://hnpsechtsc.turknet.ercdn.net/xpnvudnlsv/cnbc-e/cnbc-e_720p.m3u8", type: "hls" },
           { name: "TRT1", logo: "IMG_1030.jpeg", url: "https://tv-trt1.medya.trt.com.tr/master_1080.m3u8", type: "hls" },
@@ -278,30 +279,18 @@
           { name: "NATURE TIME", logo: "tv-icon-120x.jpg", url: "https://amg01515-amg01515c13-xiaomi-international-4618.playouts.now.amagi.tv/playlist.m3u8", type: "hls" },
           { name: "FASHION TV", logo: "tv-icon-120x.jpg", url: "https://cdn-ue1-prod.tsv2.amagi.tv/linear/amg01546-ftv-fashiontv-xiaomi/playlist.m3u8", type: "hls" },
           { name: "Space Live", logo: "tv-icon-120x.jpg", url: "https://d111bsx9oooqoh.cloudfront.net/playlist_1920x1080.m3u8", type: "hls" },
-        //{ name: "Suspilne Pershyi", logo: "tv-icon-120x.jpg", url: "https://www.youtube.com/watch?v=uOntga5OQrs", type: "youtube" }, 
           { name: "Empty Slot", logo: "tv-icon-120x.jpg", url: "", type: "hls" },
-
-
         ];
 
         let activeFocusIndex = 0;
         let player = null;
-        let iframeEl = null;
 
         const gridContainer = document.getElementById('channelGrid');
         const currentTrackBadge = document.getElementById('currentTrack');
-        const wrapper = document.querySelector('.player-wrapper');
+        const iframeContainer = document.getElementById('iframeCropContainer');
+        const iframeEl = document.getElementById('tvIframe');
 
         function initApp() {
-            // Iframe elementini bir kere oluşturup gizleyelim
-            iframeEl = document.createElement('iframe');
-            iframeEl.style.width = '100%';
-            iframeEl.style.height = '100%';
-            iframeEl.style.border = 'none';
-            iframeEl.style.display = 'none';
-            wrapper.appendChild(iframeEl);
-
-            // Video.js sabit kalsın
             player = videojs('main-tv-player', {
                 fluid: false, 
                 fill: true,   
@@ -353,21 +342,17 @@
             const playerEl = document.getElementById('main-tv-player');
 
             if (channel.type === "iframe") {
-                // Video.js'i durdur ve gizle
                 player.pause();
                 if (playerEl) playerEl.style.display = 'none';
                 
-                // Iframe'i yükle ve göster
                 iframeEl.src = channel.url;
-                iframeEl.style.display = 'block';
+                iframeContainer.style.display = 'block';
                 return;
             }
 
-            // Iframe'i gizle ve temizle
-            iframeEl.style.display = 'none';
+            iframeContainer.style.display = 'none';
             iframeEl.src = 'about:blank';
 
-            // Video.js'i görünür yap
             if (playerEl) playerEl.style.display = 'block';
 
             if (channel.type === "youtube") {
