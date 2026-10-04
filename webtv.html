@@ -181,6 +181,16 @@
             margin-top: 2px;
         }
 
+        @media (orientation: landscape) and (max-width: 991px) {
+          .player-section {
+            height: 100vh;
+          }
+          .player-wrapper {
+            height: 100%;
+            aspect-ratio: auto;
+          }
+        }
+
         @media (min-width: 992px) {
             body { 
                 flex-direction: row-reverse;
