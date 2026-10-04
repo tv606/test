@@ -37,6 +37,19 @@
         background-color: #000000;
     }
 
+    /* Dikey konumlandırma */
+    .iframe-crop-container.is-iframe iframe {
+        top: -230px;
+    }
+
+    /* Yan çevrildiğinde (Landscape) */
+    @media (orientation: landscape) {
+        .iframe-crop-container.is-iframe iframe {
+            top: -200px;
+        }
+    }
+
+
     .player-section {
         width: 100%;
         background-color: #000000;
@@ -237,8 +250,7 @@
             flex-direction: column-reverse;
         }
 
-
-               @media screen and (orientation: landscape) {
+        @media screen and (orientation: landscape) {
             .iframe-crop-container iframe[style] {
                 top: -200px !important;
             }
@@ -386,14 +398,17 @@
             const playerEl = document.getElementById('main-tv-player');
 
             if (channel.type === "iframe") {
-                player.pause();
-                if (playerEl) playerEl.style.display = 'none';
-                
-                iframeEl.src = channel.url;
-                iframeEl.style.top = channel.cropTop || "0px";
-                iframeContainer.style.display = 'block';
-                return;
-            }
+            player.pause();
+            if (playerEl) playerEl.style.display = 'none';
+            
+            iframeEl.src = channel.url;
+            iframeEl.style.top = ''; // Inline style temizlendi
+            iframeContainer.classList.add('is-iframe'); // Sınıf eklendi
+            iframeContainer.style.display = 'block';
+            return;
+        }
+
+        iframeContainer.classList.remove('is-iframe');
 
             iframeContainer.style.display = 'none';
             iframeEl.src = 'about:blank';
